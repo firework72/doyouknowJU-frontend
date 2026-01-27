@@ -1,0 +1,166 @@
+/* Main 컨테이너 스타일 */
+.main-container {
+    width: 100%;
+    margin: 0 auto;
+    padding: 32px 40px;
+    background-color: #e8ecef;
+    min-height: calc(100vh - 80px);
+    /* 헤더 높이 제외 */
+    display: flex;
+    flex-direction: column;
+}
+
+/* 그리드 레이아웃 */
+.main-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+    flex: 1;
+    /* 남은 높이 모두 차지 */
+}
+
+.grid-row {
+    display: flex;
+    gap: 24px;
+    width: 100%;
+    flex: 1;
+    /* 각 행이 균등하게 남은 높이 차지 (혹은 내용물에 따라 조절) */
+}
+
+/* 섹션 카드 기본 스타일 - Card 컴포넌트로 대체되더라도 커스텀 스타일이 필요할 수 있음 */
+/* .section-card 스타일은 Card.css의 기본 스타일로 대체될 수 있지만, 
+   레이아웃 잡아주는 flex 속성 등은 유지해야 할 수 있음. 
+   하지만 Card.jsx는 .card 클래스를 가지고 있고 props로 className을 받음.
+*/
+
+/* 기존 .large-card, .medium-card, .small-card는 flex 속성을 제어하므로 유지 */
+.large-card {
+    flex: 2;
+    min-height: 280px;
+}
+
+.medium-card {
+    flex: 2;
+    min-height: 260px;
+}
+
+.small-card {
+    flex: 1;
+    min-height: 260px;
+}
+
+/* 섹션 제목 */
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 16px 0;
+}
+
+/* 섹션 설명 */
+.section-description {
+    font-size: 15px;
+    color: #888;
+    margin: 6px 0;
+}
+
+/* 섹션 컨텐츠 (나중에 데이터 렌더링용) */
+.section-content {
+    width: 100%;
+    margin-top: 20px;
+}
+
+/* 상단 행 - 급상승, 급하락이 크고 내정보가 작음 */
+.top-row .large-card {
+    flex: 2;
+}
+
+.top-row .small-card {
+    flex: 1;
+    min-width: 280px;
+}
+
+/* 하단 행 - 랭킹, 게시글이 크고 뉴스정보가 작음 */
+.bottom-row .medium-card {
+    flex: 2;
+}
+
+.bottom-row .small-card {
+    flex: 1;
+    min-width: 280px;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1200px) {
+    .main-container {
+        padding: 24px 32px;
+    }
+}
+
+@media (max-width: 992px) {
+    .grid-row {
+        flex-wrap: wrap;
+    }
+
+    .large-card,
+    .medium-card {
+        flex: 1 1 45%;
+        min-width: 300px;
+    }
+
+    .small-card {
+        flex: 1 1 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .main-container {
+        padding: 16px;
+    }
+
+    .grid-row {
+        flex-direction: column;
+    }
+
+    /* Card 컴포넌트에 className으로 전달될 때 스타일 적용 */
+    .card {
+        flex: 1 1 100%;
+        min-height: 180px;
+        min-width: auto;
+    }
+
+    .section-title {
+        font-size: 18px;
+    }
+
+    .section-description {
+        font-size: 14px;
+    }
+}
+
+/* 내정보 버튼/폼 스타일 */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.auth-links {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #666;
+}
+
+.auth-link {
+    color: #4a90e2;
+    text-decoration: none;
+}
+
+.auth-link:hover {
+    text-decoration: underline;
+}
