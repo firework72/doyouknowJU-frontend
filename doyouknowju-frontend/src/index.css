@@ -1,30 +1,40 @@
 :root {
   /* Colors - Light Mode (Default) */
   --color-bg-primary: #ffffff;
-  --color-bg-secondary: #f3f4f6; /* Gray 100 */
-  --color-text-primary: #111827; /* Gray 900 */
-  --color-text-secondary: #4b5563; /* Gray 600 */
+  --color-bg-secondary: #f3f4f6;
+  /* Gray 100 */
+  --color-text-primary: #111827;
+  /* Gray 900 */
+  --color-text-secondary: #4b5563;
+  /* Gray 600 */
   --color-text-inverse: #ffffff;
 
   /* Brand Colors */
   --color-primary: #000000;
-  --color-primary-hover: #374151; /* Gray 700 */
+  --color-primary-hover: #374151;
+  /* Gray 700 */
 
   /* Semantic Colors */
-  --color-blue: #2563eb; /* Blue 600 - Used for Stock Down / Info */
+  --color-blue: #2563eb;
+  /* Blue 600 - Used for Stock Down / Info */
   --color-blue-hover: #1d4ed8;
-  --color-red: #dc2626; /* Red 600 - Used for Stock Up / Danger */
+  --color-red: #dc2626;
+  /* Red 600 - Used for Stock Up / Danger */
   --color-red-hover: #b91c1c;
 
-  --color-success: #10b981; /* Emerald 500 */
-  --color-warning: #f59e0b; /* Amber 500 */
-  
+  --color-success: #10b981;
+  /* Emerald 500 */
+  --color-warning: #f59e0b;
+  /* Amber 500 */
+
   /* Legacy mapping for backward compatibility if needed, 
      but strictly we should use semantically correct vars now */
   --color-danger: var(--color-red);
-  --color-info: #3b82f6; /* Blue 500 */
+  --color-info: #3b82f6;
+  /* Blue 500 */
 
-  --color-border: #e5e7eb; /* Gray 200 */
+  --color-border: #e5e7eb;
+  /* Gray 200 */
 
   /* Spacing */
   --spacing-xs: 0.25rem;
@@ -46,7 +56,7 @@
 
   /* Typography */
   --font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  
+
   font-family: var(--font-family);
   line-height: 1.5;
   font-weight: 400;
@@ -63,16 +73,23 @@
 
 /* Dark Mode Overrides */
 [data-theme='dark'] {
-  --color-bg-primary: #1f2937; /* Gray 800 */
-  --color-bg-secondary: #111827; /* Gray 900 */
-  --color-text-primary: #f9fafb; /* Gray 50 */
-  --color-text-secondary: #d1d5db; /* Gray 300 */
-  
-  --color-primary: #ffffff; /* White in dark mode for contrast? Or keep black? usually inverse or brand color. Let's start with White for high contrast on dark bg, or a light gray. Actually for 'black' brand, dark mode usually inverts to white. */
-  --color-primary-hover: #e5e7eb; /* Gray 200 */
+  --color-bg-primary: #1f2937;
+  /* Gray 800 */
+  --color-bg-secondary: #111827;
+  /* Gray 900 */
+  --color-text-primary: #f9fafb;
+  /* Gray 50 */
+  --color-text-secondary: #d1d5db;
+  /* Gray 300 */
+
+  --color-primary: #ffffff;
+  /* White in dark mode for contrast? Or keep black? usually inverse or brand color. Let's start with White for high contrast on dark bg, or a light gray. Actually for 'black' brand, dark mode usually inverts to white. */
+  --color-primary-hover: #e5e7eb;
+  /* Gray 200 */
   --color-text-inverse: #000000;
 
-  --color-border: #374151; /* Gray 700 */
+  --color-border: #374151;
+  /* Gray 700 */
 }
 
 * {
