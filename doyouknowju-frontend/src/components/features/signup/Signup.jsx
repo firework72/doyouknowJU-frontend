@@ -89,11 +89,15 @@ function Signup() {
                 alert('회원가입이 완료되었습니다!');
                 navigate('/');
             } else {
+                console.error(`서버 에러 발생! 상태코드: ${response.status}`);
+                console.error('에러 상세 내용:', data); 
                 alert(data.message || '회원가입에 실패했습니다.');
             }
         } catch (error) {
-            console.error('회원가입 오류:', error);
-            alert('서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.');
+            console.error('네트워크 또는 통신 오류 발생!');
+            console.error('에러 종류:', error.name);
+            console.error('에러 메시지:', error.message);
+            alert('서버 연결에 실패했습니다. 서버가 실행 중인지 확인하세요.');
         } finally {
             setIsLoading(false);
         }

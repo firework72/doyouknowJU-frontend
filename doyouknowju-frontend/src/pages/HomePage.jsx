@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import './HomePage.css';
 import Card from '../components/common/Card';
 import Input from '../components/common/Input';
+import StockTop10View from '../front/StockView';
 
 function HomePage() {
     return (
@@ -11,12 +12,7 @@ function HomePage() {
                 <div className="grid-row top-row">
                     {/* 급상승 구역 */}
                     <Card className="large-card" id="rising-section">
-                        <h3 className="section-title">급상승</h3>
-                        <p className="section-description">주식명 / 현재가 / 등락률</p>
-                        {/* TODO: 급상승 주식 리스트 구현 */}
-                        <div className="section-content">
-                            {/* 여기에 급상승 주식 데이터를 렌더링 */}
-                        </div>
+                       <StockTop10View />
                     </Card>
 
                     {/* 급하락 구역 */}
