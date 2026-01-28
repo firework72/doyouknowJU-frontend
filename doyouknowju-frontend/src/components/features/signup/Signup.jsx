@@ -70,7 +70,7 @@ function Signup() {
         setIsLoading(true);
 
         try {
-            const response = await fetch('http://localhost:8080/spring/api/members/signup', {
+            const response = await fetch('http://localhost:8080/dykj/api/members/signup', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
