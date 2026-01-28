@@ -116,6 +116,48 @@
   color: #9e9e9e;
 }
 
+/* 검색 자동완성 */
+.search-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-top: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1001;
+  /* 헤더보다 높게 */
+  list-style: none;
+  padding: 0;
+}
+
+.suggestion-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.suggestion-item:hover {
+  background-color: #f5f5f5;
+}
+
+.stock-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.stock-code {
+  font-size: 13px;
+  color: #888;
+}
+
 /* 로그인/로그아웃 */
 .auth-buttons {
   display: flex;

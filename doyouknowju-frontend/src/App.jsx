@@ -13,6 +13,7 @@ function App() {
       <BrowserRouter>
         <Header logoSrc="" />
         <AppRoutes />
+        {/* <StockView /> */}
         <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000 }}>
           <ChatWindow />
         </div>
