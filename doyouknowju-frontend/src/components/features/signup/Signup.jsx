@@ -70,7 +70,7 @@ function Signup() {
         setIsLoading(true);
 
         try {
-            const response = await fetch('http://localhost:8080/api/members/signup', {
+            const response = await fetch('http://localhost:8080/dykj/api/members/signup', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -83,20 +83,23 @@ function Signup() {
                 }),
             });
 
-            const data = await response.json();
+            const result = await response.text();
 
             if (response.ok) {
-                alert('회원가입이 완료되었습니다!');
-                navigate('/');
+                if(result === "SUCCESS"){
+                    alert('회원가입이 완료되었습니다!');
+                    navigate('/');
+                }else if(result === "ALREADY_EXISTS"){
+                    alert('이미 사용중인 아이디 입니다. 다른 아이디를 입력해주세요.');
+                }else{
+                    alert('가입 실패 : '+result);
+                }
             } else {
                 console.error(`서버 에러 발생! 상태코드: ${response.status}`);
-                console.error('에러 상세 내용:', data); 
-                alert(data.message || '회원가입에 실패했습니다.');
+                alert(result.message || '회원가입에 실패했습니다.');
             }
         } catch (error) {
             console.error('네트워크 또는 통신 오류 발생!');
-            console.error('에러 종류:', error.name);
-            console.error('에러 메시지:', error.message);
             alert('서버 연결에 실패했습니다. 서버가 실행 중인지 확인하세요.');
         } finally {
             setIsLoading(false);
