@@ -8,19 +8,23 @@ const useChat = (userId) => {
 
     const fetchInitialMessages = async () => {
         try {
-            // 주소를 아래처럼 http://localhost:8080을 포함한 전체 경로로 바꾸세요!
-            const response = await axios.get('http://localhost:8080/dykj/api/chat/list');
+            // [수정 전] const response = await axios.get('http://localhost:8080/dykj/api/chat/list');
+            // [수정 후] /dykj로 시작하면 Vite가 알아서 8080 서버로 연결해줍니다.
+            const response = await axios.get('/dykj/api/chat/list');
             setMessages(response.data);
         } catch (error) {
             console.error("기존 메시지 로드 실패:", error);
         }
     };
 
+    // 2. 웹소켓 서버 연결 (WS)
     useEffect(() => {
-        // 3. [추가] 채팅창이 켜지자마자 예전 기록부터 가져오기
         fetchInitialMessages();
 
-        const WEB_SOCKET_URL = "ws://localhost:8080/dykj/ws-chat";
+        // [수정 전] const WEB_SOCKET_URL = "ws://localhost:8080/dykj/ws-chat";
+        // [수정 후] 프록시 설정을 통해 상대 경로로 접속이 가능해집니다.
+        const WEB_SOCKET_URL = `ws://${window.location.host}/dykj/ws-chat`;
+
         ws.current = new WebSocket(WEB_SOCKET_URL);
 
         ws.current.onopen = () => {
