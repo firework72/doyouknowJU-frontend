@@ -7,7 +7,7 @@ export const tradeApi = {
     
     // 주식 가격 조회
     getStockPrice: async (stockId) => {
-        const response = await api.get(`http://localhost:8080/spring/api/stocks/${stockId}/price`);
+        const response = await api.get(`http://localhost:8080/dykj/api/stocks/${stockId}/price`);
         return response.data;
     }
 }
