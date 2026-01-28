@@ -1,7 +1,60 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { fetchStockSuggestions } from '../../api/stockApi';
 import './Header.css';
 
 function Header({ logoSrc }) {
+  const [query, setQuery] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (query.length >= 2) {
+        const results = await fetchStockSuggestions(query);
+        if (Array.isArray(results)) {
+          setSuggestions(results);
+          setShowSuggestions(true);
+        } else {
+          setSuggestions([]);
+          setShowSuggestions(false);
+        }
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  const handleInputChange = (e) => {
+    setQuery(e.target.value);
+  };
+
+  const handleSearchSubmit = () => {
+    if (query.trim()) {
+      navigate(`/search?q=${encodeURIComponent(query)}`);
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSearchSubmit();
+    }
+  };
+
+  const handleSuggestionClick = (stock) => {
+
+    const stockId = stock.code || stock.stockId || stock.id;
+
+    navigate(`/stock/${stockId}`);
+    setQuery('');
+    setShowSuggestions(false);
+  };
+
   return (
     <header className="header">
       <div className="header-container">
@@ -32,7 +85,25 @@ function Header({ logoSrc }) {
               type="text"
               placeholder="주식 검색창"
               className="search-input"
+              value={query}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
             />
+            {showSuggestions && suggestions.length > 0 && (
+              <ul className="search-suggestions">
+                {suggestions.map((item, index) => (
+                  <li
+                    key={index}
+                    className="suggestion-item"
+                    onClick={() => handleSuggestionClick(item)}
+                  >
+                    {/* Display name and code, adjust fields as per API */}
+                    <span className="stock-name">{item.name || item.stockName}</span>
+                    <span className="stock-code">{item.id || item.mksc_shrn_iscd || item.code || item.stockId}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       </div>
