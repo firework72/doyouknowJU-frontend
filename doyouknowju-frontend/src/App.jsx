@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import ComponentsTestPage from './pages/ComponentsTestPage'
-import StockView from './front/StockView'
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import './index.css';
@@ -14,7 +13,6 @@ function App() {
       <BrowserRouter>
         <Header logoSrc="" />
         <AppRoutes />
-        <StockView />
         <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000 }}>
           <ChatWindow />
         </div>
