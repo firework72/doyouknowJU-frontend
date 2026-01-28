@@ -86,11 +86,9 @@ function Signup() {
             const result = await response.text();
 
             if (response.ok) {
-                if(result === "SUCCESS"){
+                if(result === "SIGNUP_SUCCESS"){
                     alert('회원가입이 완료되었습니다!');
                     navigate('/');
-                }else if(result === "ALREADY_EXISTS"){
-                    alert('이미 사용중인 아이디 입니다. 다른 아이디를 입력해주세요.');
                 }else{
                     alert('가입 실패 : '+result);
                 }
