@@ -11,8 +11,8 @@ const StockTop10View = () => {
         setLoading(true);
         try {
             // 백엔드에서 작성한 Top 10 API 호출
-            const response = await axios.get(`http://localhost:8080/spring/api/stocks/top10`);
-            
+            const response = await axios.get(`http://localhost:8080/dykj/api/stocks/top10`);
+
             // 응답 데이터 저장 (백엔드 컨트롤러에서 이미 리스트로 반환하도록 짰다면 response.data)
             if (response.data) {
                 setStocks(response.data);
@@ -48,11 +48,11 @@ const StockTop10View = () => {
         <div style={{ padding: '20px', fontFamily: 'Arial', maxWidth: '600px', margin: '0 auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ margin: 0 }}>실시간 거래량 Top 10</h2>
-                <button 
-                    onClick={fetchTop10} 
+                <button
+                    onClick={fetchTop10}
                     disabled={loading}
-                    style={{ 
-                        padding: '5px 10px', 
+                    style={{
+                        padding: '5px 10px',
                         cursor: 'pointer',
                         borderRadius: '4px',
                         border: '1px solid #ccc',
@@ -63,9 +63,9 @@ const StockTop10View = () => {
                 </button>
             </div>
 
-            <div style={{ 
-                border: '1px solid #ddd', 
-                borderRadius: '12px', 
+            <div style={{
+                border: '1px solid #ddd',
+                borderRadius: '12px',
                 overflow: 'hidden',
                 boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
             }}>
@@ -88,9 +88,9 @@ const StockTop10View = () => {
                                     <td style={{ ...styles.td, textAlign: 'right' }}>
                                         {Number(stock.stck_prpr).toLocaleString()}원
                                     </td>
-                                    <td style={{ 
-                                        ...styles.td, 
-                                        textAlign: 'right', 
+                                    <td style={{
+                                        ...styles.td,
+                                        textAlign: 'right',
                                         color: getPriceColor(stock.prdy_ctrt),
                                         fontWeight: 'bold'
                                     }}>
