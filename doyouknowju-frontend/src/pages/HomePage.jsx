@@ -1,16 +1,59 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './HomePage.css';
 import Card from '../components/common/Card';
 import Input from '../components/common/Input';
 import StockTop10View from '../front/StockView';
+import { useEffect, useState } from 'react';
 
 function HomePage() {
+    const navigate = useNavigate();
+    //로그인 된 사용자 정보
+    const [user,setUser] = useState(null);
+    const [loginId,setLoginId] = useState("");
+    const [loginPwd,setLoginPwd] = useState("");
+
+    useEffect(()=>{
+        const logIn = localStorage.getItem('user');
+
+        if(logIn){
+            setUser(JSON.parse(logIn));
+        }
+    },[]);
+
+    const handleLogin = async() =>{
+        try{
+            const response = await fetch('http://localhost:8080/dykj/api/members/login',{
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({userId: loginId, userPwd: loginPwd})
+            });
+            
+            if(response.ok){
+                const data = await response.json();
+                localStorage.setItem('user',JSON.stringify(data));
+                setUser(data);
+                alert("반가워요, "+data.userId+"님!");
+            }else{
+                alert("아이디 또는 비밀번호를 확인해주세요.");
+            }
+        }catch(error){
+            console.error("로그인 중 에러 발생: ",error);
+            alert("서버와 통신 중 오류가 발생했습니다.");
+        }
+    }
+
+    const handleLogout = () =>{
+        localStorage.removeItem('user');
+        setUser(null);
+        alert("로그아웃 되었습니다.");
+        navigate('/');
+    }
+
     return (
         <main className="main-container">
             <div className="main-grid">
-                {/* 상단 행 */}
                 <div className="grid-row top-row">
-                    {/* 급상승 구역 */}
+                    {/* Top10 주식 구역 */}
                     <Card className="large-card" id="rising-section">
                        <StockTop10View />
                     </Card>
@@ -27,23 +70,41 @@ function HomePage() {
 
                     {/* 내정보 구역 */}
                     <Card className="small-card" id="myinfo-section">
-                        <div className="login-form">
-                            <Input
-                                type="text"
-                                placeholder="아이디"
-                                className="login-input"
-                            />
-                            <Input
-                                type="password"
-                                placeholder="비밀번호"
-                                className="login-input"
-                            />
-                            <div className="auth-links">
-                                <Link to="/login" className="auth-link">로그인</Link>
-                                <span className="auth-divider">/</span>
-                                <Link to="/signup" className="auth-link">회원가입</Link>
+                        {user ? (
+                            <div className="user-profile">
+                                <h3 className="section-title">내 정보</h3>
+                                <p className="welcome-msg"><strong>{user.userId}</strong>님, 환영합니다!</p>
+                                <div className="user-stats">
+                                    <p>보유 자산: {user.points?.toLocaleString()}원</p>
+                                    <p>레벨: {user.userLevel}</p>
+                                </div>
+                                <div className="auth-links">
+                                    <button onClick={handleLogout} className="logout-button">로그아웃</button>
+                                </div>
                             </div>
-                        </div>
+                        ) : (
+                            <div className="login-form">
+                                <Input
+                                    type="text"
+                                    placeholder="아이디"
+                                    className="login-input"
+                                    value={loginId}
+                                    onChange={(e)=>setLoginId(e.target.value)}
+                                />
+                                <Input
+                                    type="password"
+                                    placeholder="비밀번호"
+                                    className="login-input"
+                                    value={loginPwd}
+                                    onChange={(e)=>setLoginPwd(e.target.value)}
+                                />
+                                <div className="auth-links">
+                                    <button onClick={handleLogin} className="auth-link-btn">로그인</button>
+                                    <span className="auth-divider">/</span>
+                                    <Link to="/signup" className="auth-link">회원가입</Link>
+                                </div>
+                            </div>
+                        )}
                     </Card>
                 </div>
 
