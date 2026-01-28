@@ -1,14 +1,32 @@
-// src/components/features/chat/ChatWindow.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // 1. 중복 import 정리 및 useRef 추가
 import useChat from '../../../hooks/useChat';
+
+// 시간 형식을 "오후 2:30" 형태로 변환하는 함수
+const formatTime = (isoString) => {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    return date.toLocaleTimeString('ko-KR', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
+};
 
 const ChatWindow = () => {
     const myId = "testUser1";
     const { messages, sendMessage } = useChat(myId);
     const [inputValue, setInputValue] = useState("");
-
-    // 1. 채팅창이 열려있는지 닫혀있는지 관리하는 상태 (기본값: false - 닫힘)
     const [isOpen, setIsOpen] = useState(false);
+
+    // 2. 자동 스크롤을 위한 '깃발(Ref)' 생성
+    const messagesEndRef = useRef(null);
+
+    // 3. 메시지가 추가될 때마다 스크롤을 맨 아래로 내리는 로직
+    useEffect(() => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [messages]); // messages 데이터가 변경될 때마다 실행
 
     const handleSend = () => {
         if (inputValue.trim() === "") return;
@@ -22,19 +40,19 @@ const ChatWindow = () => {
 
     return (
         <>
-            {/* 2. 조건부 렌더링: isOpen이 true일 때만 채팅창을 보여줌 */}
             {isOpen ? (
                 <div style={{
+                    position: 'fixed', bottom: '80px', right: '20px', // 위치 고정 추가
                     border: '1px solid #ccc',
-                    padding: '0',
                     width: '350px',
                     backgroundColor: 'white',
                     boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
                     borderRadius: '10px',
                     display: 'flex',
-                    flexDirection: 'column'
+                    flexDirection: 'column',
+                    zIndex: 1000
                 }}>
-                    {/* 채팅창 헤더 (제목 + 닫기 버튼) */}
+                    {/* 헤더 영역 */}
                     <div style={{
                         padding: '10px 15px',
                         backgroundColor: '#f8f9fa',
@@ -45,30 +63,38 @@ const ChatWindow = () => {
                         borderRadius: '10px 10px 0 0'
                     }}>
                         <h3 style={{ margin: 0, fontSize: '16px' }}>📈 주식 토론방</h3>
-                        <button
-                            onClick={() => setIsOpen(false)}
-                            style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '18px' }}
-                        >
-                            ✖
-                        </button>
+                        <button onClick={() => setIsOpen(false)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '18px' }}>✖</button>
                     </div>
 
                     {/* 채팅 내역 영역 */}
                     <div style={{ height: '350px', overflowY: 'scroll', padding: '15px' }}>
-                        {messages.map((msg, index) => (
-                            <div key={index} style={{ marginBottom: '10px', textAlign: msg.userId === myId ? 'right' : 'left' }}>
-                                <div style={{ fontSize: '12px', color: '#888' }}>{msg.userId}</div>
+                        {Array.isArray(messages) && messages.map((msg, index) => (
+                            <div key={index} style={{ marginBottom: '15px', textAlign: msg.userId === myId ? 'right' : 'left' }}>
+                                <div style={{ fontSize: '12px', color: '#888', marginBottom: '4px' }}>{msg.userId}</div>
                                 <div style={{
-                                    display: 'inline-block',
-                                    padding: '8px 12px',
-                                    borderRadius: '10px',
-                                    backgroundColor: msg.userId === myId ? '#e3f2fd' : '#f1f1f1',
-                                    maxWidth: '80%'
+                                    display: 'flex',
+                                    flexDirection: msg.userId === myId ? 'row-reverse' : 'row',
+                                    alignItems: 'flex-end',
+                                    gap: '5px'
                                 }}>
-                                    {msg.chatContent}
+                                    <div style={{
+                                        display: 'inline-block',
+                                        padding: '8px 12px',
+                                        borderRadius: '10px',
+                                        backgroundColor: msg.userId === myId ? '#e3f2fd' : '#f5f5f5',
+                                        maxWidth: '70%',
+                                        textAlign: 'left'
+                                    }}>
+                                        {msg.chatContent}
+                                    </div>
+                                    <span style={{ fontSize: '10px', color: '#aaa', marginBottom: '2px' }}>
+                                        {formatTime(msg.sendTime)}
+                                    </span>
                                 </div>
                             </div>
                         ))}
+                        {/* 4. 스크롤 도착 지점 (보이지 않는 요소) */}
+                        <div ref={messagesEndRef} />
                     </div>
 
                     {/* 입력 영역 */}
@@ -87,24 +113,16 @@ const ChatWindow = () => {
                     </div>
                 </div>
             ) : (
-                /* 3. 닫혀있을 때 보여줄 '50원 크기'의 버튼 (플로팅 버튼) */
+                /* 플로팅 버튼 */
                 <button
                     onClick={() => setIsOpen(true)}
                     style={{
-                        width: '55px',
-                        height: '55px',
-                        borderRadius: '50%',
-                        backgroundColor: '#007bff',
-                        color: 'white',
-                        border: 'none',
-                        fontSize: '24px',
-                        cursor: 'pointer',
-                        boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center'
+                        position: 'fixed', bottom: '20px', right: '20px',
+                        width: '55px', height: '55px', borderRadius: '50%',
+                        backgroundColor: '#007bff', color: 'white', border: 'none',
+                        fontSize: '24px', cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+                        display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
                     }}
-                    title="채팅 열기"
                 >
                     💬
                 </button>
