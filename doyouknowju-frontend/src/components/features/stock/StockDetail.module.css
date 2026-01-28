@@ -1,0 +1,9 @@
+.stock-detail-container {
+    min-height: calc(100vh - 100px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #ffffff;
+    padding: 100px 20px;
+}
+
