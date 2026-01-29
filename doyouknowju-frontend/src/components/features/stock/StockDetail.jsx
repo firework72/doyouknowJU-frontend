@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { tradeApi } from '../../../api/trade/TradeApi.js';
 import {Button, Input} from '@/components/common';
+import { useAuth } from '../../../hooks/AuthContext.jsx';
 /*
     필요한 상태값 : 주식 ID, 회원 정보
     필요한 함수 : 주식 매수, 주식 매도
@@ -11,9 +12,10 @@ import {Button, Input} from '@/components/common';
 function StockDetail() {
     
     const { stockId } = useParams();
+    const { user } = useAuth();
 
-    // 10초마다 주식 현재가 정보 갱신
     const [stockPrice, setStockPrice] = useState(0);
+    const [stockCount, setStockCount] = useState("0");
 
     const fetchStockPrice = async () => {
         const response = await tradeApi.getStockPrice(stockId);
@@ -21,6 +23,7 @@ function StockDetail() {
     };
 
     useEffect(() => {
+        console.log(user);
         // 마운트 시 초기 1회 주식 현재가 정보 조회
         fetchStockPrice();
 
@@ -36,6 +39,24 @@ function StockDetail() {
             clearInterval();
         };
     }, []);
+
+    const handleStockCountChange = (e) => {
+        console.log(e.target.value);
+        if (e.target.value === "0") {
+            e.preventDefault();
+            return;
+        }
+
+        if (e.target.value.length > 9) {
+            e.preventDefault();
+            return;
+        }
+        setStockCount(e.target.value.replace(/[^0-9]/g, ''));
+    }
+
+    const handleBuy = () => {
+
+    }
     
     return (
         <div className={styles.stockDetailContainer}>
@@ -43,13 +64,20 @@ function StockDetail() {
             <span>{stockId}</span>
             <h3>{stockPrice}</h3>
             <Input
-                type="number"
+                type="text"
                 placeholder="수량"
                 disabled={stockPrice === 0}
+                value={stockCount}
+                min={1}
+                max={999999999}
+                maxLength={9}
+                step={1}
+                onChange={(e)=>handleStockCountChange(e)}
             />
             <Button
                 variant="danger"
                 disabled={stockPrice === 0}
+                onClick={()=>console.log(stockCount)}
             >
                 매수
             </Button>
