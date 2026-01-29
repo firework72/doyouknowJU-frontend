@@ -1,9 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Signup.css';
+import { useAuth } from '../../../hooks/authContext';
 
 function Signup() {
+    const { user } = useAuth();
     const navigate = useNavigate();
+
+    useEffect(()=>{
+        if(user){
+            alert("이미 로그인된 상태입니다.");
+            navigate('/');
+        }
+    },[user, navigate]);
 
     // 폼 상태 관리
     const [formData, setFormData] = useState({

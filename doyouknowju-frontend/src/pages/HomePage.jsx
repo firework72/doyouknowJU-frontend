@@ -3,22 +3,16 @@ import './HomePage.css';
 import Card from '../components/common/Card';
 import Input from '../components/common/Input';
 import StockTop10View from '../front/StockView';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useAuth } from '../hooks/authContext';
 
 function HomePage() {
     const navigate = useNavigate();
-    //로그인 된 사용자 정보
-    const [user,setUser] = useState(null);
+    //회원, 로그인 정보 불러오기
+    const {user, login, logout} = useAuth();
+
     const [loginId,setLoginId] = useState("");
     const [loginPwd,setLoginPwd] = useState("");
-
-    useEffect(()=>{
-        const logIn = localStorage.getItem('user');
-
-        if(logIn){
-            setUser(JSON.parse(logIn));
-        }
-    },[]);
 
     const handleLogin = async() =>{
         try{
@@ -30,8 +24,7 @@ function HomePage() {
             
             if(response.ok){
                 const data = await response.json();
-                localStorage.setItem('user',JSON.stringify(data));
-                setUser(data);
+                login(data);
                 alert("반가워요, "+data.userId+"님!");
             }else{
                 alert("아이디 또는 비밀번호를 확인해주세요.");
@@ -43,10 +36,8 @@ function HomePage() {
     }
 
     const handleLogout = () =>{
-        localStorage.removeItem('user');
-        setUser(null);
+        logout();
         alert("로그아웃 되었습니다.");
-        navigate('/');
     }
 
     return (
