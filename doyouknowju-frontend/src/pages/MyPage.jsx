@@ -1,37 +1,33 @@
 import { useState, useEffect } from 'react';
 import './MyPage.css';
+import { useAuth } from '../hooks/authContext';
+import { useNavigate } from 'react-router-dom';
+import { Spinner } from '../components/common';
 
 const MyPage = () => {
-    const [memberInfo, setMemberInfo] = useState(null);
+    const { user, setUser, loading:authLoading } = useAuth();
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchMemberInfo = async () => {
 
-            //사용자 정보 가져오기
-            const loginUser = JSON.parse(localStorage.getItem('user'));
-
-            if(!loginUser || !loginUser.userId){
+            if(!user) {
                 alert("로그인이 필요한 페이지입니다.");
-                window.location.href="/";
+                navigate('/',{replace:true});
                 return;
             }
+
             try {
                 const response = await fetch(`http://localhost:8080/dykj/api/members/info?userId=${loginUser.userId}`);
                 
-                if (!response.ok) {
-                    throw new Error('Failed to fetch user info');
+                if (response.ok) {
+                    const result = await response.json();
+                    setUser(result);
+                    localStorage.setItem('user',JSON.stringify(result));
                 }
-
-                const result = await response.json();
-                setMemberInfo(result);
-
-                localStorage.setItem('user',JSON.stringify(result));
             } catch (err) {
-                console.error("Error fetching member info:", err);
-                setError(err.message);
-                setMemberInfo(loginUser);
+                console.error("데이터 로딩 실패 : ", err);
             } finally {
                 setLoading(false);
             }
@@ -40,31 +36,43 @@ const MyPage = () => {
         fetchMemberInfo();
     }, []);
 
-    if (loading) return <div className="mypage-container">Loading...</div>;
+    if (authLoading || loading){
+        return (
+        <div className="signup-loading-wrapper">
+            <Spinner size="lg"/>
+            <p className="loading-text">정보를 불러오는 중...</p>
+        </div>
+        );
+    }
+
+    if(!user) return null;
 
     return (
         <div className="mypage-container">
             <div className="mypage-grid">
                 {/* My Info Card */}
                 <div className="mypage-card my-info-card">
-                    <div className="section-title">내정보</div>
+                    <div className="section-title">내정보
+
+                        <button>출석체크</button>
+                    </div>
 
                     <div className="info-list">
                         <div className="info-item">
                             <span className="info-label">아이디</span>
-                            <span className="info-value">{memberInfo?.userId}</span>
+                            <span className="info-value">{user.userId}</span>
                         </div>
                         <div className="info-item">
                             <span className="info-label">경험치</span>
-                            <span className="info-value">{memberInfo?.experience}</span>
+                            <span className="info-value">{user.experience}</span>
                         </div>
                         <div className="info-item">
                             <span className="info-label">레벨</span>
-                            <span className="info-value">Lv. {memberInfo?.userLevel}</span>
+                            <span className="info-value">Lv. {user.userLevel}</span>
                         </div>
                         <div className="info-item">
                             <span className="info-label">보유 포인트</span>
-                            <span className="info-value">{memberInfo?.points?.toLocaleString()} P</span>
+                            <span className="info-value">{user.points?.toLocaleString()} P</span>
                         </div>
                     </div>
                 </div>
