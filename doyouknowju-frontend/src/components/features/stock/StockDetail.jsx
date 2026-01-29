@@ -2,6 +2,7 @@ import styles from './StockDetail.module.css';
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { tradeApi } from '../../../api/trade/TradeApi.js';
+import BuyConfirmModal from './components/BuyConfirmModal.jsx';
 import {Button, Input} from '@/components/common';
 import { useAuth } from '../../../hooks/AuthContext.jsx';
 /*
@@ -16,6 +17,7 @@ function StockDetail() {
 
     const [stockPrice, setStockPrice] = useState(0);
     const [stockCount, setStockCount] = useState("0");
+    const [isOpen, setIsOpen] = useState(true);
 
     const fetchStockPrice = async () => {
         const response = await tradeApi.getStockPrice(stockId);
@@ -59,35 +61,60 @@ function StockDetail() {
     }
     
     return (
-        <div className={styles.stockDetailContainer}>
-            <h1>StockDetail</h1>
-            <span>{stockId}</span>
-            <h3>{stockPrice}</h3>
-            <Input
-                type="text"
-                placeholder="수량"
-                disabled={stockPrice === 0}
-                value={stockCount}
-                min={1}
-                max={999999999}
-                maxLength={9}
-                step={1}
-                onChange={(e)=>handleStockCountChange(e)}
-            />
-            <Button
-                variant="danger"
-                disabled={stockPrice === 0}
-                onClick={()=>console.log(stockCount)}
-            >
-                매수
-            </Button>
-            <Button
-                variant="primary"
-                disabled={stockPrice === 0}
-            >
-                매도
-            </Button>  
-        </div>
+        <>
+            <div className={styles.stockDetailContainer}>
+                <h1>StockDetail</h1>
+                <span>{stockId}</span>
+                <h3>{stockPrice}</h3>
+                <Input
+                    type="text"
+                    placeholder="수량"
+                    disabled={stockPrice === 0}
+                    value={stockCount}
+                    min={1}
+                    max={999999999}
+                    maxLength={9}
+                    step={1}
+                    onChange={(e)=>handleStockCountChange(e)}
+                />
+                <Button
+                    variant="danger"
+                    disabled={stockPrice === 0}
+                    onClick={()=>setIsOpen(true)}
+                >
+                    매수
+                </Button>
+                <Button
+                    variant="primary"
+                    disabled={stockPrice === 0}
+                >
+                    매도
+                </Button>  
+            </div>
+            <BuyConfirmModal isOpen={isOpen}
+            onClose={()=>setIsOpen(false)}
+            footer={
+                <>
+                    <Button
+                        variant="danger"
+                        onClick={()=>setIsOpen(false)}
+                    >
+                        취소
+                    </Button>
+                    <Button
+                        variant="primary"
+                        onClick={()=>handleBuy()}
+                    >
+                        매수
+                    </Button>
+                </>
+            }>
+                <p>매수하시겠습니까?</p>
+                <p>주식 수량 : {stockCount}</p>
+                <p>주식 가격 : {stockPrice}</p>
+                <p>총 가격 : {stockCount * stockPrice}</p>
+            </BuyConfirmModal>
+        </> 
     );
 }
 
