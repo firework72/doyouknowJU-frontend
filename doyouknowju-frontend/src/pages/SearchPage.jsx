@@ -2,22 +2,47 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-// 개별 주식 항목 컴포넌트 (가격 정보 제거)
-const StockListItem = ({ stock, navigate }) => {
+// 개별 주식 항목 컴포넌트
+const StockListItem = ({ stock, priceInfo, navigate }) => {
     const stockId = stock.stockId;
     const stockName = stock.stockName;
 
+    const signNum = priceInfo?.prdy_vrss_sign ? parseInt(priceInfo.prdy_vrss_sign, 10) : NaN;
+    const arrow = signNum === 1 || signNum === 2 ? '▲' : (signNum === 4 || signNum === 5 ? '▼' : '');
+
+    const currentPriceNum = priceInfo?.stck_prpr != null ? Number(priceInfo.stck_prpr) : NaN;
+    const currentPrice = Number.isFinite(currentPriceNum) ? currentPriceNum.toLocaleString() : '-';
+
+    const changeValueNum = priceInfo?.prdy_vrss != null ? Number(priceInfo.prdy_vrss) : NaN;
+    const changeValue = Number.isFinite(changeValueNum) ? changeValueNum.toLocaleString() : null;
+
+    const changeRateNum = priceInfo?.prdy_ctrt != null ? Number(priceInfo.prdy_ctrt) : NaN;
+    const changeRate = Number.isFinite(changeRateNum) ? changeRateNum : null;
+
+    const getPriceColor = () => {
+        if (!priceInfo) return '#333';
+        if (signNum === 1 || signNum === 2) return '#d20d0d'; // 상승
+        if (signNum === 4 || signNum === 5) return '#0d42d2'; // 하락
+        return '#333';
+    };
+
     return (
-        <div
-            style={styles.listItem}
-            onClick={() => navigate(`/stock/${stockId}`)}
-        >
+        <div style={styles.listItem} onClick={() => navigate(`/stock/${stockId}`)}>
             <div>
                 <div style={styles.stockName}>{stockName}</div>
                 <div style={styles.stockCode}>{stockId}</div>
             </div>
+
             <div style={{ textAlign: 'right' }}>
-                <div style={styles.moveButton}>상세보기 〉</div>
+                <div style={styles.priceText}>
+                    {currentPrice !== '-' ? `${currentPrice}원` : '가격을 불러오는 중...'}
+                </div>
+
+                {priceInfo && changeRate != null && changeValue != null && (
+                    <div style={{ fontSize: '14px', color: getPriceColor(), fontWeight: 'bold' }}>
+                        {arrow} {changeValue} ({changeRate}%)
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -25,30 +50,59 @@ const StockListItem = ({ stock, navigate }) => {
 
 const SearchPage = () => {
     const [searchParams] = useSearchParams();
-    const query = searchParams.get('q');
+    const query = searchParams.get('q') || '';
     const [results, setResults] = useState([]);
+    const [prices, setPrices] = useState({}); // { "005930": {...}, "000660": {...} }
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchSearchResults = async () => {
-            if (!query) return;
+        const controller = new AbortController();
+
+        const fetchAllData = async () => {
+            const q = query.trim();
+            if (!q) return;
+
             setLoading(true);
             try {
-                // 검색 호출 (Context Path: /dykj 반영)
+                // 1) 검색 결과 (DB)
                 const searchRes = await axios.get(
-                    `http://localhost:8080/dykj/api/stocks/search?q=${encodeURIComponent(query)}&page=1&size=20`
+                    `http://localhost:8080/dykj/api/stocks/search?q=${encodeURIComponent(q)}&page=1&size=20`,
+                    { signal: controller.signal }
                 );
+
                 const searchData = Array.isArray(searchRes.data) ? searchRes.data : [];
                 setResults(searchData);
+
+                // 2) 가격 (KIS, 최대 20개)
+                const ids = searchData
+                    .map((s) => s?.stockId)
+                    .filter(Boolean)
+                    .slice(0, 20);
+
+                if (ids.length > 0) {
+                    const priceRes = await axios.post(
+                        'http://localhost:8080/dykj/api/stocks/prices',
+                        { stockIds: ids },
+                        { headers: { 'Content-Type': 'application/json' }, signal: controller.signal }
+                    );
+
+                    setPrices(priceRes.data || {});
+                } else {
+                    setPrices({});
+                }
             } catch (error) {
-                console.error("Search failed:", error);
+                if (error?.name !== 'CanceledError' && error?.code !== 'ERR_CANCELED') {
+                    console.error('데이터 로드 중 오류 발생:', error);
+                }
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchSearchResults();
+        fetchAllData();
+
+        return () => controller.abort();
     }, [query]);
 
     return (
@@ -58,16 +112,20 @@ const SearchPage = () => {
             </h2>
 
             {loading ? (
-                <div style={styles.message}>검색 중입니다...</div>
+                <div style={styles.message}>데이터를 불러오는 중입니다...</div>
             ) : results.length > 0 ? (
                 <div style={styles.listWrapper}>
-                    {results.map((stock, index) => (
-                        <StockListItem
-                            key={stock.stockId || index}
-                            stock={stock}
-                            navigate={navigate}
-                        />
-                    ))}
+                    {results.map((stock, index) => {
+                        const stockId = stock?.stockId;
+                        return (
+                            <StockListItem
+                                key={stockId || index}
+                                stock={stock}
+                                priceInfo={stockId ? prices[stockId] : undefined}
+                                navigate={navigate}
+                            />
+                        );
+                    })}
                 </div>
             ) : (
                 <div style={styles.message}>검색 결과가 없습니다.</div>
@@ -92,7 +150,7 @@ const styles = {
     },
     stockName: { fontSize: '18px', fontWeight: 'bold', marginBottom: '4px' },
     stockCode: { fontSize: '14px', color: '#888' },
-    moveButton: { fontSize: '14px', color: '#888' }
+    priceText: { fontSize: '18px', fontWeight: 'bold', marginBottom: '4px' },
 };
 
 export default SearchPage;
