@@ -4,38 +4,38 @@ import Card from '../components/common/Card';
 import Input from '../components/common/Input';
 import StockTop10View from '../front/StockView';
 import { useState } from 'react';
-import { useAuth } from '../hooks/authContext';
+import { useAuth } from '../hooks/AuthContext';
 
 function HomePage() {
     const navigate = useNavigate();
     //회원, 로그인 정보 불러오기
-    const {user, login, logout} = useAuth();
+    const { user, login, logout } = useAuth();
 
-    const [loginId,setLoginId] = useState("");
-    const [loginPwd,setLoginPwd] = useState("");
+    const [loginId, setLoginId] = useState("");
+    const [loginPwd, setLoginPwd] = useState("");
 
-    const handleLogin = async() =>{
-        try{
-            const response = await fetch('http://localhost:8080/dykj/api/members/login',{
+    const handleLogin = async () => {
+        try {
+            const response = await fetch('http://localhost:8080/dykj/api/members/login', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({userId: loginId, userPwd: loginPwd})
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: loginId, userPwd: loginPwd })
             });
-            
-            if(response.ok){
+
+            if (response.ok) {
                 const data = await response.json();
                 login(data);
-                alert("반가워요, "+data.userId+"님!");
-            }else{
+                alert("반가워요, " + data.userId + "님!");
+            } else {
                 alert("아이디 또는 비밀번호를 확인해주세요.");
             }
-        }catch(error){
-            console.error("로그인 중 에러 발생: ",error);
+        } catch (error) {
+            console.error("로그인 중 에러 발생: ", error);
             alert("서버와 통신 중 오류가 발생했습니다.");
         }
     }
 
-    const handleLogout = () =>{
+    const handleLogout = () => {
         logout();
         alert("로그아웃 되었습니다.");
     }
@@ -46,7 +46,7 @@ function HomePage() {
                 <div className="grid-row top-row">
                     {/* Top10 주식 구역 */}
                     <Card className="large-card" id="rising-section">
-                       <StockTop10View />
+                        <StockTop10View />
                     </Card>
 
                     {/* 급하락 구역 */}
@@ -80,14 +80,14 @@ function HomePage() {
                                     placeholder="아이디"
                                     className="login-input"
                                     value={loginId}
-                                    onChange={(e)=>setLoginId(e.target.value)}
+                                    onChange={(e) => setLoginId(e.target.value)}
                                 />
                                 <Input
                                     type="password"
                                     placeholder="비밀번호"
                                     className="login-input"
                                     value={loginPwd}
-                                    onChange={(e)=>setLoginPwd(e.target.value)}
+                                    onChange={(e) => setLoginPwd(e.target.value)}
                                 />
                                 <div className="auth-links">
                                     <button onClick={handleLogin} className="auth-link-btn">로그인</button>
