@@ -56,8 +56,16 @@ function StockDetail() {
         setStockCount(e.target.value.replace(/[^0-9]/g, ''));
     }
 
-    const handleBuy = () => {
+    const handleBuy = async () => {
+        const data = {
+            stockId: stockId,
+            stockCount: stockCount,
+            stockPrice: stockPrice,
+            userId: user.userId
+        }
 
+        const response = await tradeApi.buyStock(data);
+        console.log(response);
     }
     
     return (
