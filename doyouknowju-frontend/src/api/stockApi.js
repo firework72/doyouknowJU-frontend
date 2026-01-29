@@ -8,7 +8,7 @@ import axios from 'axios';
 // Suggestion API (Autocomplete)
 export const fetchStockSuggestions = async (query) => {
     try {
-        const response = await axios.get('http://localhost:8080/dykj/api/stocks/suggest', {
+        const response = await axios.get('/dykj/api/stocks/suggest', {
             params: { q: query },
         });
 
@@ -27,7 +27,7 @@ export const fetchStockSuggestions = async (query) => {
 // Search Result API (Full list)
 export const searchStocks = async (query) => {
     try {
-        const response = await axios.get('http://localhost:8080/dykj/api/stocks/search', {
+        const response = await axios.get('/dykj/api/stocks/search', {
             params: { q: query },
         });
 
@@ -40,17 +40,5 @@ export const searchStocks = async (query) => {
     } catch (error) {
         console.error('Error searching stocks:', error);
         throw error;
-    }
-};
-
-// Stock Price API
-export const fetchStockPrice = async (stockId) => {
-    try {
-        const response = await axios.get(`http://localhost:8080/dykj/api/stocks/${stockId}/price`);
-        // KIS API response typically wraps real data in 'output'
-        return response.data.output || response.data;
-    } catch (error) {
-        console.error(`Error fetching price for ${stockId}:`, error);
-        return null; // Return null on error to handle gracefully
     }
 };

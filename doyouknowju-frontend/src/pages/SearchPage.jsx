@@ -67,27 +67,101 @@ const SearchPage = () => {
             try {
                 // 1) 검색 결과 (DB)
                 const searchRes = await axios.get(
-                    `http://localhost:8080/dykj/api/stocks/search?q=${encodeURIComponent(q)}&page=1&size=20`,
+                    `/dykj/api/stocks/search?q=${encodeURIComponent(q)}&page=1&size=30`,
                     { signal: controller.signal }
                 );
 
                 const searchData = Array.isArray(searchRes.data) ? searchRes.data : [];
                 setResults(searchData);
 
-                // 2) 가격 (KIS, 최대 20개)
+                // 2) 가격 (KIS, 최대 30개)
                 const ids = searchData
                     .map((s) => s?.stockId)
                     .filter(Boolean)
-                    .slice(0, 20);
+                    .slice(0, 30);
 
                 if (ids.length > 0) {
-                    const priceRes = await axios.post(
-                        'http://localhost:8080/dykj/api/stocks/prices',
-                        { stockIds: ids },
-                        { headers: { 'Content-Type': 'application/json' }, signal: controller.signal }
-                    );
+                    let fetchedPrices = {};
+                    try {
+                        const priceRes = await axios.post(
+                            '/dykj/api/stocks/prices',
+                            { stockIds: ids },
+                            { headers: { 'Content-Type': 'application/json' }, signal: controller.signal }
+                        );
+                        fetchedPrices = priceRes.data || {};
+                    } catch (err) {
+                        console.warn('Bulk price fetch failed, falling back to individual fetch', err);
+                    }
 
-                    setPrices(priceRes.data || {});
+                    // prices 실행해서 한번 긁어오기
+                    setPrices(fetchedPrices);
+
+                    // 로컬 변수로 현재까지 확보된 가격 정보를 추적 (React State는 비동기라 즉시 반영 안됨)
+                    const localPrices = { ...fetchedPrices };
+
+                    // 3) 누락된 종목 (혹은 멀티페치 실패시 전체) 단건 조회
+                    const missingIds = ids.filter(id => !localPrices[id]);
+
+                    for (const id of missingIds) {
+                        if (controller.signal.aborted) break;
+
+                        // 500ms 딜레이
+                        await new Promise(resolve => setTimeout(resolve, 500));
+
+                        try {
+                            const singleRes = await axios.get(
+                                `/dykj/api/stocks/${id}/price`,
+                                { signal: controller.signal }
+                            );
+
+                            const priceData = singleRes.data.output || singleRes.data;
+                            if (priceData) {
+                                // 로컬 변수 업데이트
+                                localPrices[id] = priceData;
+                                // 상태 업데이트
+                                setPrices(prev => ({
+                                    ...prev,
+                                    [id]: priceData
+                                }));
+                            }
+                        } catch (e) {
+                            if (e?.name !== 'CanceledError') {
+                                console.error(`개별 시세 조회 실패 (${id}):`, e);
+                            }
+                        }
+                    }
+
+                    // 4) 3단계: 여전히 누락된 종목 재시도 (Retry)
+                    const retryIds = ids.filter(id => !localPrices[id]);
+                    if (retryIds.length > 0) {
+                        // console.log('재시도 대상:', retryIds);
+                        for (const id of retryIds) {
+                            if (controller.signal.aborted) break;
+
+                            // 재시도는 500ms 딜레이 유지
+                            await new Promise(resolve => setTimeout(resolve, 500));
+
+                            try {
+                                const retryRes = await axios.get(
+                                    `/dykj/api/stocks/${id}/price`,
+                                    { signal: controller.signal }
+                                );
+
+                                const retryData = retryRes.data.output || retryRes.data;
+                                if (retryData) {
+                                    localPrices[id] = retryData; // (선택적)
+                                    setPrices(prev => ({
+                                        ...prev,
+                                        [id]: retryData
+                                    }));
+                                }
+                            } catch (e) {
+                                if (e?.name !== 'CanceledError') {
+                                    console.error(`개별 시세 재조회(3단계) 실패 (${id}):`, e);
+                                }
+                            }
+                        }
+                    }
                 } else {
                     setPrices({});
                 }
