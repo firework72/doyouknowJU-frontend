@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { tradeApi } from '../../../api/trade/TradeApi.js';
 import BuyConfirmModal from './components/BuyConfirmModal.jsx';
-import {Button, Input} from '@/components/common';
+import {Button, Input, Card} from '@/components/common';
 import { useAuth } from '../../../hooks/AuthContext.jsx';
 import Toast from '../../common/Toast.jsx';
 import SellConfirmModal from './components/SellConfirmModal.jsx';
@@ -144,31 +144,45 @@ function StockDetail() {
                                 <span>{stockId}</span>
                             </div>
                             <h2 className={stockFluctuation > 0 ? styles.riseColor : styles.fallColor}>{stockPrice} ({stockFluctuation}, {stockContrastRatio})</h2>
-                            <Input
-                                type="text"
-                                placeholder="수량"
-                                disabled={stockPrice === 0}
-                                value={stockCount}
-                                min={1}
-                                max={999999999}
-                                maxLength={9}
-                                step={1}
-                                onChange={(e)=>handleStockCountChange(e)}
-                            />
-                            <Button
-                                variant="danger"
-                                disabled={stockPrice === 0}
-                                onClick={()=>setBuyModalOpen(true)}
-                            >
-                                매수
-                            </Button>
-                            <Button
-                                variant="primary"
-                                disabled={stockPrice === 0}
-                                onClick={()=>setSellModalOpen(true)}
-                            >
-                                매도
-                            </Button>
+                            <Card>
+                                <h2>차트</h2>
+                                <p>Stock Chart will be here.</p>
+                            </Card>
+                            <Card>
+                                <h2>주식 매수/매도</h2>
+                                <p>수량을 선택하고 매수/매도 버튼을 눌러 거래하세요.</p>
+                                <p>현재 {user.points}원을 보유하고 있습니다.</p>
+                                <br></br>
+                                <div className={styles.alignRow}>
+                                    <Input
+                                        type="text"
+                                        placeholder="수량"
+                                        disabled={stockPrice === 0}
+                                        value={stockCount}
+                                        min={1}
+                                        max={999999999}
+                                        maxLength={9}
+                                        step={1}
+                                        onChange={(e)=>handleStockCountChange(e)}
+                                    />
+
+                                </div>                            
+                                <Button
+                                    variant="danger"
+                                    disabled={stockPrice === 0}
+                                    onClick={()=>setBuyModalOpen(true)}
+                                >
+                                    매수
+                                </Button>
+                                <Button
+                                    variant="primary"
+                                    disabled={stockPrice === 0}
+                                    onClick={()=>setSellModalOpen(true)}
+                                >
+                                    매도
+                                </Button>
+                            </Card>
+
                         </>
                     )
                 }
@@ -178,13 +192,13 @@ function StockDetail() {
             footer={
                 <>
                     <Button
-                        variant="danger"
+                        variant="secondary"
                         onClick={()=>setBuyModalOpen(false)}
                     >
                         취소
                     </Button>
                     <Button
-                        variant="primary"
+                        variant="danger"
                         onClick={()=>handleBuy()}
                     >
                         매수
@@ -201,7 +215,7 @@ function StockDetail() {
             footer={
                 <>
                     <Button
-                        variant="danger"
+                        variant="secondary"
                         onClick={()=>setSellModalOpen(false)}
                     >
                         취소
