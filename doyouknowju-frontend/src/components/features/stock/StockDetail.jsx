@@ -3,9 +3,10 @@ import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { tradeApi } from '../../../api/trade/TradeApi.js';
 import BuyConfirmModal from './components/BuyConfirmModal.jsx';
-import {Button, Input} from '@/components/common';
+import {Button, Input, Card} from '@/components/common';
 import { useAuth } from '../../../hooks/AuthContext.jsx';
 import Toast from '../../common/Toast.jsx';
+import SellConfirmModal from './components/SellConfirmModal.jsx';
 /*
     필요한 상태값 : 주식 ID, 회원 정보
     필요한 함수 : 주식 매수, 주식 매도
@@ -20,27 +21,35 @@ function StockDetail() {
     const [stockCount, setStockCount] = useState("1");
     const [stockFluctuation, setStockFluctuation] = useState(0);
     const [stockContrastRatio, setStockContrastRatio] = useState(0);
+    const [stockName, setStockName] = useState("");
 
     const [pageLoading, setPageLoading] = useState(true);    
     const [toast, setToast] = useState(null);
-    const [isOpen, setIsOpen] = useState(false);
+    const [buyModalOpen, setBuyModalOpen] = useState(false);
+    const [sellModalOpen, setSellModalOpen] = useState(false);
 
-    const fetchStockPrice = async () => {
-        const response = await tradeApi.getStockPrice(stockId);
-        setStockPrice(response.output.stck_prpr);
-        setStockFluctuation(response.output.prdy_vrss);
-        setStockContrastRatio(response.output.prdy_ctrt);
+    const fetchStockName = async () => {
+        const response = await tradeApi.getStockName(stockId);
+        setStockName(response);
+    }
+
+    const fetchStockInfo = async () => {
+        const priceResponse = await tradeApi.getStockPrice(stockId);
+        setStockPrice(priceResponse.output.stck_prpr);
+        setStockFluctuation(priceResponse.output.prdy_vrss);
+        setStockContrastRatio(priceResponse.output.prdy_ctrt);
     };
 
     useEffect(() => {
+        setPageLoading(true);
         console.log(stockId);
         console.log(user);
+        fetchStockName();
         // 마운트 시 초기 1회 주식 현재가 정보 조회
-        fetchStockPrice();
-
+        fetchStockInfo();
         // 이후 10초마다 주식 현재가 정보 갱신
         const intervalId = setInterval(() => {
-            fetchStockPrice();
+            fetchStockInfo();
         }, 10000);
 
         setPageLoading(false);
@@ -85,7 +94,32 @@ function StockDetail() {
             console.log(error);
             showToast("error", error.response.data);
         } finally {
-            setIsOpen(false);
+            setBuyModalOpen(false);
+        }
+    }
+
+    const handleSell = async () => {
+        // 종목코드, 매도개수, 매도가격, 회원ID, 거래종류, 총매도가격 전달
+
+        const data = {
+            stockId: stockId,
+            tradeCount: stockCount,
+            stockPrice: stockPrice,
+            userId: user.userId,
+            tradeCategory : "SELL",
+            totalTradePrice: stockPrice * stockCount
+        }
+        try {
+            const response = await tradeApi.sellStock(data);
+            console.log(response);
+            showToast("success", "매도되었습니다.");
+            // 현재 회원의 잔고를 업데이트한다.
+            setUser({...user, points: response.afterBalance})
+        } catch (error) {
+            console.log(error);
+            showToast("error", error.response.data);
+        } finally {
+            setSellModalOpen(false);
         }
     }
 
@@ -99,53 +133,72 @@ function StockDetail() {
                 {
                     pageLoading ? (
                         <p>데이터를 불러오고 있습니다.</p>
+                    ) : stockName === "" ? (
+                        <>
+                            <p>⚠︎ 존재하지 않는 종목입니다.</p>
+                        </>
                     ) : (
                         <>
                             <div className={styles.inline}>
-                                <h1>StockDetail</h1>
+                                <h1>{stockName}</h1>
                                 <span>{stockId}</span>
                             </div>
                             <h2 className={stockFluctuation > 0 ? styles.riseColor : styles.fallColor}>{stockPrice} ({stockFluctuation}, {stockContrastRatio})</h2>
-                            <Input
-                                type="text"
-                                placeholder="수량"
-                                disabled={stockPrice === 0}
-                                value={stockCount}
-                                min={1}
-                                max={999999999}
-                                maxLength={9}
-                                step={1}
-                                onChange={(e)=>handleStockCountChange(e)}
-                            />
-                            <Button
-                                variant="danger"
-                                disabled={stockPrice === 0}
-                                onClick={()=>setIsOpen(true)}
-                            >
-                                매수
-                            </Button>
-                            <Button
-                                variant="primary"
-                                disabled={stockPrice === 0}
-                            >
-                                매도
-                            </Button>
+                            <Card>
+                                <h2>차트</h2>
+                                <p>Stock Chart will be here.</p>
+                            </Card>
+                            <Card>
+                                <h2>주식 매수/매도</h2>
+                                <p>수량을 선택하고 매수/매도 버튼을 눌러 거래하세요.</p>
+                                <p>현재 {user.points}원을 보유하고 있습니다.</p>
+                                <br></br>
+                                <div className={styles.alignRow}>
+                                    <Input
+                                        type="text"
+                                        placeholder="수량"
+                                        disabled={stockPrice === 0}
+                                        value={stockCount}
+                                        min={1}
+                                        max={999999999}
+                                        maxLength={9}
+                                        step={1}
+                                        onChange={(e)=>handleStockCountChange(e)}
+                                    />
+
+                                </div>                            
+                                <Button
+                                    variant="danger"
+                                    disabled={stockPrice === 0}
+                                    onClick={()=>setBuyModalOpen(true)}
+                                >
+                                    매수
+                                </Button>
+                                <Button
+                                    variant="primary"
+                                    disabled={stockPrice === 0}
+                                    onClick={()=>setSellModalOpen(true)}
+                                >
+                                    매도
+                                </Button>
+                            </Card>
+
                         </>
                     )
                 }
             </div>
-            <BuyConfirmModal isOpen={isOpen}
-            onClose={()=>setIsOpen(false)}
+            <BuyConfirmModal isOpen={buyModalOpen}
+            onClose={()=>setBuyModalOpen(false)}
             footer={
                 <>
                     <Button
-                        variant="danger"
-                        onClick={()=>setIsOpen(false)}
+                        variant="secondary"
+                        onClick={()=>setBuyModalOpen(false)}
                     >
                         취소
                     </Button>
                     <Button
-                        variant="primary"
+                        variant="danger"
                         onClick={()=>handleBuy()}
                     >
                         매수
@@ -157,6 +210,29 @@ function StockDetail() {
                 <p>주식 가격 : {stockPrice}</p>
                 <p>총 가격 : {stockCount * stockPrice}</p>
             </BuyConfirmModal>
+            <SellConfirmModal isOpen={sellModalOpen}
+            onClose={()=>setSellModalOpen(false)}
+            footer={
+                <>
+                    <Button
+                        variant="secondary"
+                        onClick={()=>setSellModalOpen(false)}
+                    >
+                        취소
+                    </Button>
+                    <Button
+                        variant="primary"
+                        onClick={()=>handleSell()}
+                    >
+                        매도
+                    </Button>
+                </>
+            }>
+                <p>매도하시겠습니까?</p>
+                <p>주식 수량 : {stockCount}</p>
+                <p>주식 가격 : {stockPrice}</p>
+                <p>총 가격 : {stockCount * stockPrice}</p>
+            </SellConfirmModal>
             {
                 toast && (
                     <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 2000 }}>
