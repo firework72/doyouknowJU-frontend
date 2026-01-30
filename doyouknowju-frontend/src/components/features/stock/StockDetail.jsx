@@ -21,28 +21,35 @@ function StockDetail() {
     const [stockCount, setStockCount] = useState("1");
     const [stockFluctuation, setStockFluctuation] = useState(0);
     const [stockContrastRatio, setStockContrastRatio] = useState(0);
+    const [stockName, setStockName] = useState("");
 
     const [pageLoading, setPageLoading] = useState(true);    
     const [toast, setToast] = useState(null);
     const [buyModalOpen, setBuyModalOpen] = useState(false);
     const [sellModalOpen, setSellModalOpen] = useState(false);
 
-    const fetchStockPrice = async () => {
-        const response = await tradeApi.getStockPrice(stockId);
-        setStockPrice(response.output.stck_prpr);
-        setStockFluctuation(response.output.prdy_vrss);
-        setStockContrastRatio(response.output.prdy_ctrt);
+    const fetchStockName = async () => {
+        const response = await tradeApi.getStockName(stockId);
+        setStockName(response);
+    }
+
+    const fetchStockInfo = async () => {
+        const priceResponse = await tradeApi.getStockPrice(stockId);
+        setStockPrice(priceResponse.output.stck_prpr);
+        setStockFluctuation(priceResponse.output.prdy_vrss);
+        setStockContrastRatio(priceResponse.output.prdy_ctrt);
     };
 
     useEffect(() => {
+        setPageLoading(true);
         console.log(stockId);
         console.log(user);
+        fetchStockName();
         // 마운트 시 초기 1회 주식 현재가 정보 조회
-        fetchStockPrice();
-
+        fetchStockInfo();
         // 이후 10초마다 주식 현재가 정보 갱신
         const intervalId = setInterval(() => {
-            fetchStockPrice();
+            fetchStockInfo();
         }, 10000);
 
         setPageLoading(false);
@@ -126,10 +133,14 @@ function StockDetail() {
                 {
                     pageLoading ? (
                         <p>데이터를 불러오고 있습니다.</p>
+                    ) : stockName === "" ? (
+                        <>
+                            <p>⚠︎ 존재하지 않는 종목입니다.</p>
+                        </>
                     ) : (
                         <>
                             <div className={styles.inline}>
-                                <h1>StockDetail</h1>
+                                <h1>{stockName}</h1>
                                 <span>{stockId}</span>
                             </div>
                             <h2 className={stockFluctuation > 0 ? styles.riseColor : styles.fallColor}>{stockPrice} ({stockFluctuation}, {stockContrastRatio})</h2>
