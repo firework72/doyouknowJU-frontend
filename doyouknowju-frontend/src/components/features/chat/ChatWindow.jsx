@@ -144,16 +144,19 @@ const ChatWindow = () => {
         };
     }, [isDragging, resizeType, rel, dimensions, position]);
 
-    // [추가] Ctrl+F 단축키 감지 및 검색창 열기
+    // [수정] Ctrl+F 단축키 감지 (채팅창이 열려있을 때만 가로채기)
     useEffect(() => {
         const handleKeyDown = (e) => {
             if ((e.ctrlKey || e.metaKey) && (e.key === 'f' || e.key === 'F')) {
-                e.preventDefault(); // 브라우저 기본 검색창 차단
-                if (isOpen) { // 채팅창이 열려있을 때만
+                // 채팅창이 열려있을(isOpen) 때만 가로채서 커스텀 검색창을 엽니다.
+                if (isOpen) {
+                    e.preventDefault(); // 브라우저 기본 검색 차단
                     setShowSearch(prev => !prev);
                     // 검색창이 열릴 때 포커스 주기
                     setTimeout(() => searchInputRef.current?.focus(), 100);
                 }
+                // isOpen이 false(닫힘)라면 e.preventDefault()를 하지 않으므로
+                // 브라우저 기본(웹사이트 전체 검색) 기능이 정상 작동합니다.
             }
         };
         window.addEventListener('keydown', handleKeyDown);
