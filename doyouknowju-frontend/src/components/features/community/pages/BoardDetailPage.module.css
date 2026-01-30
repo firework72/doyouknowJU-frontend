@@ -1,0 +1,159 @@
+.wrapper {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-2xl);
+}
+
+.title {
+  margin-bottom: var(--spacing-lg);
+  color: var(--color-text-primary);
+}
+
+.loading {
+  text-align: center;
+  padding: var(--spacing-2xl);
+  color: var(--color-text-secondary);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--spacing-lg);
+}
+
+/* 게시글 테이블 */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--spacing-lg);
+}
+
+.table th,
+.table td {
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.table th {
+  width: 100px;
+  background-color: var(--color-bg-tertiary);
+  font-weight: var(--font-weight-medium);
+  text-align: center;
+}
+
+.content {
+  min-height: 200px;
+  white-space: pre-wrap;
+  vertical-align: top;
+  line-height: var(--line-height-relaxed);
+}
+
+.fileLink {
+  color: var(--color-primary);
+}
+
+.fileLink:hover {
+  text-decoration: underline;
+}
+
+/* 수정/삭제 버튼 */
+.authorActions {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-md);
+  margin: var(--spacing-xl) 0;
+}
+
+/* 댓글 영역 */
+.replySection {
+  margin-top: var(--spacing-2xl);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--spacing-xl);
+}
+
+.replyForm {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.replyInput {
+  flex: 1;
+  min-height: 60px;
+  padding: var(--spacing-md);
+  font-size: var(--font-size-base);
+  font-family: inherit;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  resize: none;
+}
+
+.replyInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.replyInput:read-only {
+  background-color: var(--color-bg-tertiary);
+  cursor: not-allowed;
+}
+
+.replyCount {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  padding: var(--spacing-md) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.replyList {
+  margin-top: var(--spacing-md);
+}
+
+.noReply {
+  text-align: center;
+  padding: var(--spacing-lg);
+  color: var(--color-text-secondary);
+}
+
+.replyItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.replyWriter {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  min-width: 100px;
+}
+
+.replyContent {
+  flex: 1;
+  color: var(--color-text-primary);
+}
+
+.replyDate {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .wrapper {
+    padding: var(--spacing-lg);
+  }
+
+  .replyForm {
+    flex-direction: column;
+  }
+
+  .replyItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+}
