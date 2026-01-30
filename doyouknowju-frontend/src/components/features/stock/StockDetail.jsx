@@ -18,31 +18,37 @@ function StockDetail() {
 
     const [stockPrice, setStockPrice] = useState(0);
     const [stockCount, setStockCount] = useState("1");
+    const [stockFluctuation, setStockFluctuation] = useState(0);
+    const [stockContrastRatio, setStockContrastRatio] = useState(0);
+
+    const [pageLoading, setPageLoading] = useState(true);    
     const [toast, setToast] = useState(null);
     const [isOpen, setIsOpen] = useState(false);
 
     const fetchStockPrice = async () => {
         const response = await tradeApi.getStockPrice(stockId);
         setStockPrice(response.output.stck_prpr);
+        setStockFluctuation(response.output.prdy_vrss);
+        setStockContrastRatio(response.output.prdy_ctrt);
     };
 
     useEffect(() => {
+        console.log(stockId);
         console.log(user);
         // 마운트 시 초기 1회 주식 현재가 정보 조회
         fetchStockPrice();
 
         // 이후 10초마다 주식 현재가 정보 갱신
-        setInterval(() => {
+        const intervalId = setInterval(() => {
             fetchStockPrice();
         }, 10000);
-    }, [stockId]);
 
-    // 마운트 해제되면 setInterval 중지
-    useEffect(() => {
+        setPageLoading(false);
+
         return () => {
-            clearInterval();
+            clearInterval(intervalId);
         };
-    }, []);
+    }, [stockId]);
 
     const handleStockCountChange = (e) => {
         console.log(e.target.value);
@@ -89,34 +95,44 @@ function StockDetail() {
     
     return (
         <>
-            <div className={styles.stockDetailContainer}>
-                <h1>StockDetail</h1>
-                <span>{stockId}</span>
-                <h3>{stockPrice}</h3>
-                <Input
-                    type="text"
-                    placeholder="수량"
-                    disabled={stockPrice === 0}
-                    value={stockCount}
-                    min={1}
-                    max={999999999}
-                    maxLength={9}
-                    step={1}
-                    onChange={(e)=>handleStockCountChange(e)}
-                />
-                <Button
-                    variant="danger"
-                    disabled={stockPrice === 0}
-                    onClick={()=>setIsOpen(true)}
-                >
-                    매수
-                </Button>
-                <Button
-                    variant="primary"
-                    disabled={stockPrice === 0}
-                >
-                    매도
-                </Button>  
+            <div className={styles.container}>
+                {
+                    pageLoading ? (
+                        <p>데이터를 불러오고 있습니다.</p>
+                    ) : (
+                        <>
+                            <div className={styles.inline}>
+                                <h1>StockDetail</h1>
+                                <span>{stockId}</span>
+                            </div>
+                            <h2 className={stockFluctuation > 0 ? styles.riseColor : styles.fallColor}>{stockPrice} ({stockFluctuation}, {stockContrastRatio})</h2>
+                            <Input
+                                type="text"
+                                placeholder="수량"
+                                disabled={stockPrice === 0}
+                                value={stockCount}
+                                min={1}
+                                max={999999999}
+                                maxLength={9}
+                                step={1}
+                                onChange={(e)=>handleStockCountChange(e)}
+                            />
+                            <Button
+                                variant="danger"
+                                disabled={stockPrice === 0}
+                                onClick={()=>setIsOpen(true)}
+                            >
+                                매수
+                            </Button>
+                            <Button
+                                variant="primary"
+                                disabled={stockPrice === 0}
+                            >
+                                매도
+                            </Button>
+                        </>
+                    )
+                }
             </div>
             <BuyConfirmModal isOpen={isOpen}
             onClose={()=>setIsOpen(false)}

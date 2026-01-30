@@ -1,8 +1,4 @@
-.stock-detail-container {
-    min-height: calc(100vh - 100px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.container {
     background-color: #ffffff;
     padding: 100px 20px;
 
@@ -11,3 +7,15 @@
     margin: 0 auto;
 }
 
+.inline{
+    display: flex;
+    justify-content: space-between;
+}
+
+.riseColor {
+    color: #d20d0d;
+}
+
+.fallColor {
+    color: #0d42d2; 
+}
