@@ -18,12 +18,18 @@ const TestLevelUp = () => {
         }
 
         try {
-            const response = await axios.post('http://127.0.0.1:8080/dykj/api/game/exp/test', {
-                userId,
-                amount: Number(amount)
+            const response = await fetch('http://localhost:8080/dykj/api/game/exp/test',{
+                method: 'POST',
+                headers: {
+                    'Content-Type' : 'application/json',
+                },
+                body : JSON.stringify({
+                    amount: Number(amount),
+                }),
+                credentials: 'include',
             });
 
-            const result = response.data;
+            const result = await response.json();
             setLog(JSON.stringify(result, null, 2));
 
             // 레벨업 여부 확인 및 모달 띄우기
