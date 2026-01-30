@@ -37,6 +37,7 @@ function Header({ logoSrc }) {
     if (query.trim()) {
       navigate(`/search?q=${encodeURIComponent(query)}`);
       setShowSuggestions(false);
+      setQuery('');
     }
   };
 
@@ -53,6 +54,7 @@ function Header({ logoSrc }) {
     navigate(`/stock/${stockId}`);
     setQuery('');
     setShowSuggestions(false);
+
   };
 
   return (
