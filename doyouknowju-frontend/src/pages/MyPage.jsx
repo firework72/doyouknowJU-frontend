@@ -1,30 +1,35 @@
 import { useState, useEffect } from 'react';
 import './MyPage.css';
-import { useAuth } from '../hooks/authContext';
+import { useAuth } from '../hooks/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Spinner } from '../components/common';
 
 const MyPage = () => {
-    const { user, setUser, loading:authLoading } = useAuth();
+    const { user, setUser, loading: authLoading, logout } = useAuth();
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
         const fetchMemberInfo = async () => {
-
-            if(!user) {
+            if (!user) {
                 alert("로그인이 필요한 페이지입니다.");
-                navigate('/',{replace:true});
+                navigate('/', { replace: true });
                 return;
             }
 
             try {
-                const response = await fetch(`http://localhost:8080/dykj/api/members/info?userId=${loginUser.userId}`);
-                
+                const response = await fetch(`http://localhost:8080/dykj/api/members/info`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+
                 if (response.ok) {
                     const result = await response.json();
                     setUser(result);
-                    localStorage.setItem('user',JSON.stringify(result));
+                    localStorage.setItem('user', JSON.stringify(result));
+                } else if (response.status === 401) {
+                    alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+                    logout(false);
                 }
             } catch (err) {
                 console.error("데이터 로딩 실패 : ", err);
@@ -36,12 +41,12 @@ const MyPage = () => {
         fetchMemberInfo();
     }, []);
 
-    if (authLoading || loading){
+    if (authLoading || loading) {
         return (
-        <div className="signup-loading-wrapper">
-            <Spinner size="lg"/>
-            <p className="loading-text">정보를 불러오는 중...</p>
-        </div>
+            <div className="signup-loading-wrapper">
+                <Spinner size="lg" />
+                <p className="loading-text">정보를 불러오는 중...</p>
+            </div>
         );
     }
 

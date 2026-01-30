@@ -19,7 +19,8 @@ function HomePage() {
             const response = await fetch('http://localhost:8080/dykj/api/members/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: loginId, userPwd: loginPwd })
+                body: JSON.stringify({ userId: loginId, userPwd: loginPwd }),
+                credentials: 'include'
             });
 
             if (response.ok) {
@@ -35,9 +36,8 @@ function HomePage() {
         }
     }
 
-    const handleLogout = () => {
+    const handleLogout = async() => {
         logout();
-        alert("로그아웃 되었습니다.");
     }
 
     return (
