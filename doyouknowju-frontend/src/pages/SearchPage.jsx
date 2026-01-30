@@ -96,72 +96,7 @@ const SearchPage = () => {
                     // prices 실행해서 한번 긁어오기
                     setPrices(fetchedPrices);
 
-                    // 로컬 변수로 현재까지 확보된 가격 정보를 추적 (React State는 비동기라 즉시 반영 안됨)
-                    const localPrices = { ...fetchedPrices };
 
-                    // 3) 누락된 종목 (혹은 멀티페치 실패시 전체) 단건 조회
-                    const missingIds = ids.filter(id => !localPrices[id]);
-
-                    for (const id of missingIds) {
-                        if (controller.signal.aborted) break;
-
-                        // 500ms 딜레이
-                        await new Promise(resolve => setTimeout(resolve, 500));
-
-                        try {
-                            const singleRes = await axios.get(
-                                `/dykj/api/stocks/${id}/price`,
-                                { signal: controller.signal }
-                            );
-
-                            const priceData = singleRes.data.output || singleRes.data;
-                            if (priceData) {
-                                // 로컬 변수 업데이트
-                                localPrices[id] = priceData;
-                                // 상태 업데이트
-                                setPrices(prev => ({
-                                    ...prev,
-                                    [id]: priceData
-                                }));
-                            }
-                        } catch (e) {
-                            if (e?.name !== 'CanceledError') {
-                                console.error(`개별 시세 조회 실패 (${id}):`, e);
-                            }
-                        }
-                    }
-
-                    // 4) 3단계: 여전히 누락된 종목 재시도 (Retry)
-                    const retryIds = ids.filter(id => !localPrices[id]);
-                    if (retryIds.length > 0) {
-                        // console.log('재시도 대상:', retryIds);
-                        for (const id of retryIds) {
-                            if (controller.signal.aborted) break;
-
-                            // 재시도는 500ms 딜레이 유지
-                            await new Promise(resolve => setTimeout(resolve, 500));
-
-                            try {
-                                const retryRes = await axios.get(
-                                    `/dykj/api/stocks/${id}/price`,
-                                    { signal: controller.signal }
-                                );
-
-                                const retryData = retryRes.data.output || retryRes.data;
-                                if (retryData) {
-                                    localPrices[id] = retryData; // (선택적)
-                                    setPrices(prev => ({
-                                        ...prev,
-                                        [id]: retryData
-                                    }));
-                                }
-                            } catch (e) {
-                                if (e?.name !== 'CanceledError') {
-                                    console.error(`개별 시세 재조회(3단계) 실패 (${id}):`, e);
-                                }
-                            }
-                        }
-                    }
                 } else {
                     setPrices({});
                 }
