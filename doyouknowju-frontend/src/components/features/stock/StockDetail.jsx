@@ -5,6 +5,7 @@ import { tradeApi } from '../../../api/trade/TradeApi.js';
 import BuyConfirmModal from './components/BuyConfirmModal.jsx';
 import {Button, Input} from '@/components/common';
 import { useAuth } from '../../../hooks/AuthContext.jsx';
+import Toast from '../../common/Toast.jsx';
 /*
     필요한 상태값 : 주식 ID, 회원 정보
     필요한 함수 : 주식 매수, 주식 매도
@@ -16,8 +17,9 @@ function StockDetail() {
     const { user, setUser } = useAuth();
 
     const [stockPrice, setStockPrice] = useState(0);
-    const [stockCount, setStockCount] = useState("0");
-    const [isOpen, setIsOpen] = useState(true);
+    const [stockCount, setStockCount] = useState("1");
+    const [toast, setToast] = useState(null);
+    const [isOpen, setIsOpen] = useState(false);
 
     const fetchStockPrice = async () => {
         const response = await tradeApi.getStockPrice(stockId);
@@ -70,10 +72,19 @@ function StockDetail() {
         try {
             const response = await tradeApi.buyStock(data);
             console.log(response);
+            showToast("success", "매수되었습니다.");
+            // 현재 회원의 잔고를 업데이트한다.
             setUser({...user, points: response.afterBalance})
         } catch (error) {
             console.log(error);
+            showToast("error", error.response.data);
+        } finally {
+            setIsOpen(false);
         }
+    }
+
+    const showToast = (type, message) => {
+        setToast({type, message});
     }
     
     return (
@@ -130,6 +141,18 @@ function StockDetail() {
                 <p>주식 가격 : {stockPrice}</p>
                 <p>총 가격 : {stockCount * stockPrice}</p>
             </BuyConfirmModal>
+            {
+                toast && (
+                    <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 2000 }}>
+                        <Toast 
+                            message={toast.message} 
+                            type={toast.type} 
+                            onClose={() => setToast(null)} 
+                        />
+                    </div>
+                )
+            }
+           
         </> 
     );
 }
