@@ -6,6 +6,7 @@ import BuyConfirmModal from './components/BuyConfirmModal.jsx';
 import {Button, Input} from '@/components/common';
 import { useAuth } from '../../../hooks/AuthContext.jsx';
 import Toast from '../../common/Toast.jsx';
+import SellConfirmModal from './components/SellConfirmModal.jsx';
 /*
     필요한 상태값 : 주식 ID, 회원 정보
     필요한 함수 : 주식 매수, 주식 매도
@@ -23,7 +24,8 @@ function StockDetail() {
 
     const [pageLoading, setPageLoading] = useState(true);    
     const [toast, setToast] = useState(null);
-    const [isOpen, setIsOpen] = useState(false);
+    const [buyModalOpen, setBuyModalOpen] = useState(false);
+    const [sellModalOpen, setSellModalOpen] = useState(false);
 
     const fetchStockPrice = async () => {
         const response = await tradeApi.getStockPrice(stockId);
@@ -85,7 +87,32 @@ function StockDetail() {
             console.log(error);
             showToast("error", error.response.data);
         } finally {
-            setIsOpen(false);
+            setBuyModalOpen(false);
+        }
+    }
+
+    const handleSell = async () => {
+        // 종목코드, 매도개수, 매도가격, 회원ID, 거래종류, 총매도가격 전달
+
+        const data = {
+            stockId: stockId,
+            tradeCount: stockCount,
+            stockPrice: stockPrice,
+            userId: user.userId,
+            tradeCategory : "SELL",
+            totalTradePrice: stockPrice * stockCount
+        }
+        try {
+            const response = await tradeApi.sellStock(data);
+            console.log(response);
+            showToast("success", "매도되었습니다.");
+            // 현재 회원의 잔고를 업데이트한다.
+            setUser({...user, points: response.afterBalance})
+        } catch (error) {
+            console.log(error);
+            showToast("error", error.response.data);
+        } finally {
+            setSellModalOpen(false);
         }
     }
 
@@ -120,13 +147,14 @@ function StockDetail() {
                             <Button
                                 variant="danger"
                                 disabled={stockPrice === 0}
-                                onClick={()=>setIsOpen(true)}
+                                onClick={()=>setBuyModalOpen(true)}
                             >
                                 매수
                             </Button>
                             <Button
                                 variant="primary"
                                 disabled={stockPrice === 0}
+                                onClick={()=>setSellModalOpen(true)}
                             >
                                 매도
                             </Button>
@@ -134,13 +162,13 @@ function StockDetail() {
                     )
                 }
             </div>
-            <BuyConfirmModal isOpen={isOpen}
-            onClose={()=>setIsOpen(false)}
+            <BuyConfirmModal isOpen={buyModalOpen}
+            onClose={()=>setBuyModalOpen(false)}
             footer={
                 <>
                     <Button
                         variant="danger"
-                        onClick={()=>setIsOpen(false)}
+                        onClick={()=>setBuyModalOpen(false)}
                     >
                         취소
                     </Button>
@@ -157,6 +185,29 @@ function StockDetail() {
                 <p>주식 가격 : {stockPrice}</p>
                 <p>총 가격 : {stockCount * stockPrice}</p>
             </BuyConfirmModal>
+            <SellConfirmModal isOpen={sellModalOpen}
+            onClose={()=>setSellModalOpen(false)}
+            footer={
+                <>
+                    <Button
+                        variant="danger"
+                        onClick={()=>setSellModalOpen(false)}
+                    >
+                        취소
+                    </Button>
+                    <Button
+                        variant="primary"
+                        onClick={()=>handleSell()}
+                    >
+                        매도
+                    </Button>
+                </>
+            }>
+                <p>매도하시겠습니까?</p>
+                <p>주식 수량 : {stockCount}</p>
+                <p>주식 가격 : {stockPrice}</p>
+                <p>총 가격 : {stockCount * stockPrice}</p>
+            </SellConfirmModal>
             {
                 toast && (
                     <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 2000 }}>
