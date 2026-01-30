@@ -20,7 +20,18 @@ export const AuthProvider = ({children}) =>{
         setUser(userData);
     };
 
-    const logout = () =>{
+    const logout = async (isManual = true) => {
+        if (isManual) {
+            try {
+                await fetch('http://localhost:8080/dykj/api/members/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                alert("로그아웃 되었습니다.");
+            } catch (error) {
+                console.error("Logout error:", error);
+            }
+        }
         localStorage.removeItem('user');
         setUser(null);
         window.location.href = '/';
