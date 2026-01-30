@@ -13,7 +13,7 @@ import { useAuth } from '../../../hooks/AuthContext.jsx';
 function StockDetail() {
     
     const { stockId } = useParams();
-    const { user } = useAuth();
+    const { user, setUser } = useAuth();
 
     const [stockPrice, setStockPrice] = useState(0);
     const [stockCount, setStockCount] = useState("0");
@@ -57,15 +57,23 @@ function StockDetail() {
     }
 
     const handleBuy = async () => {
+        // 종목코드, 매수개수, 매수가격, 회원ID, 거래종류, 총매수가격 전달
+        
         const data = {
             stockId: stockId,
-            stockCount: stockCount,
+            tradeCount: stockCount,
             stockPrice: stockPrice,
-            userId: user.userId
+            userId: user.userId,
+            tradeCategory : "BUY",
+            totalTradePrice: stockPrice * stockCount
         }
-
-        const response = await tradeApi.buyStock(data);
-        console.log(response);
+        try {
+            const response = await tradeApi.buyStock(data);
+            console.log(response);
+            setUser({...user, points: response.afterBalance})
+        } catch (error) {
+            console.log(error);
+        }
     }
     
     return (

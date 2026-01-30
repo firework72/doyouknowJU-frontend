@@ -19,7 +19,10 @@ export const tradeApi = {
     },
 
     // 종목 코드와 현재 가격, 입력된 개수를 바탕으로 매도하기
-
+    sellStock : async (data) => {
+        const response = await api.post(`http://localhost:8080/dykj/api/trade/sell`, data);
+        return response.data;
+    },
     
 
     
