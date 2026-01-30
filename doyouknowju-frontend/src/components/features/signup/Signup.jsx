@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Signup.css';
-import { useAuth } from '../../../hooks/authContext';
+import { useAuth } from '../../../hooks/AuthContext';
 
 function Signup() {
     const { user } = useAuth();
     const navigate = useNavigate();
 
-    useEffect(()=>{
-        if(user){
+    useEffect(() => {
+        if (user) {
             alert("이미 로그인된 상태입니다.");
             navigate('/');
         }
-    },[user, navigate]);
+    }, [user, navigate]);
 
     // 폼 상태 관리
     const [formData, setFormData] = useState({
@@ -95,11 +95,11 @@ function Signup() {
             const result = await response.text();
 
             if (response.ok) {
-                if(result === "SIGNUP_SUCCESS"){
+                if (result === "SIGNUP_SUCCESS") {
                     alert('회원가입이 완료되었습니다!');
                     navigate('/');
-                }else{
-                    alert('가입 실패 : '+result);
+                } else {
+                    alert('가입 실패 : ' + result);
                 }
             } else {
                 console.error(`서버 에러 발생! 상태코드: ${response.status}`);
