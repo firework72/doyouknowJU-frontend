@@ -1,39 +1,50 @@
-import { useNavigate, useSearchParams } from "react-router-dom"; // legacy
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import styles from './BoardListPage.module.css';
-import Button from '../../../common/Button'; // Import Button
-
-// Dummy Pagination Component
-const Pagination = () => <div style={{ textAlign: 'center', padding: '20px' }}>페이지네이션 (Placeholder)</div>;
+import Button from '../../../common/Button';
+import Pagination from '../../../common/Pagination';
+import { useAuth } from '@/hooks/AuthContext';
+import { fetchStockSuggestions } from '@/api/stockApi';
 
 import axios from 'axios';
 
 // boardApi: Real API call to /dykj/posts
 const boardApi = {
     getList: async ({ page, size, condition, keyword, boardType }) => {
+        const params = {
+            boardType: boardType === 'free' ? 'FREE' : 'STOCK',
+            page: page || 1,
+            size: size || 20,
+        };
 
-        const response = await axios.get('/dykj/api/boards/list');
+        if (keyword) {
+            params.condition = condition;
+            params.keyword = keyword;
+        }
 
+        const response = await axios.get('/dykj/api/boards/list', { params });
+
+        // 백엔드 응답이 배열인 경우와 객체인 경우 모두 대응
         if (Array.isArray(response.data)) {
             return {
                 list: response.data,
-                currentPage: page,
+                currentPage: page || 1,
                 maxPage: 1,
                 listCount: response.data.length
             };
         }
-
         return response.data;
     },
-    // 검색도 getList에서 처리하므로 별도 API 호출이 필요 없을 수 있음 (서버 설계에 따라 다름)
-    search: async ({ page, condition, keyword }) => {
+    // search는 getList에서 통합 처리 가능하므로 유지 혹은 제거 가능 (여기서는 유지)
+    search: async ({ page, condition, keyword, boardType }) => {
         const params = {
+            boardType: boardType === 'free' ? 'FREE' : 'STOCK',
             page: page || 1,
-            size: 10,
+            size: 20,
             condition,
             keyword
         };
-        const response = await axios.get('/dykj/posts', { params });
+        const response = await axios.get('/dykj/api/boards/list', { params });
         return response.data;
     }
 };
@@ -42,8 +53,8 @@ function BoardListPage() {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
 
-    // isAuthenticated가 제거되어 에러가 나므로 임시 정의
-    const isAuthenticated = false;
+    const { user } = useAuth();
+    const isAuthenticated = !!user;
 
     // 'free' (자유게시판) or 'stock' (종목토론방) - Default is 'free'
     const [boardType, setBoardType] = useState('free');
@@ -58,6 +69,23 @@ function BoardListPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchCondition, setSearchCondition] = useState('writer');
     const [searchKeyword, setSearchKeyword] = useState('');
+
+    // 종목 게시판 전용 상태
+    const [stockQuery, setStockQuery] = useState('');
+    const [stockSuggestions, setStockSuggestions] = useState([]);
+    const [showStockSuggestions, setShowStockSuggestions] = useState(false);
+
+    // 더미 인기 종목 데이터 (실제 프로젝트에서는 API 연동 가능)
+    const popularStocks = [
+        { name: '삼성전자', id: '005930' },
+        { name: 'SK하이닉스', id: '000660' },
+        { name: 'LG에너지솔루션', id: '373220' },
+        { name: 'NAVER', id: '035420' },
+        { name: '카카오', id: '035720' },
+        { name: '현대차', id: '005380' },
+        { name: '삼성바이오로직스', id: '207940' },
+        { name: 'KIA', id: '000270' }
+    ];
 
 
     //URL 파라미터에서 초기값 설정 
@@ -77,6 +105,21 @@ function BoardListPage() {
         //fetchSearchBoards(page,condition,keyword);
 
     }, [searchParams, boardType]);
+
+    // 종목 검색 디바운스
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (stockQuery.length >= 2) {
+                const results = await fetchStockSuggestions(stockQuery);
+                setStockSuggestions(results);
+                setShowStockSuggestions(true);
+            } else {
+                setStockSuggestions([]);
+                setShowStockSuggestions(false);
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [stockQuery]);
 
     //게시글 목록 조회 
     const fetchBoards = async (page, condition, keyword, type) => {
@@ -158,98 +201,132 @@ function BoardListPage() {
         navigate('/board/write');
     }
 
+    const handleStockSelect = (stock) => {
+        const stockId = stock.code || stock.id || stock.stockId || stock.mksc_shrn_iscd;
+        navigate(`/stock/${stockId}`); // 또는 해당 종목 게시글 필터링 로직
+        setStockQuery('');
+        setShowStockSuggestions(false);
+    };
+
 
     return (
-        <div className="container">
+        <div className={styles.container}>
             <div className={styles.wrapper}>
-                <div className={styles.header}>
-                    <h2 className={styles.title}>
-                        게시판
-                    </h2>
+                <div className={styles.topActions}>
+                    {/* 탭 버튼 */}
+                    <div className={styles.tabContainer}>
+                        <button
+                            onClick={() => setBoardType('free')}
+                            className={`${styles.tabButton} ${boardType === 'free' ? styles.activeTab : ''}`}
+                        >
+                            자유게시판
+                        </button>
+                        <button
+                            onClick={() => setBoardType('stock')}
+                            className={`${styles.tabButton} ${boardType === 'stock' ? styles.activeTab : ''}`}
+                        >
+                            종목토론방
+                        </button>
+                    </div>
+
                     {isAuthenticated && (
-                        <Button variant="secondary" onClick={handleWrite}>
+                        <button
+                            onClick={handleWrite}
+                            className={styles.actionButton}
+                        >
                             글쓰기
-                        </Button>
+                        </button>
                     )}
                 </div>
 
-                {/* 탭 버튼 */}
-                <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-                    <button
-                        onClick={() => setBoardType('free')}
-                        style={{
-                            padding: '10px 20px',
-                            border: 'none',
-                            backgroundColor: boardType === 'free' ? '#333' : '#f0f0f0',
-                            color: boardType === 'free' ? '#fff' : '#333',
-                            fontWeight: 'bold',
-                            borderRadius: '5px',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        자유게시판
-                    </button>
-                    <button
-                        onClick={() => setBoardType('stock')}
-                        style={{
-                            padding: '10px 20px',
-                            border: 'none',
-                            backgroundColor: boardType === 'stock' ? '#333' : '#f0f0f0',
-                            color: boardType === 'stock' ? '#fff' : '#333',
-                            fontWeight: 'bold',
-                            borderRadius: '5px',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        종목토론방
-                    </button>
-                </div>
+                {/* 종목 게시판 전용 대시보드 */}
+                {boardType === 'stock' && (
+                    <div className={styles.stockDashboard}>
+                        <div className={styles.stockSearchSection}>
+                            <h3 className={styles.subTitle}>관심 있는 종목을 검색해 보세요</h3>
+                            <div className={styles.stockSearchBox}>
+                                <input
+                                    type="text"
+                                    value={stockQuery}
+                                    onChange={(e) => setStockQuery(e.target.value)}
+                                    placeholder="종목명 또는 코드 입력 (예: 삼성전자)"
+                                    className={styles.stockInput}
+                                />
+                                {showStockSuggestions && stockSuggestions.length > 0 && (
+                                    <ul className={styles.stockSuggestions}>
+                                        {stockSuggestions.map((stock, idx) => (
+                                            <li key={idx} onClick={() => handleStockSelect(stock)} className={styles.stockSuggestionItem}>
+                                                <span className={styles.sName}>{stock.name || stock.stockName}</span>
+                                                <span className={styles.sCode}>{stock.code || stock.id || stock.stockId || stock.mksc_shrn_iscd}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className={styles.popularSection}>
+                            <h4 className={styles.popularTitle}>실시간 인기 종목</h4>
+                            <div className={styles.popularList}>
+                                {popularStocks.map((stock) => (
+                                    <button
+                                        key={stock.id}
+                                        onClick={() => handleStockSelect(stock)}
+                                        className={styles.popularBadge}
+                                    >
+                                        {stock.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* 게시글 목록 영역 */}
-                <table className={styles.table}>
-                    <thead>
-                        {/* tr>th[className={styles.col}]*6 */}
-                        <tr>
-                            <th className={styles.colNo}>글번호</th>
-                            <th className={styles.colTitle}>제목</th>
-                            <th className={styles.colWriter}>작성자</th>
-                            <th className={styles.colCount}>조회수</th>
-                            <th className={styles.colDate}>작성일</th>
-                            <th className={styles.colFile}>첨부파일</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {
-                            isLoading ? (
-                                <tr>
-                                    <td colSpan='6' className={styles.empty}>
-                                        로딩중 ...
-                                    </td>
-                                </tr>
-                            ) : boards.length === 0 ? (
-                                <tr>
-                                    <td colSpan='6' className={styles.empty}>
-                                        조회된 게시글이 없습니다.
-                                    </td>
-                                </tr>
-                            ) : (
-                                boards.map((board) => (
-                                    <tr key={board.boardId}
-                                        onClick={() => handleBoardClick(board.boardId)}
-                                        className={styles.row}
-                                    >
-                                        <td>{board.boardId}</td>
-                                        <td className={styles.titleCell}>{board.boardTitle}</td>
-                                        <td>{board.userId}</td>
-                                        <td>{board.viewCount}</td>
-                                        <td>{board.createDate ? board.createDate.substring(0, 10) : '-'}</td>
-                                        <td>{/* 첨부파일 필드 없음 */}</td>
+                <div className={styles.tableContainer}>
+                    <table className={styles.table}>
+                        <thead>
+                            <tr>
+                                <th className={styles.colNo}>No.</th>
+                                <th className={styles.colTitle}>제목</th>
+                                <th className={styles.colWriter}>작성자</th>
+                                <th className={styles.colView}>조회수</th>
+                                <th className={styles.colDate}>등록일</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {
+                                isLoading ? (
+                                    <tr>
+                                        <td colSpan='5' className={styles.empty}>
+                                            로딩중 ...
+                                        </td>
                                     </tr>
-                                ))
-                            )
-                        }
-                    </tbody>
-                </table>
+                                ) : boards.length === 0 ? (
+                                    <tr>
+                                        <td colSpan='5' className={styles.empty}>
+                                            조회된 게시글이 없습니다.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    boards.map((board) => (
+                                        <tr key={board.boardId}
+                                            onClick={() => handleBoardClick(board.boardId)}
+                                        >
+                                            <td className={styles.center}>{board.boardId}</td>
+                                            <td className={styles.titleCell}>
+                                                <span className={styles.titleText}>{board.boardTitle}</span>
+                                            </td>
+                                            <td className={styles.center}>{board.userId}</td>
+                                            <td className={styles.center}>{board.viewCount}</td>
+                                            <td className={styles.center}>{board.createDate ? board.createDate.substring(0, 10) : '-'}</td>
+                                        </tr>
+                                    ))
+                                )
+                            }
+                        </tbody>
+                    </table>
+                </div>
 
                 {/* 페이징바 위치 */}
                 <Pagination
@@ -259,28 +336,30 @@ function BoardListPage() {
                 />
 
                 {/* 검색창 위치 */}
-                <form onSubmit={handleSearch} className={styles.searchForm}>
-                    <select
-                        value={searchCondition}
-                        onChange={(e) => setSearchCondition(e.target.value)}
-                        className={styles.select}
-                    >
-                        <option value="writer">작성자</option>
-                        <option value="title">제목</option>
-                        <option value="content">내용</option>
-                    </select>
-                    <input
-                        type="text"
-                        value={searchKeyword}
-                        onChange={(e) => setSearchKeyword(e.target.value)}
-                        placeholder="검색어를 입력하세요"
-                        className={styles.input}
-                    />
+                <div className={styles.searchContainer}>
+                    <form onSubmit={handleSearch} className={styles.searchForm}>
+                        <select
+                            value={searchCondition}
+                            onChange={(e) => setSearchCondition(e.target.value)}
+                            className={styles.select}
+                        >
+                            <option value="writer">작성자</option>
+                            <option value="title">제목</option>
+                            <option value="content">내용</option>
+                        </select>
+                        <input
+                            type="text"
+                            value={searchKeyword}
+                            onChange={(e) => setSearchKeyword(e.target.value)}
+                            placeholder="검색어를 입력하세요"
+                            className={styles.input}
+                        />
 
-                    <Button type="submit" variant="secondary">
-                        검색
-                    </Button>
-                </form>
+                        <Button type="submit" variant="secondary" className={styles.searchButton}>
+                            검색
+                        </Button>
+                    </form>
+                </div>
             </div>
         </div>
     );
