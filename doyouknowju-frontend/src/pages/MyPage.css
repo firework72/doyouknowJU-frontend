@@ -48,6 +48,10 @@
     position: absolute;
     top: 2rem;
     left: 2rem;
+    right: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .placeholder-text {
@@ -103,4 +107,86 @@
 .progress-label span {
     font-weight: bold;
     color: #8b5cf6;
+}
+
+.mypage-check-btn{
+    transform: scale(0.5) ;
+    transform-origin: right;
+    margin-right: -20px;
+}
+
+.mypage-check-btn:hover{
+    transform: scale(0.5) !important;
+    filter: brightness(1.1);
+}
+
+.attendance-calendar {
+    padding: 10px;
+    font-family: 'Noto Sans KR', sans-serif;
+}
+
+.calendar-header {
+    font-size: 1.25rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    text-align: center;
+}
+
+.calendar-weekday {
+    font-weight: bold;
+    color: #888;
+    padding-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+.calendar-date {
+    min-height: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background-color: #f9fafb;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.calendar-date.empty {
+    background-color: transparent;
+}
+
+.calendar-date.today {
+    background-color: #ede9fe;
+    border: 1px solid #8b5cf6;
+}
+
+.date-num {
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.today .date-num {
+    color: #8b5cf6;
+    font-weight: bold;
+}
+
+.checked-mark {
+    font-size: 0.8rem;
+    color: #10b981;
+    margin-top: 2px;
+}
+
+.attendance-info {
+    margin-top: 20px;
+    text-align: center;
+    color: #666;
+    font-size: 0.9rem;
 }

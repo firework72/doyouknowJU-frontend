@@ -3,17 +3,25 @@ import './HomePage.css';
 import Card from '../components/common/Card';
 import Input from '../components/common/Input';
 import StockTop10View from '../front/StockView';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/AuthContext';
+import { Button } from '../components/common';
 
 function HomePage() {
     const navigate = useNavigate();
-    //회원, 로그인 정보 불러오기
-    const { user, login, logout } = useAuth();
+    const { user, login, logout, refreshUser } = useAuth();
 
     const [loginId, setLoginId] = useState("");
     const [loginPwd, setLoginPwd] = useState("");
 
+    //최신 정보 동기화
+    useEffect(()=>{
+        if(user){
+            refreshUser();
+        }
+    },[]);
+
+    //로그인 요청
     const handleLogin = async () => {
         try {
             const response = await fetch('http://localhost:8080/dykj/api/members/login', {
@@ -38,6 +46,20 @@ function HomePage() {
 
     const handleLogout = async() => {
         logout();
+    }
+
+    //출석 체크 요청
+    const handleAttend = async() =>{
+        const response = await fetch('http://localhost:8080/dykj/api/game/attend',{
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json'},
+            body: JSON.stringify({ }),
+            credentials: 'include'
+        });
+
+        if(response.ok) {
+            alert("오늘의 출석체크가 완료되었습니다.");
+        }
     }
 
     return (
@@ -70,7 +92,15 @@ function HomePage() {
                                     <p>레벨: {user.userLevel}</p>
                                 </div>
                                 <div className="auth-links">
-                                    <button onClick={handleLogout} className="logout-button">로그아웃</button>
+                                     <Button
+                                        onClick={() => alert("오늘의 출석체크가 완료되었습니다!")}
+                                        variant="primary"
+                                        size="sm"
+                                        className="home-auth-btn"
+                                    >
+                                        출석체크
+                                    </Button>
+                                    <Button onClick={handleLogout} variant="danger" size="sm" className="home-auth-btn">로그아웃</Button>
                                 </div>
                             </div>
                         ) : (
@@ -114,7 +144,7 @@ function HomePage() {
                     {/* 게시글 구역 */}
                     <Card className="medium-card" id="posts-section">
                         <h3 className="section-title">게시글</h3>
-                        <p className="section-description">실시간 / 인기</p>
+                        <p className="section-description">실시간 / 인기 게시글</p>
                         {/* TODO: 게시글 리스트 구현 */}
                         <div className="section-content">
                             {/* 여기에 게시글 데이터를 렌더링 */}
