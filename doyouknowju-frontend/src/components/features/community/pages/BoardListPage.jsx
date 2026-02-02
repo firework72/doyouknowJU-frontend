@@ -10,7 +10,7 @@ import axios from 'axios';
 
 // boardApi: Real API call to /dykj/posts
 const boardApi = {
-    getList: async ({ page, size, condition, keyword, boardType }) => {
+    getList: async ({ page, size, condition, keyword, boardType, stockId }) => {
         const params = {
             boardType: boardType === 'free' ? 'FREE' : 'STOCK',
             page: page || 1,
@@ -22,9 +22,12 @@ const boardApi = {
             params.keyword = keyword;
         }
 
+        if (stockId) {
+            params.stockId = stockId;
+        }
+
         const response = await axios.get('/dykj/api/boards/list', { params });
 
-        // 백엔드 응답이 배열인 경우와 객체인 경우 모두 대응
         if (Array.isArray(response.data)) {
             return {
                 list: response.data,
@@ -35,7 +38,6 @@ const boardApi = {
         }
         return response.data;
     },
-    // search는 getList에서 통합 처리 가능하므로 유지 혹은 제거 가능 (여기서는 유지)
     search: async ({ page, condition, keyword, boardType }) => {
         const params = {
             boardType: boardType === 'free' ? 'FREE' : 'STOCK',
@@ -93,13 +95,13 @@ function BoardListPage() {
         const page = parseInt(searchParams.get('page')) || 1;
         const condition = searchParams.get('condition') || 'writer';
         const keyword = searchParams.get('keyword') || '';
-        // URL param for type could be added, but for now using internal state or header selection
+        const stockId = searchParams.get('stockId') || '';
 
         setSearchCondition(condition);
         setSearchKeyword(keyword);
 
         //게시글 목록조회 함수 수행
-        fetchBoards(page, condition, keyword, boardType);
+        fetchBoards(page, condition, keyword, boardType, stockId);
 
         //게시글 검색 함수 수행
         //fetchSearchBoards(page,condition,keyword);
@@ -122,7 +124,7 @@ function BoardListPage() {
     }, [stockQuery]);
 
     //게시글 목록 조회 
-    const fetchBoards = async (page, condition, keyword, type) => {
+    const fetchBoards = async (page, condition, keyword, type, stockId) => {
         setIsLoading(true);
 
         try {
@@ -131,7 +133,8 @@ function BoardListPage() {
                 size: 10,
                 condition: keyword ? condition : undefined,
                 keyword: keyword || undefined,
-                boardType: type // Pass board type
+                boardType: type, // Pass board type
+                stockId: stockId || undefined
             });
 
 
@@ -158,16 +161,17 @@ function BoardListPage() {
 
     //검색
     const handleSearch = (e) => {
-        e.preventDefault(); //기본 이벤트 막기 
-        const params = new URLSearchParams(); //searchParams 객체 생성
-        params.set('page', '1'); //페이지 1 설정 
-        if (searchKeyword) { //만약 검색어가 있다면 
-            params.set('condition', searchCondition); //카테고리 세팅
-            params.set('keyword', searchKeyword); //검색어 세팅
+        e.preventDefault();
+        const params = new URLSearchParams(searchParams);
+        params.set('page', '1');
+        if (searchKeyword) {
+            params.set('condition', searchCondition);
+            params.set('keyword', searchKeyword);
+        } else {
+            params.delete('condition');
+            params.delete('keyword');
         }
-        setSearchParams(params);//page,condition,keyword가 세팅된 searchparams객체로 상태변경
-
-
+        setSearchParams(params);
     }
 
     const fetchSearchBoards = async (page, condition, keyword) => {
@@ -190,10 +194,10 @@ function BoardListPage() {
 
 
     //게시글 클릭(상세보기) 
-    const handleBoardClick = (boardNo) => {
+    const handleBoardClick = (boardId) => {
         //board/detail.bo?bno=3
         //board/detail/3
-        navigate(`/board/${boardNo}`);
+        navigate(`/board/${boardId}`);
     };
 
     //글쓰기 (페이지이동)
@@ -203,9 +207,24 @@ function BoardListPage() {
 
     const handleStockSelect = (stock) => {
         const stockId = stock.code || stock.id || stock.stockId || stock.mksc_shrn_iscd;
-        navigate(`/stock/${stockId}`); // 또는 해당 종목 게시글 필터링 로직
+        const stockName = stock.name || stock.stockName;
+
+        const params = new URLSearchParams(searchParams);
+        params.set('page', '1');
+        params.set('stockId', stockId);
+        params.set('stockName', stockName); // 이름 표시용
+
+        setSearchParams(params);
         setStockQuery('');
         setShowStockSuggestions(false);
+    };
+
+    const clearStockFilter = () => {
+        const params = new URLSearchParams(searchParams);
+        params.delete('stockId');
+        params.delete('stockName');
+        params.set('page', '1');
+        setSearchParams(params);
     };
 
 
@@ -281,6 +300,19 @@ function BoardListPage() {
                         </div>
                     </div>
                 )}
+                {/* 현재 적용된 종목 필터 표시 */}
+                {boardType === 'stock' && searchParams.get('stockId') && (
+                    <div className={styles.activeFilterArea}>
+                        <div className={styles.filterBadge}>
+                            <span className={styles.filterLabel}>현재 필터: </span>
+                            <span className={styles.filterValue}>
+                                {searchParams.get('stockName') || searchParams.get('stockId')}
+                            </span>
+                            <button onClick={clearStockFilter} className={styles.clearFilterBtn}>&times;</button>
+                        </div>
+                        <p className={styles.filterInfo}>해당 종목의 글만 보여집니다.</p>
+                    </div>
+                )}
 
                 {/* 게시글 목록 영역 */}
                 <div className={styles.tableContainer}>
@@ -346,6 +378,7 @@ function BoardListPage() {
                             <option value="writer">작성자</option>
                             <option value="title">제목</option>
                             <option value="content">내용</option>
+                            <option value="stockId">종목코드</option>
                         </select>
                         <input
                             type="text"

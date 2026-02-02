@@ -52,20 +52,106 @@
 
 .textarea {
   width: 100%;
-  min-height: 250px;
-  padding: var(--spacing-md);
+  min-height: 400px;
+  padding: 15px;
   font-size: var(--font-size-base);
   font-family: inherit;
   line-height: var(--line-height-relaxed);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   resize: vertical;
+  background: white;
+  transition: border-color 0.2s;
 }
 
 .textarea:focus {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.editorWrapper {
+  width: 100%;
+  background: white;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  position: relative;
+  /* 삭제 버튼의 기준점 */
+}
+
+/* 이미지 위에 표시될 삭제 버튼 */
+.imageDeleteBtn {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.imageDeleteBtn:hover {
+  background-color: #ff7875;
+  transform: scale(1.1);
+}
+
+.quillEditor :global(.ql-container) {
+  min-height: 400px;
+  max-height: 800px;
+  overflow-y: auto;
+  font-family: inherit;
+  font-size: var(--font-size-base);
+}
+
+/* 에디터 내 이미지 크기 고정 */
+.quillEditor :global(.ql-editor img) {
+  width: 500px !important;
+  max-width: 100% !important;
+  height: auto !important;
+  display: block;
+  margin: 10px 0;
+}
+
+.quillEditor :global(.ql-toolbar) {
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  background: var(--color-bg-secondary);
+}
+
+/* Placeholder 즉시 사라지게 수정 */
+.quillEditor :global(.ql-editor.ql-blank::before) {
+  color: #aaa;
+}
+
+.quillEditor :global(.ql-editor:focus.ql-blank::before) {
+  content: attr(data-placeholder);
+  opacity: 0 !important;
+}
+
+.quillEditor :global(.ql-editor:not(.ql-blank)::before) {
+  display: none !important;
+}
+
+/* 되돌리기/다시실행 아이콘 수동 추가 */
+.quillEditor :global(.ql-undo::after) {
+  content: "↩";
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.quillEditor :global(.ql-redo::after) {
+  content: "↪";
+  font-size: 18px;
+  font-weight: bold;
 }
 
 .buttons {

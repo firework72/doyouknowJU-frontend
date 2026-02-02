@@ -412,3 +412,58 @@
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
+
+.activeFilterArea {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  padding: 0 var(--spacing-sm);
+}
+
+.filterBadge {
+  display: flex;
+  align-items: center;
+  background: var(--color-primary);
+  color: white;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.filterLabel {
+  opacity: 0.9;
+  margin-right: 4px;
+}
+
+.filterValue {
+  font-weight: var(--font-weight-bold);
+}
+
+.clearFilterBtn {
+  background: none;
+  border: none;
+  color: white;
+  margin-left: 8px;
+  font-size: 18px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.clearFilterBtn:hover {
+  opacity: 1;
+}
+
+.filterInfo {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin: 0;
+}

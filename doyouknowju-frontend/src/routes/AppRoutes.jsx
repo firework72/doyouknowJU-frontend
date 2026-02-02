@@ -20,8 +20,8 @@ const AppRoutes = () => {
             <Route path="/search" element={<SearchPage />} />
             <Route path="/board" element={<BoardListPage />} />
             <Route path="/board/write" element={<BoardWritePage />} />
-            <Route path="/board/:boardNo/edit" element={<BoardWritePage />} />
-            <Route path="/board/:boardNo" element={<BoardDetailPage />} />
+            <Route path="/board/:boardId/edit" element={<BoardWritePage />} />
+            <Route path="/board/:boardId" element={<BoardDetailPage />} />
             <Route path="/stock/:stockId" element={<StockDetail />} />
             <Route path="/ranking" element={<Ranking />} /> {/* Dong : 랭킹 페이지 */}
             <Route path="*" element={<HomePage />} />
