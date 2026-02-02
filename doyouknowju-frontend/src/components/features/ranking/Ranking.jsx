@@ -4,6 +4,8 @@ import Pagination from './components/Pagination';
 import { useState, useEffect } from 'react';
 import rankingApi from '../../../api/ranking/RankingApi';
 import { Button } from '../../common';
+import AllRankingTable from './components/AllRankingTable';
+import RankingTable from './components/RankingTable';
 
 function Ranking() {
 
@@ -16,10 +18,33 @@ function Ranking() {
     const [yearlyRanking, setYearlyRanking] = useState([]);
     const [allRanking, setAllRanking] = useState([]);
 
+    const [periodRanking, setPeriodRanking] = useState([]);
+
     const fetchWeeklyRanking =  async () => {
         try {
             const response = await rankingApi.getWeeklyRanking(page);
-            setWeeklyRanking(response.data);
+            setWeeklyRanking(response);
+            setPeriodRanking(response);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    const fetchMonthlyRanking = async () => {
+        try {
+            const response = await rankingApi.getMonthlyRanking(page);
+            setMonthlyRanking(response);
+            setPeriodRanking(response);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    const fetchYearlyRanking = async () => {
+        try {
+            const response = await rankingApi.getYearlyRanking(page);
+            setYearlyRanking(response);
+            setPeriodRanking(response);
         } catch (error) {
             console.error(error);
         }
@@ -34,7 +59,6 @@ function Ranking() {
             console.error(error);
         }
     }
-
 
     useEffect(()=>{
         if(selectedRankingCategory === "weekly") {
@@ -100,6 +124,7 @@ function Ranking() {
     return (
         <div className={styles.container}>
             <h1>랭킹</h1>
+            <p>모든 랭킹은 매일 자정 갱신됩니다.</p>
             <div>
                 <Button
                     onClick={handleAllRankingButton}
@@ -128,29 +153,16 @@ function Ranking() {
 
             </div>
             {
-                selectedRankingCategory === "all" &&
-                <table>
-                    <thead>
-                        <tr>
-                            <th>순위</th>
-                            <th>닉네임</th>
-                            <th>자산</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {
-                            allRanking?.map((ranking, index) => (
-                                <tr key={index}>
-                                    <td>{index + 1}</td>
-                                    <td>{ranking.userId}</td>
-                                    <td>{ranking.points}</td>
-                                </tr>
-                            ))
-                        }
-                    </tbody>
-                </table>
+                selectedRankingCategory === "all" && <AllRankingTable data={allRanking} />
             }
-            <Pagination />
+            {
+                selectedRankingCategory !== "all" && <RankingTable data={periodRanking} />
+            }
+            <Pagination
+                currentPage={page}
+                totalPages={10}
+                onPageChange={setPage}
+            />
         </div>
     );
 }

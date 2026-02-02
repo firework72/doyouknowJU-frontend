@@ -1,4 +1,7 @@
 
+import { Button } from '../../../common';
+import styles from './Pagination.module.css';
+
 function Pagination({
     currentPage,
     totalPages,
@@ -28,32 +31,32 @@ function Pagination({
     }
 
     return (
-        <nav>
-            <ul>
+        <nav className={styles.pagination}>
+            <ul className={styles.list}>
                 <li>
-                    <button onClick={() => handlePrevious(100)}>&lt;&lt;&lt;</button>
+                    <Button variant="secondary" onClick={() => handlePrevious(100)}>&lt;&lt;&lt;</Button>
                 </li>
                 <li>
-                    <button onClick={() => handlePrevious(10)}>&lt;&lt;</button>
+                    <Button variant="secondary" onClick={() => handlePrevious(10)}>&lt;&lt;</Button>
                 </li>
                 <li>
-                    <button onClick={() => handlePrevious(1)}>&lt;</button>
+                    <Button variant="secondary" onClick={() => handlePrevious(1)}>&lt;</Button>
                 </li>
                 {
                     pages.map((page) => (
                         <li key={page}>
-                            <button onClick={() => onPageChange(page)}>{page}</button>
+                            <Button variant={page === currentPage ? "primary" : "secondary"} onClick={() => onPageChange(page)}>{page}</Button>
                         </li>
                     ))
                 }
                 <li>
-                    <button onClick={() => handleNext(1)}>&gt;</button>
+                    <Button variant="secondary" onClick={() => handleNext(1)}>&gt;</Button>
                 </li>
                 <li>
-                    <button onClick={() => handleNext(10)}>&gt;&gt;</button>
+                    <Button variant="secondary" onClick={() => handleNext(10)}>&gt;&gt;</Button>
                 </li>
                 <li>
-                    <button onClick={() => handleNext(100)}>&gt;&gt;&gt;</button>
+                    <Button variant="secondary" onClick={() => handleNext(100)}>&gt;&gt;&gt;</Button>
                 </li>
             </ul>
         </nav>
