@@ -40,7 +40,7 @@ const Pagination = ({ currentPage = 1, totalPages = 1, onPageChange }) => {
     [safeCurrentPage, safeTotalPages]
   );
 
-  if (safeTotalPages <= 1) return null;
+  // if (safeTotalPages <= 1) return null;
 
   const goTo = (page) => {
     if (!onPageChange) return;

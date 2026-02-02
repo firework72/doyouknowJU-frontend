@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from '@/hooks/AuthContext';
 import axios from 'axios';
 import Button from '../../../common/Button';
 import styles from './BoardDetailPage.module.css';
+import { useAuth } from '@/hooks/AuthContext';
 
 const toDateString = (value) => {
   if (!value) return '-';
@@ -27,7 +27,7 @@ function BoardDetailPage() {
     const fetchBoard = async () => {
       setIsLoading(true);
       try {
-        const { data } = await axios.get(`/dykj/api/boards/${boardNo}`);
+        const { data } = await axios.get(`/dykj/api/boards/detail/${boardNo}`);
         setBoard(data);
       } catch (error) {
         console.error('게시글 조회 실패', error);
@@ -96,7 +96,7 @@ function BoardDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="container">
+      <div className={styles.container}>
         <div className={styles.wrapper}>
           <p className={styles.loading}>로딩 중...</p>
         </div>
@@ -114,51 +114,40 @@ function BoardDetailPage() {
     board.changeName ? `/dykj/api/boards/files/${encodeURIComponent(board.changeName)}` : null;
 
   return (
-    <div className="container">
+    <div className={styles.container}>
       <div className={styles.wrapper}>
-        <h2 className={styles.title}>게시글 상세보기</h2>
 
         <div className={styles.actions}>
-          <Button variant="secondary" onClick={handleGoList}>
+          <button
+            onClick={handleGoList}
+            className={styles.actionButton}
+          >
             목록으로
-          </Button>
+          </button>
         </div>
 
-        <table className={styles.table}>
-          <tbody>
-            <tr>
-              <th>제목</th>
-              <td colSpan="3">{title}</td>
-            </tr>
-            <tr>
-              <th>작성자</th>
-              <td>{writer}</td>
-              <th>작성일</th>
-              <td>{toDateString(createdAt)}</td>
-            </tr>
-            <tr>
-              <th>첨부파일</th>
-              <td colSpan="3">
-                {board.originName && fileUrl ? (
-                  <a href={fileUrl} className={styles.fileLink} download>
-                    {board.originName}
-                  </a>
-                ) : (
-                  '첨부파일이 없습니다.'
-                )}
-              </td>
-            </tr>
-            <tr>
-              <th>내용</th>
-              <td colSpan="3" />
-            </tr>
-            <tr>
-              <td colSpan="4" className={styles.content}>
-                {board.boardContent ?? board.content ?? ''}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div className={styles.postCard}>
+          <div className={styles.postHeader}>
+            <div className={styles.headerLabel}>작성자</div>
+            <div className={styles.headerValue}>{writer}</div>
+            <div className={styles.headerLabel}>작성일</div>
+            <div className={styles.headerValue}>{toDateString(createdAt)}</div>
+          </div>
+          <div className={styles.postTitleArea}>
+            {title}
+          </div>
+          <div className={styles.postContentArea}>
+            {board.boardContent ?? board.content ?? ''}
+          </div>
+          {board.originName && (
+            <div className={styles.postFooter}>
+              <span className={styles.footerLabel}>첨부파일:</span>
+              <a href={fileUrl} className={styles.fileLink} download>
+                {board.originName}
+              </a>
+            </div>
+          )}
+        </div>
 
         {isAuthor && (
           <div className={styles.authorActions}>
@@ -172,6 +161,10 @@ function BoardDetailPage() {
         )}
 
         <div className={styles.replySection}>
+          <div className={styles.replyCount}>
+            댓글 <span>{replies.length}</span>
+          </div>
+
           <div className={styles.replyForm}>
             <textarea
               value={replyContent}
@@ -185,13 +178,10 @@ function BoardDetailPage() {
               onClick={handleReplySubmit}
               disabled={!isAuthenticated || isReplySubmitting || !replyContent.trim()}
               isLoading={isReplySubmitting}
+              className={styles.replySubmitButton}
             >
-              등록하기
+              등록
             </Button>
-          </div>
-
-          <div className={styles.replyCount}>
-            댓글 (<span>{replies.length}</span>) 개
           </div>
 
           <div className={styles.replyList}>
@@ -200,9 +190,13 @@ function BoardDetailPage() {
             ) : (
               replies.map((reply) => (
                 <div key={reply.replyNo ?? reply.id} className={styles.replyItem}>
-                  <span className={styles.replyWriter}>{reply.replyWriter ?? reply.writer ?? '-'}</span>
-                  <span className={styles.replyContent}>{reply.replyContent ?? reply.content ?? ''}</span>
-                  <span className={styles.replyDate}>{toDateString(reply.createDate ?? reply.createdAt)}</span>
+                  <div className={styles.replyMain}>
+                    <div className={styles.replyTop}>
+                      <span className={styles.replyWriter}>{reply.replyWriter ?? reply.writer ?? '-'}</span>
+                      <span className={styles.replyDate}>{toDateString(reply.createDate ?? reply.createdAt)}</span>
+                    </div>
+                    <div className={styles.replyContent}>{reply.replyContent ?? reply.content ?? ''}</div>
+                  </div>
                 </div>
               ))
             )}
