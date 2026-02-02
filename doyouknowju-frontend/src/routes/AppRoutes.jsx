@@ -8,6 +8,7 @@ import BoardWritePage from '../components/features/community/pages/BoardWritePag
 import BoardDetailPage from '../components/features/community/pages/BoardDetailPage';
 import MyPage from '../pages/MyPage';
 import TestLevelUp from '../pages/TestLevelUp';
+import Ranking from '../components/features/ranking/Ranking'; // Dong : 랭킹 페이지
 
 const AppRoutes = () => {
     return (
@@ -22,6 +23,7 @@ const AppRoutes = () => {
             <Route path="/board/:boardNo/edit" element={<BoardWritePage />} />
             <Route path="/board/:boardNo" element={<BoardDetailPage />} />
             <Route path="/stock/:stockId" element={<StockDetail />} />
+            <Route path="/ranking" element={<Ranking />} /> {/* Dong : 랭킹 페이지 */}
             <Route path="*" element={<HomePage />} />
         </Routes>
     );
