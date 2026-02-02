@@ -12,7 +12,7 @@ const toDateString = (value) => {
 };
 
 function BoardDetailPage() {
-  const { boardNo } = useParams();
+  const { boardId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const isAuthenticated = !!user;
@@ -27,7 +27,7 @@ function BoardDetailPage() {
     const fetchBoard = async () => {
       setIsLoading(true);
       try {
-        const { data } = await axios.get(`/dykj/api/boards/detail/${boardNo}`);
+        const { data } = await axios.get(`/dykj/api/boards/detail/${boardId}`);
         setBoard(data);
       } catch (error) {
         console.error('게시글 조회 실패', error);
@@ -39,16 +39,16 @@ function BoardDetailPage() {
     };
 
     fetchBoard();
-  }, [boardNo, navigate]);
+  }, [boardId, navigate]);
 
   const fetchReplies = useCallback(async () => {
     try {
-      const { data } = await axios.get(`/dykj/api/boards/${boardNo}/replies`);
+      const { data } = await axios.get(`/dykj/api/boards/${boardId}/replies`);
       setReplies(Array.isArray(data) ? data : data?.list || []);
     } catch (error) {
       console.error('댓글 조회 실패', error);
     }
-  }, [boardNo]);
+  }, [boardId]);
 
   useEffect(() => {
     fetchReplies();
@@ -63,17 +63,17 @@ function BoardDetailPage() {
 
   const handleGoList = () => navigate('/board');
 
-  const handleEdit = () => navigate(`/board/${boardNo}/edit`);
+  const handleEdit = () => navigate(`/board/${boardId}/edit`);
 
   const handleDelete = async () => {
     if (!window.confirm('정말 삭제하시겠습니까?')) return;
     try {
-      await axios.delete(`/dykj/api/boards/${boardNo}`);
+      await axios.delete(`/dykj/api/boards/delete/${boardId}`);
       alert('게시글이 삭제되었습니다.');
       navigate('/board');
     } catch (error) {
-      console.error(error);
-      alert('게시글 삭제에 실패했습니다.');
+      console.error('삭제 에러 상세:', error.response?.data || error.message);
+      alert(`게시글 삭제에 실패했습니다. ${error.response?.data?.message || ''}`);
     }
   };
 
@@ -83,7 +83,7 @@ function BoardDetailPage() {
 
     setIsReplySubmitting(true);
     try {
-      await axios.post(`/dykj/api/boards/${boardNo}/replies`, { replyContent: replyContent.trim() });
+      await axios.post(`/dykj/api/boards/${boardId}/replies`, { replyContent: replyContent.trim() });
       setReplyContent('');
       await fetchReplies();
     } catch (error) {
@@ -136,9 +136,10 @@ function BoardDetailPage() {
           <div className={styles.postTitleArea}>
             {title}
           </div>
-          <div className={styles.postContentArea}>
-            {board.boardContent ?? board.content ?? ''}
-          </div>
+          <div
+            className={styles.postContentArea}
+            dangerouslySetInnerHTML={{ __html: board.boardContent ?? board.content ?? '' }}
+          />
           {board.originName && (
             <div className={styles.postFooter}>
               <span className={styles.footerLabel}>첨부파일:</span>

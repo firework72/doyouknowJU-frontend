@@ -118,7 +118,14 @@
   line-height: 1.8;
   color: var(--color-text-primary);
   font-size: var(--font-size-base);
-  white-space: pre-wrap;
+}
+
+.postContentArea img {
+  width: 500px;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: var(--spacing-md) 0;
 }
 
 /* 수정/삭제 버튼 */

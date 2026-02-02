@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/AuthContext';
 import axios from 'axios';
@@ -6,6 +6,9 @@ import Input from '../../../common/Input';
 import Button from '../../../common/Button';
 import styles from './BoardWritePage.module.css';
 import { fetchStockSuggestions } from '@/api/stockApi';
+import ReactQuill, { Quill } from 'react-quill-new';
+import 'quill/dist/quill.snow.css';
+import { useRef } from 'react';
 
 function BoardWritePage() {
   const { boardId } = useParams();
@@ -13,6 +16,7 @@ function BoardWritePage() {
   const { user } = useAuth();
 
   const isEditMode = useMemo(() => !!boardId, [boardId]);
+  const quillRef = useRef(null);
 
   const [formData, setFormData] = useState({
     boardTitle: '',
@@ -27,6 +31,8 @@ function BoardWritePage() {
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedStock, setSelectedStock] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [deleteBtnPos, setDeleteBtnPos] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
     if (!isEditMode) {
@@ -64,6 +70,16 @@ function BoardWritePage() {
           boardContent: data.boardContent ?? data.content ?? '',
           boardWriter: data.boardWriter ?? data.writer ?? user?.userId ?? user?.id ?? '',
         });
+
+        // 기존 게시글의 종목 정보가 있으면 selectedStock에 설정
+        if (data.stockId) {
+          setSelectedStock({
+            code: data.stockId,
+            id: data.stockId,
+            stockId: data.stockId,
+            name: data.stockName || data.stockId, // 종목명이 있으면 사용, 없으면 ID 표시
+          });
+        }
       } catch (error) {
         console.error('게시글 조회 실패', error);
         alert('게시글을 불러올 수 없습니다.');
@@ -90,30 +106,132 @@ function BoardWritePage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleEditorChange = useCallback((content) => {
+    setFormData((prev) => {
+      if (prev.boardContent === content) return prev;
+      return { ...prev, boardContent: content };
+    });
+  }, []);
+
+  const imageHandler = useCallback(() => {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+
+    input.onchange = async () => {
+      const file = input.files[0];
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const res = await axios.post('/dykj/api/files/images', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
+        // 결과물이 객체일 경우 필드를 추출하고, 아닐 경우 데이터 자체를 URL로 사용
+        const imageUrl = (typeof res.data === 'object') ? (res.data.url || res.data.filePath) : res.data;
+
+        if (!imageUrl) throw new Error('올바른 이미지 URL을 받지 못했습니다.');
+
+        const quill = quillRef.current.getEditor();
+        const range = quill.getSelection();
+        const index = range?.index || 0;
+
+        // 1. 이미지 삽입
+        quill.insertEmbed(index, 'image', imageUrl, 'user');
+
+        // 커서를 이미지 다음으로 이동
+        quill.setSelection(index + 1);
+
+      } catch (error) {
+        console.error('이미지 업로드 상세 에러:', error);
+        alert('이미지 처리 중 오류가 발생했습니다.');
+      }
+    };
+  }, []);
+
+  const modules = useMemo(() => ({
+    toolbar: {
+      container: [
+        [{ header: [1, 2, false] }],
+        ['undo', 'redo'], // 되돌리기, 다시실행 버튼 추가
+        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+        [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
+        ['link', 'image'],
+        ['clean'],
+      ],
+      handlers: {
+        image: imageHandler,
+        undo: function () {
+          this.quill.history.undo();
+        },
+        redo: function () {
+          this.quill.history.redo();
+        },
+      },
+    },
+    history: {
+      delay: 500,
+      maxStack: 100,
+      userOnly: true,
+    },
+  }), [imageHandler]);
+
+  // 이미지 클릭 시 삭제 버튼 위치 계산
+  const handleEditorClick = (e) => {
+    if (e.target.tagName === 'IMG') {
+      const rect = e.target.getBoundingClientRect();
+      const containerRect = quillRef.current.getEditor().container.getBoundingClientRect();
+
+      setSelectedImage(e.target);
+      setDeleteBtnPos({
+        top: e.target.offsetTop,
+        left: e.target.offsetLeft + e.target.offsetWidth - 30,
+      });
+    } else {
+      setSelectedImage(null);
+    }
+  };
+
+  const removeImage = useCallback((e) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
+    if (!selectedImage || !quillRef.current) return;
+
+    const quill = quillRef.current.getEditor();
+    const blot = Quill.find(selectedImage);
+    if (blot) {
+      const index = quill.getIndex(blot);
+      quill.deleteText(index, 1, 'user');
+      setSelectedImage(null);
+    }
+  }, [selectedImage]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.boardTitle.trim() || !formData.boardContent.trim()) {
+    const isContentEmpty = !formData.boardContent || formData.boardContent.replace(/<(.|\n)*?>/g, '').trim().length === 0;
+
+    if (!formData.boardTitle.trim() || isContentEmpty) {
       alert('제목과 내용을 입력하세요.');
       return;
     }
 
     setIsSubmitting(true);
+
+    const submitData = {
+      boardTitle: formData.boardTitle,
+      boardContent: formData.boardContent,
+      userId: formData.boardWriter,
+      boardType: selectedStock ? 'STOCK' : 'FREE',
+      stockId: selectedStock ? (selectedStock.code || selectedStock.id || selectedStock.stockId || selectedStock.mksc_shrn_iscd) : null,
+    };
+
     try {
-      const submitData = {
-        boardTitle: formData.boardTitle,
-        boardContent: formData.boardContent,
-        userId: formData.boardWriter,
-        boardType: selectedStock ? 'STOCK' : 'FREE',
-        stockId: selectedStock ? (selectedStock.code || selectedStock.id || selectedStock.stockId || selectedStock.mksc_shrn_iscd) : null,
-      };
-
-      console.log('Sending request to:', isEditMode ? `/dykj/api/boards/update/${boardId}` : '/dykj/api/boards/insert');
-      console.log('Request Body:', JSON.stringify(submitData, null, 2));
-
       if (isEditMode) {
-        submitData.boardId = boardId;
-        await axios.post(`/dykj/api/boards/update/${boardId}`, submitData);
+        await axios.put(`/dykj/api/boards/update/${boardId}`, submitData);
         alert('게시글이 수정되었습니다.');
         navigate(`/board/${boardId}`);
       } else {
@@ -122,8 +240,13 @@ function BoardWritePage() {
         navigate('/board');
       }
     } catch (error) {
-      console.error(error);
-      alert(isEditMode ? '게시글 수정에 실패했습니다.' : '게시글 등록에 실패했습니다.');
+      console.error('요청 에러 상세:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        requestData: submitData
+      });
+      alert(`${isEditMode ? '게시글 수정' : '게시글 등록'}에 실패했습니다. ${error.response?.data?.message || ''}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -159,7 +282,7 @@ function BoardWritePage() {
           </div>
 
           <div className={styles.row}>
-            <label className={styles.label}>관련 종목</label>
+            <label className={styles.label}>토론 종목</label>
             <div className={styles.stockSearchArea}>
               {selectedStock ? (
                 <div className={styles.selectedStock}>
@@ -176,7 +299,7 @@ function BoardWritePage() {
                     type="text"
                     value={stockQuery}
                     onChange={(e) => setStockQuery(e.target.value)}
-                    placeholder="주식 종목 입력 (2글자 이상)"
+                    placeholder="주식 종목 입력 (입력하지 않을 시 자유게시판에 등록됩니다.)"
                     fullWidth
                   />
                   {showSuggestions && suggestions.length > 0 && (
@@ -196,14 +319,28 @@ function BoardWritePage() {
 
           <div className={styles.row}>
             <label className={styles.label}>내용</label>
-            <textarea
-              name="boardContent"
-              value={formData.boardContent}
-              onChange={handleChange}
-              placeholder="내용을 입력하세요"
-              required
-              className={styles.textarea}
-            />
+            <div className={styles.editorWrapper} onClick={handleEditorClick}>
+              <ReactQuill
+                ref={quillRef}
+                theme="snow"
+                value={formData.boardContent}
+                onChange={handleEditorChange}
+                modules={modules}
+                placeholder="내용을 입력하세요"
+                className={styles.quillEditor}
+              />
+              {selectedImage && (
+                <button
+                  type="button"
+                  className={styles.imageDeleteBtn}
+                  style={{ top: deleteBtnPos.top + 5, left: deleteBtnPos.left - 5 }}
+                  onMouseDown={(e) => e.preventDefault()} // 포커스 뺏기 방지
+                  onClick={removeImage}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
           </div>
 
           <div className={styles.buttons}>
