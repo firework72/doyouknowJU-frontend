@@ -33,13 +33,11 @@
   object-fit: contain;
 }
 
-.logo-placeholder {
-  background: #000000;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: bold;
-  font-size: 15px;
+.logo-text{
+  color: #000000;
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: 1px;
 }
 
 /* 네비게이션 메뉴 */

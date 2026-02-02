@@ -6,13 +6,17 @@ export const AuthProvider = ({children}) =>{
     const [user,setUser] = useState(null);
     const [loading,setLoading] = useState(true);
 
-    //로그인 정보 불러오기
+    //로그인 정보 불러오기 & 세션 확인
     useEffect(()=>{
-        const loginUser = localStorage.getItem('user');
-        if(loginUser){
-            setUser(JSON.parse(loginUser));
+       const initAuth = async() => {
+        const localUser = localStorage.getItem('user');
+        if(localUser){
+            setUser(JSON.parse(localUser));
+            await refreshUser();
         }
         setLoading(false);
+       }
+       initAuth();
     },[]);
 
     const login = (userData) =>{
@@ -39,7 +43,7 @@ export const AuthProvider = ({children}) =>{
 
     const refreshUser = async () =>{
         try{
-            const response = await fetch('http://localhost:8080/dykj/api/member/info',{
+            const response = await fetch('http://localhost:8080/dykj/api/members/info',{
                 method:'GET',
                 credentials: 'include'
             });

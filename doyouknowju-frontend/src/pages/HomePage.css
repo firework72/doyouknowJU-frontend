@@ -156,11 +156,26 @@
     color: #666;
 }
 
-.auth-link {
+.auth-link, .auth-link-btn {
     color: #4a90e2;
     text-decoration: none;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
 }
 
-.auth-link:hover {
+.auth-link:hover, .auth-link-btn:hover {
     text-decoration: underline;
+}
+
+.home-auth-btn{
+    transform: scale(0.7);
+    margin: -5px;
+}
+
+.home-auth-btn:hover{
+    transform: scale(0.7) !important;
+    filter: brightness(1.1);
 }

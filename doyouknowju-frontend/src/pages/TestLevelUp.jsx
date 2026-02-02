@@ -12,7 +12,18 @@ const TestLevelUp = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentLevel, setCurrentLevel] = useState(1);
 
-    const { refreshUser } = useAuth();
+    const { user, refreshUser, loading, authLoading } = useAuth();
+
+    const navigate = React.useMemo(()=>(path) => window.location.href = path, []);
+
+    React.useEffect(()=>{
+        if(!authLoading && !user){
+            alert("로그인이 필요한 페이지입니다.");
+            window.location.href = '/';
+        }else if (user){
+            setUserId(user.userId);
+        }
+    },[user,authLoading]);
 
     const handleGainExp = async () => {
         if (!userId) {
@@ -34,7 +45,7 @@ const TestLevelUp = () => {
 
             if(!response.ok){
                 if(response.status === 401){
-                    await refresthUser();
+                    await refreshUser();
                     return;
                 }
                 const errorData = await response.text();
@@ -44,15 +55,13 @@ const TestLevelUp = () => {
             const result = await response.json();
             setLog(JSON.stringify(result, null, 2));
 
-            //사용자 정보 갱신
-            const isRefreshed = await refreshUser();
-            if(!isRefreshed) return; 
-
             // 레벨업 여부 확인 및 모달 띄우기
             if(result.levelUp || result.isLevelUp){
                 setCurrentLevel(result.currentLevel);
                 setIsModalOpen(true);
             }
+
+            await refreshUser();
 
         } catch (error) {
             console.error("Experience gain error:", error);

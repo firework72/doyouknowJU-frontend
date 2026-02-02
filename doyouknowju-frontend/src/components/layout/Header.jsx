@@ -67,7 +67,7 @@ function Header({ logoSrc }) {
             {logoSrc ? (
               <img src={logoSrc} alt="로고" className="logo-image" />
             ) : (
-              <div className="logo-placeholder">로고</div>
+              <div className="logo-text">DYKJ</div>
             )}
           </Link>
 
