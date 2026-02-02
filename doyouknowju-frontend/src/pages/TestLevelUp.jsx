@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import LevelUpModal from '../components/features/game/LevelUpModal';
+import { useAuth } from '../hooks/AuthContext';
 
 const TestLevelUp = () => {
     const [userId, setUserId] = useState('');
@@ -10,6 +11,8 @@ const TestLevelUp = () => {
     // 모달 관련 상태
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentLevel, setCurrentLevel] = useState(1);
+
+    const { refreshUser } = useAuth();
 
     const handleGainExp = async () => {
         if (!userId) {
@@ -29,22 +32,32 @@ const TestLevelUp = () => {
                 credentials: 'include',
             });
 
+            if(!response.ok){
+                if(response.status === 401){
+                    await refresthUser();
+                    return;
+                }
+                const errorData = await response.text();
+                throw new Error(`서버 오류 (${response.status}): ${errorData}`);
+            }
+
             const result = await response.json();
             setLog(JSON.stringify(result, null, 2));
 
+            //사용자 정보 갱신
+            const isRefreshed = await refreshUser();
+            if(!isRefreshed) return; 
+
             // 레벨업 여부 확인 및 모달 띄우기
-            if (result.levelUp) {
-                setCurrentLevel(result.currentLevel);
-                setIsModalOpen(true);
-            } else if (result.isLevelUp) {
-                // just in case
+            if(result.levelUp || result.isLevelUp){
                 setCurrentLevel(result.currentLevel);
                 setIsModalOpen(true);
             }
 
         } catch (error) {
-            console.error(error);
+            console.error("Experience gain error:", error);
             setLog('에러 발생: ' + error.message);
+            alert('경험치 획득 중 오류가 발생했습니다: '+error.message);
         }
     };
 
