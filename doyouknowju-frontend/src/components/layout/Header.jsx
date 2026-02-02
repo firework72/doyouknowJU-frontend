@@ -1,9 +1,17 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { fetchStockSuggestions } from '../../api/stockApi';
+import { useNotification } from '../../hooks/useNotification';
+import NotificationBadge from '../features/notification/NotificationBadge';
+import NotificationList from '../features/notification/NotificationList';
+import { useAuth } from '@/hooks/AuthContext';
 import './Header.css';
 
 function Header({ logoSrc }) {
+  const { user } = useAuth();
+  // 수정 후 (userId로 변경)
+  const { notifications, unreadCount, handleRead } = useNotification(user ? user.userId : null); const [showNotiList, setShowNotiList] = useState(false);
+
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -107,6 +115,27 @@ function Header({ logoSrc }) {
               </ul>
             )}
           </div>
+
+          {/* 알림 아이콘 영역 */}
+          {user && (
+            <div
+              className="relative ml-4 cursor-pointer notification-container"
+              onClick={() => setShowNotiList(!showNotiList)}
+              style={{ display: 'flex', alignItems: 'center', marginLeft: '15px', position: 'relative', cursor: 'pointer' }}
+            >
+              <span className="text-2xl" style={{ fontSize: '24px' }}>🔔</span>
+              <NotificationBadge count={unreadCount} />
+
+              {showNotiList && (
+                <div
+                  className="absolute right-0 top-10 z-50"
+                  style={{ position: 'absolute', top: '100%', right: '0', zIndex: 1000 }}
+                >
+                  <NotificationList notifications={notifications} onRead={handleRead} />
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
