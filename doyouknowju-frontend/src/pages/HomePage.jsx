@@ -6,6 +6,8 @@ import StockTop10View from '../front/StockView';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/AuthContext';
 import { Button } from '../components/common';
+import AttendanceModal from '../components/features/game/AttendanceModal';
+import LevelUpModal from '../components/features/game/LevelUpModal';
 
 function HomePage() {
     const navigate = useNavigate();
@@ -13,6 +15,16 @@ function HomePage() {
 
     const [loginId, setLoginId] = useState("");
     const [loginPwd, setLoginPwd] = useState("");
+
+    //모달 오픈 여부
+    const [attendanceModal, setAttendanceModal] = useState({
+        isOpen: false,
+        data: null
+    });
+    const [levelUpModal, setLevelUpModal] = useState({
+        isOpen: false,
+        level: 1
+    })
 
     //최신 정보 동기화
     useEffect(()=>{
@@ -50,15 +62,44 @@ function HomePage() {
 
     //출석 체크 요청
     const handleAttend = async() =>{
-        const response = await fetch('http://localhost:8080/dykj/api/game/attend',{
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json'},
-            body: JSON.stringify({ }),
-            credentials: 'include'
-        });
+        try{
+            const response = await fetch('http://localhost:8080/dykj/api/game/attend',{
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json'},
+                credentials: 'include'
+            });
+        
+            const data = await response.json();
+        
+            if(response.ok) {
+                if(data.success){
+                    setAttendanceModal({
+                        isOpen: true,
+                        data: data
+                    });
+                    refreshUser();
+                } else {
+                    alert(data.message);
+                }
+            } else {
+                alert(data.message || "출석체크 중 오류가 발생했습니다.");
+            }
+        }catch(error){
+            console.error("출석체크 중 에러 발생: "+error);
+            alert("서버와 통신 중 오류가 발생했습니다.");
+        }
+    }
 
-        if(response.ok) {
-            alert("오늘의 출석체크가 완료되었습니다.");
+    //출석 모달 닫은 후 레벨업 확인
+    const handleCloseAttendance = () =>{
+        const {data} = attendanceModal;
+        setAttendanceModal({...attendanceModal, isOpen: false});
+
+        if(data && data.levelUp){
+            setLevelUpModal({
+                isOpen: true,
+                level: data.currentLevel
+            });
         }
     }
 
@@ -93,7 +134,7 @@ function HomePage() {
                                 </div>
                                 <div className="auth-links">
                                      <Button
-                                        onClick={() => alert("오늘의 출석체크가 완료되었습니다!")}
+                                        onClick={handleAttend}
                                         variant="primary"
                                         size="sm"
                                         className="home-auth-btn"
@@ -162,6 +203,20 @@ function HomePage() {
                     </Card>
                 </div>
             </div>
+
+            {/* 출석 체크 모달 */}
+            <AttendanceModal
+                isOpen={attendanceModal.isOpen}
+                onClose={handleCloseAttendance}
+                data={attendanceModal.data}
+            />
+
+            {/* 레벨업 모달 */}
+            <LevelUpModal
+                isOpen={levelUpModal.isOpen}
+                onClose={()=>setLevelUpModal({...levelUpModal,isOpen: false})}
+                level={levelUpModal.level}
+            />
         </main>
     );
 }
