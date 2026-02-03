@@ -178,6 +178,11 @@
     font-weight: bold;
 }
 
+.calendar-date.attended{
+    background-color: #ecfdf5;
+    border: 1px solid #10b981;
+}
+
 .checked-mark {
     font-size: 0.8rem;
     color: #10b981;

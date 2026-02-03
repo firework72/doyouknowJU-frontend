@@ -8,6 +8,7 @@ const MyPage = () => {
     const { user, loading: authLoading, refreshUser } = useAuth();
     const [loading, setLoading] = useState(true);
     const [isAttendanceModalOpen, setIsAttendenceModalOpen] = useState(false);
+    const [attendanceHistory, setAttendanceHistory] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -28,6 +29,29 @@ const MyPage = () => {
 
         checkSession();
     }, [authLoading, user, navigate]);
+
+    useEffect(()=>{
+        if(isAttendanceModalOpen && user){
+            fetchAttendanceHistory();
+        }
+    }, [isAttendanceModalOpen, user]);
+
+    const fetchAttendanceHistory = async() =>{
+        try{
+            const response = await fetch('http://localhost:8080/dykj/api/game/attend/history', {
+                method: 'GET',
+                headers: {'Content-Type': 'application/json'},
+                credentials: 'include'
+            });
+
+            if(response.ok){
+                const data = await response.json();
+                setAttendanceHistory(data);
+            }
+        }catch(error){
+            console.error("출석 이력 조회 중 에러 발생: ",error);
+        }
+    }
 
     if (authLoading || loading) {
         return (
@@ -75,6 +99,10 @@ const MyPage = () => {
                             <span className="info-label">보유 포인트</span>
                             <span className="info-value">{user.points?.toLocaleString()} P</span>
                         </div>
+                        <div className="info-item">
+                            <span className="info-label">누적 출석</span>
+                            <span className="info-value">{user.consecDays}일</span>
+                        </div>
                     </div>
                 </div>
 
@@ -121,11 +149,17 @@ const MyPage = () => {
                         ))}
                         {Array.from({ length: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() }).map((_, i) => {
                             const date = i + 1;
+                            const month = new Date().getMonth() + 1;
+                            const year = new Date().getFullYear();
+                            const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+
                             const isToday = date === new Date().getDate();
+                            const isAttended = attendanceHistory.includes(dateStr);
+
                             return (
-                                <div key={date} className={`calendar-date ${isToday ? 'today' : ''}`}>
+                                <div key={date} className={`calendar-date ${isToday ? 'today' : ''} ${isAttended ? 'attended' : ''}`}>
                                     <span className="date-num">{date}</span>
-                                    {isToday && <div className="checked-mark">✔</div>}
+                                    {isAttended && <div className="checked-mark">✔</div>}
                                 </div>
                             );
                         })}
