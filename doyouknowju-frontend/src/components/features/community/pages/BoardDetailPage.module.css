@@ -217,7 +217,8 @@
 
 .replyTop {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  /* 수직 중앙 정렬 */
   margin-bottom: var(--spacing-xs);
 }
 
@@ -228,14 +229,79 @@
 }
 
 .replyDate {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  font-size: 11px;
+  /* 크기 줄임 */
+  color: #c0c0c0;
+  /* 연하게 */
+  margin-left: 12px;
+  /* 작성자와 간격 띄우기 */
+  font-weight: normal;
 }
 
 .replyContent {
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
   line-height: 1.5;
+}
+
+.replyActions {
+  display: flex;
+  gap: var(--spacing-xs);
+  margin-left: auto;
+}
+
+.editBtn,
+.deleteBtn {
+  background: none;
+  /* 배경 제거 */
+  padding: 0 4px;
+  border: none;
+  font-size: 11px;
+  color: #999;
+  /* 수수한 회색 */
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.editBtn:hover {
+  color: var(--color-primary);
+  /* 호버 시에만 색상 표시 */
+  text-decoration: underline;
+  opacity: 1;
+}
+
+.deleteBtn:hover {
+  color: #ff4d4f;
+  /* 호버 시에만 빨간색 */
+  background: none;
+}
+
+.editForm {
+  margin-top: var(--spacing-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.editInput {
+  width: 100%;
+  min-height: 80px;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  resize: vertical;
+}
+
+.editInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.editButtons {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: flex-end;
 }
 
 /* 반응형 */

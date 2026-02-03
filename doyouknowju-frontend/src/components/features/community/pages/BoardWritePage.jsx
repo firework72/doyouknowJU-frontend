@@ -21,7 +21,7 @@ function BoardWritePage() {
   const [formData, setFormData] = useState({
     boardTitle: '',
     boardContent: '',
-    boardWriter: user?.userId || user?.id || '',
+    boardWriter: user?.userId
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
