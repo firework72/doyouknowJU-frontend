@@ -7,8 +7,28 @@ import { useAuth } from '@/hooks/AuthContext';
 
 const toDateString = (value) => {
   if (!value) return '-';
-  const str = String(value);
-  return str.length >= 10 ? str.substring(0, 10) : str;
+
+  let date;
+
+  // Spring Boot LocalDateTime 기본 설정 시 배열로 오는 경우 처리 [YYYY, MM, DD, HH, mm, ss]
+  if (Array.isArray(value)) {
+    date = new Date(value[0], value[1] - 1, value[2], value[3] || 0, value[4] || 0, value[5] || 0);
+  } else {
+    date = new Date(value);
+  }
+
+  if (isNaN(date.getTime())) return String(value);
+
+  // 한국 시간(KST)으로 변환
+  return new Intl.DateTimeFormat('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Seoul'
+  }).format(date).replace(/\. /g, '-').replace('.', '');
 };
 
 function BoardDetailPage() {
@@ -20,8 +40,11 @@ function BoardDetailPage() {
   const [board, setBoard] = useState(null);
   const [replies, setReplies] = useState([]);
   const [replyContent, setReplyContent] = useState('');
+  const [editingReplyId, setEditingReplyId] = useState(null);
+  const [editingContent, setEditingContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isReplySubmitting, setIsReplySubmitting] = useState(false);
+
 
   useEffect(() => {
     const fetchBoard = async () => {
@@ -83,7 +106,11 @@ function BoardDetailPage() {
 
     setIsReplySubmitting(true);
     try {
-      await axios.post(`/dykj/api/boards/${boardId}/replies`, { replyContent: replyContent.trim() });
+      await axios.post(`/dykj/api/boards/${boardId}/replies/insert`, {
+        replyContent: replyContent.trim(),
+        userId: user?.userId,
+        boardId: boardId,
+      });
       setReplyContent('');
       await fetchReplies();
     } catch (error) {
@@ -92,6 +119,44 @@ function BoardDetailPage() {
     } finally {
       setIsReplySubmitting(false);
     }
+  };
+
+  const handleReplyEdit = (reply) => {
+    setEditingReplyId(reply.replyId);
+    setEditingContent(reply.replyContent || reply.content || '');
+  };
+
+  const handleReplyUpdate = async (replyId) => {
+    if (!editingContent.trim()) return;
+
+    try {
+      await axios.put(`/dykj/api/boards/replies/${replyId}/update`, {
+        replyContent: editingContent.trim(),
+      });
+      setEditingReplyId(null);
+      setEditingContent('');
+      await fetchReplies();
+    } catch (error) {
+      console.error(error);
+      alert('댓글 수정에 실패했습니다.');
+    }
+  };
+
+  const handleReplyDelete = async (replyId) => {
+    if (!window.confirm('댓글을 삭제하시겠습니까?')) return;
+
+    try {
+      await axios.delete(`/dykj/api/boards/replies/${replyId}/delete`);
+      await fetchReplies();
+    } catch (error) {
+      console.error(error);
+      alert('댓글 삭제에 실패했습니다.');
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingReplyId(null);
+    setEditingContent('');
   };
 
   if (isLoading) {
@@ -189,17 +254,50 @@ function BoardDetailPage() {
             {replies.length === 0 ? (
               <p className={styles.noReply}>등록된 댓글이 없습니다.</p>
             ) : (
-              replies.map((reply) => (
-                <div key={reply.replyNo ?? reply.id} className={styles.replyItem}>
-                  <div className={styles.replyMain}>
-                    <div className={styles.replyTop}>
-                      <span className={styles.replyWriter}>{reply.replyWriter ?? reply.writer ?? '-'}</span>
-                      <span className={styles.replyDate}>{toDateString(reply.createDate ?? reply.createdAt)}</span>
+              replies.map((reply) => {
+                const isMyReply = user?.userId === reply.userId;
+                const isEditing = editingReplyId === reply.replyId;
+
+                return (
+                  <div key={reply.replyId} className={styles.replyItem}>
+                    <div className={styles.replyMain}>
+                      <div className={styles.replyTop}>
+                        <span className={styles.replyWriter}>{reply.userId}</span>
+                        <span className={styles.replyDate}>{toDateString(reply.createDate ?? reply.createdAt)}</span>
+                        {isMyReply && !isEditing && (
+                          <div className={styles.replyActions}>
+                            <button onClick={() => handleReplyEdit(reply)} className={styles.editBtn}>
+                              수정
+                            </button>
+                            <button onClick={() => handleReplyDelete(reply.replyId)} className={styles.deleteBtn}>
+                              ✕
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      {isEditing ? (
+                        <div className={styles.editForm}>
+                          <textarea
+                            value={editingContent}
+                            onChange={(e) => setEditingContent(e.target.value)}
+                            className={styles.editInput}
+                          />
+                          <div className={styles.editButtons}>
+                            <Button variant="primary" onClick={() => handleReplyUpdate(reply.replyId)}>
+                              저장
+                            </Button>
+                            <Button variant="secondary" onClick={cancelEdit}>
+                              취소
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className={styles.replyContent}>{reply.replyContent ?? reply.content ?? ''}</div>
+                      )}
                     </div>
-                    <div className={styles.replyContent}>{reply.replyContent ?? reply.content ?? ''}</div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
