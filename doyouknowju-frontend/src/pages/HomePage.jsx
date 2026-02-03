@@ -8,6 +8,7 @@ import { useAuth } from '../hooks/AuthContext';
 import { Button } from '../components/common';
 import AttendanceModal from '../components/features/game/AttendanceModal';
 import LevelUpModal from '../components/features/game/LevelUpModal';
+import QuizModal from '../components/features/game/QuizModal';
 
 function HomePage() {
     const navigate = useNavigate();
@@ -25,6 +26,7 @@ function HomePage() {
         isOpen: false,
         level: 1
     })
+    const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
 
     //최신 정보 동기화
     useEffect(()=>{
@@ -90,6 +92,13 @@ function HomePage() {
         }
     }
 
+    //퀴즈 완료 핸들러
+    const handleQuizComplete = (result) =>{
+        if(result.isCorrect){
+            refreshUser();
+        }
+    }
+
     //출석 모달 닫은 후 레벨업 확인
     const handleCloseAttendance = () =>{
         const {data} = attendanceModal;
@@ -131,17 +140,14 @@ function HomePage() {
                                 <div className="user-stats">
                                     <p>보유 자산: {user.points?.toLocaleString()}원</p>
                                     <p>레벨: {user.userLevel}</p>
+                                    <p>누적 출석: {user.consecDays}일</p>
                                 </div>
                                 <div className="auth-links">
-                                     <Button
-                                        onClick={handleAttend}
-                                        variant="primary"
-                                        size="sm"
-                                        className="home-auth-btn"
-                                    >
-                                        출석체크
-                                    </Button>
-                                    <Button onClick={handleLogout} variant="danger" size="sm" className="home-auth-btn">로그아웃</Button>
+                                    <button onClick={handleLogout} className="auth-link-btn">로그아웃</button>
+                                </div>
+                                <div className="auth-links">
+                                    <Button onClick={handleAttend} variant="primary" size="sm" className="home-auth-btn">출석체크</Button>
+                                    <Button onClick={() => setIsQuizModalOpen(true)} variant="secondary" size="sm" className="home-auth-btn">OX퀴즈</Button>
                                 </div>
                             </div>
                         ) : (
@@ -216,6 +222,13 @@ function HomePage() {
                 isOpen={levelUpModal.isOpen}
                 onClose={()=>setLevelUpModal({...levelUpModal,isOpen: false})}
                 level={levelUpModal.level}
+            />
+
+            {/* OX 퀴즈 모달 */}
+            <QuizModal
+                isOpen={isQuizModalOpen}
+                onClose={()=>setIsQuizModalOpen(false)}
+                onLevelUp={(level)=>setLevelUpModal({isOpen: true, level})}
             />
         </main>
     );
