@@ -93,18 +93,15 @@ function BoardListPage() {
     //URL 파라미터에서 초기값 설정 
     useEffect(() => {
         const page = parseInt(searchParams.get('page')) || 1;
-        const condition = searchParams.get('condition') || 'writer';
+        const condition = searchParams.get('condition') || 'title'; // 기본값을 title로 변경 (사용자가 더 자주 씀)
         const keyword = searchParams.get('keyword') || '';
         const stockId = searchParams.get('stockId') || '';
 
         setSearchCondition(condition);
-        setSearchKeyword(keyword);
+        setSearchKeyword(keyword); // URL에 키워드 없으면 빈 문자열로 초기화됨 (즉, 새로고침 시 URL이 깨끗하면 입력창도 비워짐)
 
         //게시글 목록조회 함수 수행
         fetchBoards(page, condition, keyword, boardType, stockId);
-
-        //게시글 검색 함수 수행
-        //fetchSearchBoards(page,condition,keyword);
 
     }, [searchParams, boardType]);
 
@@ -375,10 +372,9 @@ function BoardListPage() {
                             onChange={(e) => setSearchCondition(e.target.value)}
                             className={styles.select}
                         >
-                            <option value="writer">작성자</option>
                             <option value="title">제목</option>
                             <option value="content">내용</option>
-                            <option value="stockId">종목코드</option>
+                            <option value="writer">작성자</option>
                         </select>
                         <input
                             type="text"

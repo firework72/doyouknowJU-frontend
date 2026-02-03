@@ -113,7 +113,7 @@
 
 /* 에디터 내 이미지 크기 고정 */
 .quillEditor :global(.ql-editor img) {
-  width: 500px !important;
+  width: 300px !important;
   max-width: 100% !important;
   height: auto !important;
   display: block;
