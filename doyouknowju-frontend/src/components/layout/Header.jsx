@@ -9,13 +9,24 @@ import './Header.css';
 
 function Header({ logoSrc }) {
   const { user } = useAuth();
-  // 수정 후 (userId로 변경)
-  const { notifications, unreadCount, handleRead } = useNotification(user ? user.userId : null); const [showNotiList, setShowNotiList] = useState(false);
+  const navigate = useNavigate();
 
+  // [중요 수정] 훅에서 필요한 모든 기능을 꺼냅니다.
+  const {
+    notifications,
+    unreadCount,
+    handleRead,
+    handleMarkAllAsRead,
+    fetchNotifications,
+    hasMore,
+    isLoading
+  } = useNotification(user ? user.userId : null);
+
+  // [흰색 화면 해결] 상태 선언을 명확히 분리합니다.
+  const [showNotiList, setShowNotiList] = useState(false);
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -24,23 +35,17 @@ function Header({ logoSrc }) {
         if (Array.isArray(results)) {
           setSuggestions(results);
           setShowSuggestions(true);
-        } else {
-          setSuggestions([]);
-          setShowSuggestions(false);
         }
       } else {
         setSuggestions([]);
         setShowSuggestions(false);
       }
-    }, 300); // 300ms debounce
-
+    }, 300);
     return () => clearTimeout(timer);
   }, [query]);
 
-  const handleInputChange = (e) => {
-    setQuery(e.target.value);
-  };
-
+  const handleInputChange = (e) => setQuery(e.target.value);
+  const handleKeyDown = (e) => e.key === 'Enter' && handleSearchSubmit();
   const handleSearchSubmit = () => {
     if (query.trim()) {
       navigate(`/search?q=${encodeURIComponent(query)}`);
@@ -49,37 +54,20 @@ function Header({ logoSrc }) {
     }
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      handleSearchSubmit();
-    }
-  };
-
   const handleSuggestionClick = (stock) => {
-
     const stockId = stock.code || stock.stockId || stock.id;
-
     navigate(`/stock/${stockId}`);
     setQuery('');
     setShowSuggestions(false);
-
   };
 
   return (
     <header className="header">
       <div className="header-container">
-        {/* 왼쪽: 로고 및 네비게이션 */}
         <div className="header-left">
-          {/* 로고 이미지 */}
           <Link to="/" className="logo-link">
-            {logoSrc ? (
-              <img src={logoSrc} alt="로고" className="logo-image" />
-            ) : (
-              <div className="logo-text">DYKJ</div>
-            )}
+            {logoSrc ? <img src={logoSrc} alt="로고" className="logo-image" /> : <div className="logo-text">DYKJ</div>}
           </Link>
-
-          {/* 네비게이션 메뉴 */}
           <nav className="nav-menu">
             <Link to="/stock" className="nav-button">주식 페이지</Link>
             <Link to="/news" className="nav-button">뉴스 페이지</Link>
@@ -88,58 +76,47 @@ function Header({ logoSrc }) {
           </nav>
         </div>
 
-        {/* 오른쪽: 검색창 및 로그인 */}
         <div className="header-right">
           <div className="search-box">
-            <input
-              type="text"
-              placeholder="주식 검색창"
-              className="search-input"
-              value={query}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
-            />
+            <input type="text" placeholder="주식 검색창" className="search-input" value={query} onChange={handleInputChange} onKeyDown={handleKeyDown} />
             {showSuggestions && suggestions.length > 0 && (
               <ul className="search-suggestions">
                 {suggestions.map((item, index) => (
-                  <li
-                    key={index}
-                    className="suggestion-item"
-                    onClick={() => handleSuggestionClick(item)}
-                  >
-                    {/* Display name and code, adjust fields as per API */}
+                  <li key={index} className="suggestion-item" onClick={() => handleSuggestionClick(item)}>
                     <span className="stock-name">{item.name || item.stockName}</span>
-                    <span className="stock-code">{item.id || item.mksc_shrn_iscd || item.code || item.stockId}</span>
+                    <span className="stock-code">{item.id || item.code}</span>
                   </li>
                 ))}
               </ul>
             )}
           </div>
 
-          {/* 알림 아이콘 영역 */}
           {user && (
             <div
-              className="relative ml-4 cursor-pointer notification-container"
+              className="notification-container"
               onClick={() => setShowNotiList(!showNotiList)}
               style={{ display: 'flex', alignItems: 'center', marginLeft: '15px', position: 'relative', cursor: 'pointer' }}
             >
-              <span className="text-2xl" style={{ fontSize: '24px' }}>🔔</span>
+              <span style={{ fontSize: '24px' }}>🔔</span>
               <NotificationBadge count={unreadCount} />
 
               {showNotiList && (
-                <div
-                  className="absolute right-0 top-10 z-50"
-                  style={{ position: 'absolute', top: '100%', right: '0', zIndex: 1000 }}
-                >
-                  <NotificationList notifications={notifications} onRead={handleRead} />
+                <div style={{ position: 'absolute', top: '100%', right: '0', zIndex: 1000 }}>
+                  {/* [중요] List 컴포넌트에 모든 prop을 전달합니다. */}
+                  <NotificationList
+                    notifications={notifications}
+                    onRead={handleRead}
+                    onLoadMore={fetchNotifications}
+                    hasMore={hasMore}
+                    onMarkAllAsRead={handleMarkAllAsRead}
+                    isLoading={isLoading}
+                  />
                 </div>
               )}
             </div>
           )}
         </div>
       </div>
-
-      {/* 하단 구분선 */}
       <div className="header-line"></div>
     </header>
   );
