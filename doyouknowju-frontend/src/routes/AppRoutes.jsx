@@ -9,12 +9,14 @@ import BoardDetailPage from '../components/features/community/pages/BoardDetailP
 import MyPage from '../pages/MyPage';
 import TestLevelUp from '../pages/TestLevelUp';
 import Ranking from '../components/features/ranking/Ranking'; // Dong : 랭킹 페이지
+import Holding from '../components/features/holding/Holding'; // Dong : 보유종목 페이지
 
 const AppRoutes = () => {
     return (
         <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/mypage" element={<MyPage />} />
+            <Route path="/holding" element={<Holding />} /> {/* Dong : 보유종목 페이지 */}
             <Route path="/signup" element={<Signup />} />
             <Route path="/test-levelup" element={<TestLevelUp />} />
             <Route path="/search" element={<SearchPage />} />
