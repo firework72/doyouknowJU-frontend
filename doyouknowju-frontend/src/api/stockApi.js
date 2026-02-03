@@ -42,3 +42,25 @@ export const searchStocks = async (query) => {
         throw error;
     }
 };
+
+// Top 10 Volume (Existing)
+export const fetchTop10Volume = async () => {
+    try {
+        const response = await axios.get('/dykj/api/stocks/top10');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching Top 10 Volume:', error);
+        return [];
+    }
+};
+
+// Top 10 Trade Amount (New)
+export const fetchTop10TradeAmount = async () => {
+    try {
+        const response = await axios.get('/dykj/api/stocks/top10/trade-amount');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching Top 10 Trade Amount:', error);
+        return [];
+    }
+};

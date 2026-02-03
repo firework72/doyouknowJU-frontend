@@ -73,11 +73,29 @@ function BoardWritePage() {
 
         // 기존 게시글의 종목 정보가 있으면 selectedStock에 설정
         if (data.stockId) {
+          let stockName = data.stockName || data.boardStockName || data.mksc_shrn_iscd;
+
+          // 종목 이름이 없으면 API로 조회 시도
+          if (!stockName) {
+            try {
+              const stockInfo = await fetchStockSuggestions(data.stockId);
+              // 정확히 일치하는 종목 찾기
+              const match = stockInfo.find(
+                s => (s.code === data.stockId) || (s.stockId === data.stockId) || (s.mksc_shrn_iscd === data.stockId)
+              );
+              if (match) {
+                stockName = match.name || match.stockName || match.hts_kor_isnm;
+              }
+            } catch (err) {
+              console.warn('종목 정보 조회 실패:', err);
+            }
+          }
+
           setSelectedStock({
             code: data.stockId,
             id: data.stockId,
             stockId: data.stockId,
-            name: data.stockName || data.stockId, // 종목명이 있으면 사용, 없으면 ID 표시
+            name: stockName || data.stockId, // 그래도 없으면 ID 표시
           });
         }
       } catch (error) {
@@ -140,6 +158,18 @@ function BoardWritePage() {
 
         // 1. 이미지 삽입
         quill.insertEmbed(index, 'image', imageUrl, 'user');
+
+        // 2. DOM에서 방금 삽입된 이미지 찾아서 스타일 강제 적용
+        // (React-Quill은 즉시 DOM에 반영되지 않을 수 있으니 setTimeout 사용)
+        setTimeout(() => {
+          const editor = quillRef.current.getEditor();
+          const img = editor.root.querySelector(`img[src="${imageUrl}"]`);
+          if (img) {
+            img.style.width = '300px';
+            img.style.maxWidth = '100%';
+            img.setAttribute('width', '300');
+          }
+        }, 100);
 
         // 커서를 이미지 다음으로 이동
         quill.setSelection(index + 1);

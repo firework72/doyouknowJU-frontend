@@ -1,40 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { fetchTop10Volume, fetchTop10TradeAmount } from '../api/stockApi';
 
 const StockTop10View = () => {
-    // 1. 상태 변수 정의 (단일 객체가 아닌 배열로 변경)
+    // 1. 상태 변수 정의
     const [stocks, setStocks] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState('volume'); // 'volume' | 'amount'
 
-    // 2. 거래량 Top 10 데이터를 가져오는 함수
+    // 2. Top 10 데이터를 가져오는 함수
     const fetchTop10 = async () => {
         setLoading(true);
         try {
-            // 백엔드에서 작성한 Top 10 API 호출
-            const response = await axios.get(`http://localhost:8080/dykj/api/stocks/top10`);
+            let data = [];
+            if (activeTab === 'volume') {
+                data = await fetchTop10Volume();
+            } else {
+                data = await fetchTop10TradeAmount();
+            }
 
-            // 응답 데이터 저장 (백엔드 컨트롤러에서 이미 리스트로 반환하도록 짰다면 response.data)
-            if (response.data) {
-                setStocks(response.data);
+            if (data) {
+                setStocks(data);
             }
         } catch (error) {
-            console.error("거래량 상위 데이터 가져오기 실패:", error);
+            console.error("Top 10 데이터 가져오기 실패:", error);
         } finally {
             setLoading(false);
         }
     };
 
-    // 3. 실시간 폴링(Polling) 설정
+    // 3. 탭이 바뀌거나 처음 로드될 때, 그리고 주기적으로 갱신
     useEffect(() => {
-        fetchTop10(); // 처음 로드 시 실행
+        fetchTop10();
 
-        // 10초마다 순위 갱신 (순위 데이터는 5초보다는 10~30초가 적당합니다)
         const timer = setInterval(() => {
             fetchTop10();
         }, 10000);
 
         return () => clearInterval(timer);
-    }, []); // 종목 코드가 없으므로 빈 배열을 넣어 한 번만 타이머 설정
+    }, [activeTab]);
 
     // 4. 등락에 따른 색상 결정 함수
     const getPriceColor = (val) => {
@@ -44,49 +47,103 @@ const StockTop10View = () => {
         return '#333'; // 보합
     };
 
+    // 숫자 포맷팅 (거래대금은 억 단위 변환 등 고려 가능하나 일단 localeString)
+    const formatNumber = (num) => {
+        return Number(num).toLocaleString();
+    };
+
+    const formatAmount = (amount) => {
+        // 거래대금의 경우 단위가 크면 '억' 단위로 표시하는게 좋을수도 있음.
+        // 여기서는 일단 원단위/백만원단위 고려없이 그대로 출력하거나,
+        // 필요시: return Math.round(amount / 1000000).toLocaleString() + '백만';
+        return Number(amount).toLocaleString();
+    };
+
     return (
-        <div style={{ padding: '20px', fontFamily: 'Arial', maxWidth: '600px', margin: '0 auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2 style={{ margin: 0 }}>실시간 거래량 Top 10</h2>
-                <button
-                    onClick={fetchTop10}
-                    disabled={loading}
-                    style={{
-                        padding: '5px 10px',
-                        cursor: 'pointer',
-                        borderRadius: '4px',
-                        border: '1px solid #ccc',
-                        backgroundColor: '#fff'
-                    }}
-                >
-                    {loading ? '갱신중...' : '새로고침'}
-                </button>
+        <div style={{ padding: '20px', fontFamily: 'Outfit, Noto Sans KR, sans-serif', maxWidth: '600px', margin: '0 auto' }}>
+            <div style={{ marginBottom: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                    <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold' }}>실시간 Top 10</h2>
+                    <button
+                        onClick={fetchTop10}
+                        disabled={loading}
+                        style={{
+                            padding: '6px 12px',
+                            cursor: 'pointer',
+                            borderRadius: '6px',
+                            border: '1px solid #ddd',
+                            backgroundColor: '#fff',
+                            fontSize: '12px'
+                        }}
+                    >
+                        {loading ? '갱신중...' : '새로고침'}
+                    </button>
+                </div>
+
+                {/* 탭 버튼 영역 */}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                        onClick={() => setActiveTab('volume')}
+                        style={{
+                            flex: 1,
+                            padding: '10px',
+                            border: 'none',
+                            borderRadius: '8px',
+                            backgroundColor: activeTab === 'volume' ? '#333' : '#f0f0f0',
+                            color: activeTab === 'volume' ? '#fff' : '#666',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        거래량 상위
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('amount')}
+                        style={{
+                            flex: 1,
+                            padding: '10px',
+                            border: 'none',
+                            borderRadius: '8px',
+                            backgroundColor: activeTab === 'amount' ? '#333' : '#f0f0f0',
+                            color: activeTab === 'amount' ? '#fff' : '#666',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        거래대금 상위
+                    </button>
+                </div>
             </div>
 
             <div style={{
-                border: '1px solid #ddd',
-                borderRadius: '12px',
+                border: '1px solid #eee',
+                borderRadius: '16px',
                 overflow: 'hidden',
-                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+                background: '#fff'
             }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: '#fff' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
-                        <tr style={{ backgroundColor: '#f8f9fa', borderBottom: '2px solid #eee' }}>
+                        <tr style={{ backgroundColor: '#f8f9fa', borderBottom: '1px solid #eee' }}>
                             <th style={styles.th}>순위</th>
                             <th style={styles.th}>종목명</th>
                             <th style={styles.th}>현재가</th>
                             <th style={styles.th}>등락율</th>
-                            <th style={styles.th}>거래량</th>
+                            <th style={styles.th}>
+                                {activeTab === 'volume' ? '거래량' : '거래대금'}
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
                         {stocks.length > 0 ? (
                             stocks.map((stock, index) => (
-                                <tr key={stock.mksc_shrn_iscd || index} style={{ borderBottom: '1px solid #eee' }}>
-                                    <td style={{ ...styles.td, textAlign: 'center', fontWeight: 'bold' }}>{index + 1}</td>
+                                <tr key={stock.mksc_shrn_iscd || index} style={{ borderBottom: '1px solid #f5f5f5' }}>
+                                    <td style={{ ...styles.td, textAlign: 'center', fontWeight: 'bold', color: '#666' }}>{index + 1}</td>
                                     <td style={{ ...styles.td, fontWeight: 'bold' }}>{stock.hts_kor_isnm}</td>
                                     <td style={{ ...styles.td, textAlign: 'right' }}>
-                                        {Number(stock.stck_prpr).toLocaleString()}원
+                                        {formatNumber(stock.stck_prpr)}
                                     </td>
                                     <td style={{
                                         ...styles.td,
@@ -94,25 +151,28 @@ const StockTop10View = () => {
                                         color: getPriceColor(stock.prdy_ctrt),
                                         fontWeight: 'bold'
                                     }}>
-                                        {stock.prdy_ctrt}%
+                                        {stock.prdy_ctrt > 0 ? '+' : ''}{stock.prdy_ctrt}%
                                     </td>
                                     <td style={{ ...styles.td, textAlign: 'right', fontSize: '12px', color: '#666' }}>
-                                        {Number(stock.acml_vol).toLocaleString()}
+                                        {activeTab === 'volume'
+                                            ? formatNumber(stock.acml_vol)
+                                            : formatNumber(stock.acml_tr_pbmn) // 거래대금
+                                        }
                                     </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: '#999' }}>
-                                    데이터를 불러오는 중입니다...
+                                <td colSpan="5" style={{ padding: '60px 0', textAlign: 'center', color: '#999' }}>
+                                    {loading ? '데이터 불러오는 중...' : '데이터가 없습니다.'}
                                 </td>
                             </tr>
                         )}
                     </tbody>
                 </table>
             </div>
-            <p style={{ fontSize: '12px', color: '#999', marginTop: '10px', textAlign: 'right' }}>
-                * 10초마다 자동 갱신됩니다.
+            <p style={{ fontSize: '11px', color: '#aaa', marginTop: '12px', textAlign: 'center' }}>
+                * 10초마다 자동으로 갱신됩니다.
             </p>
         </div>
     );
@@ -121,13 +181,14 @@ const StockTop10View = () => {
 // 스타일 객체
 const styles = {
     th: {
-        padding: '12px 8px',
-        fontSize: '14px',
-        color: '#666',
+        padding: '12px',
+        fontSize: '13px',
+        color: '#888',
+        fontWeight: '500',
         textAlign: 'center'
     },
     td: {
-        padding: '12px 8px',
+        padding: '14px 12px',
         fontSize: '14px'
     }
 };
