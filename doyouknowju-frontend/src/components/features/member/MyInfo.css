@@ -1,0 +1,39 @@
+.my-info-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-list {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    border-bottom: 1px solid var(--color-border, #f0f0f0);
+    padding-bottom: 0.5rem;
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    color: #888;
+}
+
+.info-value {
+    color: #333;
+    font-weight: bold;
+}
+
+/* 출석 버튼 스타일 보정 */
+.mypage-check-btn {
+    /* 기존 scale(0.5)은 버튼이 너무 작아 보이므로, 
+       레이아웃이 깨지지 않는다면 제거하거나 0.8 정도로 조절 추천 */
+    transform: scale(0.9);
+    transform-origin: right;
+}

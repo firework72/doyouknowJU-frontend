@@ -4,6 +4,7 @@
     font-family: 'Noto Sans KR', sans-serif;
 }
 
+/* 상단: 내정보(3) / 포트폴리오(7) */
 .mypage-grid {
     display: grid;
     grid-template-columns: 3fr 7fr;
@@ -11,187 +12,47 @@
     margin-bottom: 20px;
 }
 
+/* 하단: 도전과제(1) / 칭호(1) / 게시글(2) */
 .mypage-row-bottom {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 2fr;
     gap: 20px;
 }
 
-.mypage-card {
-    background-color: #fff;
-    border-radius: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    border: 2px solid #e0e0e0;
-    padding: 2rem;
-    min-height: 400px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    position: relative;
+/* 카드 공통 내부 헤더 스타일 */
+.card-header {
+    display: flex !important;
+    justify-content: space-between !important; /* 좌측 제목 - 우측 버튼 정렬의 핵심 */
+    align-items: center !important;
+    width: 100% !important; /* 이 설정이 있어야 버튼이 오른쪽 끝으로 갑니다 */
+    margin-bottom: 1.5rem;
 }
 
-.title-card {
-    min-height: 300px;
-}
-
-.posts-card {
-    min-height: 300px;
-}
-
-/* Typography */
 .section-title {
     font-size: 1.2rem;
     font-weight: bold;
     color: #333;
-    margin-bottom: 1rem;
-    position: absolute;
-    top: 2rem;
-    left: 2rem;
-    right: 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    position: static !important; /* 위치 고정 해제 */
 }
 
 .placeholder-text {
-    font-size: 1.5rem;
-    color: #666;
-    font-weight: 500;
-}
-
-/* My Info Specifics */
-.info-list {
-    width: 100%;
-    margin-top: 2rem;
-}
-
-.info-item {
+    flex: 1;
     display: flex;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-    font-size: 1.1rem;
-    border-bottom: 1px solid #f0f0f0;
-    padding-bottom: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
 }
 
-.info-label {
-    color: #888;
-}
-
-.info-value {
-    color: #333;
-    font-weight: bold;
-}
-
-@media (max-width: 768px) {
-
+@media (max-width: 1024px) {
     .mypage-grid,
     .mypage-row-bottom {
         grid-template-columns: 1fr;
     }
 }
 
-.info-item.no-border {
-    border-bottom: none;
-    margin-bottom: 0.25rem;
-    padding-bottom: 0;
-}
-
-.exp-section {
-    margin-bottom: 1.5rem;
-    width: 100%;
-}
-
-/* ProgressBar 내부 레이블 색상 조정 (필요 시) */
-.progress-label span {
-    font-weight: bold;
-    color: #8b5cf6;
-}
-
-.mypage-check-btn{
-    transform: scale(0.5) ;
-    transform-origin: right;
-    margin-right: -20px;
-}
-
-.mypage-check-btn:hover{
-    transform: scale(0.5) !important;
-    filter: brightness(1.1);
-}
-
-.attendance-calendar {
-    padding: 10px;
-    font-family: 'Noto Sans KR', sans-serif;
-}
-
-.calendar-header {
-    font-size: 1.25rem;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 20px;
-    color: #333;
-}
-
-.calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 8px;
-    text-align: center;
-}
-
-.calendar-weekday {
-    font-weight: bold;
-    color: #888;
-    padding-bottom: 10px;
-    font-size: 0.9rem;
-}
-
-.calendar-date {
-    min-height: 50px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    background-color: #f9fafb;
-    position: relative;
-    transition: all 0.2s;
-}
-
-.calendar-date.empty {
-    background-color: transparent;
-}
-
-.calendar-date.today {
-    background-color: #ede9fe;
-    border: 1px solid #8b5cf6;
-}
-
-.date-num {
-    font-size: 0.95rem;
-    font-weight: 500;
-}
-
-.today .date-num {
-    color: #8b5cf6;
-    font-weight: bold;
-}
-
-.calendar-date.attended{
-    background-color: #ecfdf5;
-    border: 1px solid #10b981;
-}
-
-.checked-mark {
-    font-size: 0.8rem;
-    color: #10b981;
-    margin-top: 2px;
-}
-
-.attendance-info {
-    margin-top: 20px;
-    text-align: center;
-    color: #666;
-    font-size: 0.9rem;
+.my-info-card, .portfolio-card, .achievement-card, .title-card, .posts-card {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 2rem; /* 기존 mypage-card에 있던 패딩 적용 */
+    min-height: 300px; /* 모든 카드의 최소 높이 통일 */
 }
