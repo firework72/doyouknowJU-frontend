@@ -41,6 +41,8 @@
   width: 100%;
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: var(--spacing-sm);
   margin-bottom: var(--spacing-xl);
 }
 
@@ -65,6 +67,17 @@
 .actionButton:hover {
   background-color: #f3f4f6 !important;
   border-color: #9ca3af !important;
+}
+
+.reportButton {
+  border-color: #fecaca !important;
+  background-color: #fff1f2 !important;
+  color: #b91c1c !important;
+}
+
+.reportButton:hover {
+  background-color: #ffe4e6 !important;
+  border-color: #fca5a5 !important;
 }
 
 /* 게시글 정보 카드 레이아웃 */
@@ -126,6 +139,42 @@
   height: auto;
   display: block;
   margin: var(--spacing-md) 0;
+}
+
+.postFooter {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-xl);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-tertiary);
+  font-size: var(--font-size-sm);
+}
+
+.footerLabel {
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-bold);
+}
+
+.fileLink {
+  color: var(--color-primary);
+  text-decoration: underline;
+  word-break: break-all;
+}
+
+.postBottomBar {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--spacing-md) var(--spacing-xl);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-primary);
+}
+
+.bottomReportButton {
+  height: 34px !important;
+  min-width: 80px !important;
+  padding: 6px 14px !important;
+  font-size: 12px !important;
 }
 
 /* 수정/삭제 버튼 */
@@ -276,6 +325,21 @@
   background: none;
 }
 
+.reportBtn {
+  background: none;
+  padding: 0 4px;
+  border: none;
+  font-size: 11px;
+  color: #ff4d4f;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.reportBtn:hover {
+  text-decoration: underline;
+  opacity: 1;
+}
+
 .editForm {
   margin-top: var(--spacing-sm);
   display: flex;
@@ -302,6 +366,92 @@
   display: flex;
   gap: var(--spacing-sm);
   justify-content: flex-end;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: var(--spacing-xl);
+}
+
+.modal {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+  padding: var(--spacing-xl);
+}
+
+.modalTitle {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.modalDesc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.reasonList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.reasonButton {
+  border: 1px solid var(--color-border);
+  background: white;
+  color: var(--color-text-primary);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reasonButton:hover {
+  border-color: #9ca3af;
+  background: #f9fafb;
+}
+
+.reasonSelected {
+  border-color: #fca5a5;
+  background: #fff1f2;
+  color: #b91c1c;
+}
+
+.reasonInput {
+  width: 100%;
+  min-height: 90px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  resize: vertical;
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.reasonInput:focus {
+  outline: none;
+  border-color: #fca5a5;
+  box-shadow: 0 0 0 3px rgba(252, 165, 165, 0.35);
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
 }
 
 /* 반응형 */
