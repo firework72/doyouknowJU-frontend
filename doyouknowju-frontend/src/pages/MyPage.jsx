@@ -2,13 +2,19 @@ import { useState, useEffect } from 'react';
 import './MyPage.css';
 import { useAuth } from '../hooks/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Spinner, Button, Modal } from '../components/common';
+import { Spinner, Button, Modal, Card } from '../components/common';
+import AttendanceCheckModal from '../components/features/game/AttendanceCheckModal';
+import MyInfo from '../components/features/member/MyInfo';
+import AchievementCard from '../components/features/game/AchievementCard';
+import TitleCard from '../components/features/game/TItleCard';
 
 const MyPage = () => {
     const { user, loading: authLoading, refreshUser } = useAuth();
     const [loading, setLoading] = useState(true);
+    //모달 상태 관리
     const [isAttendanceModalOpen, setIsAttendenceModalOpen] = useState(false);
-    const [attendanceHistory, setAttendanceHistory] = useState([]);
+    const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
+    const [isTitleModalOpen, setIsTitleModalOpen] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -28,30 +34,7 @@ const MyPage = () => {
         };
 
         checkSession();
-    }, [authLoading, user, navigate]);
-
-    useEffect(()=>{
-        if(isAttendanceModalOpen && user){
-            fetchAttendanceHistory();
-        }
-    }, [isAttendanceModalOpen, user]);
-
-    const fetchAttendanceHistory = async() =>{
-        try{
-            const response = await fetch('http://localhost:8080/dykj/api/game/attend/history', {
-                method: 'GET',
-                headers: {'Content-Type': 'application/json'},
-                credentials: 'include'
-            });
-
-            if(response.ok){
-                const data = await response.json();
-                setAttendanceHistory(data);
-            }
-        }catch(error){
-            console.error("출석 이력 조회 중 에러 발생: ",error);
-        }
-    }
+    }, [authLoading, user, navigate, refreshUser]);
 
     if (authLoading || loading) {
         return (
@@ -68,105 +51,60 @@ const MyPage = () => {
         <div className="mypage-container">
             <div className="mypage-grid">
                 {/* My Info Card */}
-                <div className="mypage-card my-info-card">
-                    <div className="section-title">
-                        <span>내정보</span>
-
-                        <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={()=>setIsAttendenceModalOpen(true)}
-                            className="mypage-check-btn"
-                        >
-                            출석확인
-                        </Button>
-                    </div>
-
-                    <div className="info-list">
-                        <div className="info-item">
-                            <span className="info-label">아이디</span>
-                            <span className="info-value">{user.userId}</span>
-                        </div>
-                        <div className="info-item">
-                            <span className="info-label">경험치</span>
-                            <span className="info-value">{user.experience}</span>
-                        </div>
-                        <div className="info-item">
-                            <span className="info-label">레벨</span>
-                            <span className="info-value">Lv. {user.userLevel}</span>
-                        </div>
-                        <div className="info-item">
-                            <span className="info-label">보유 포인트</span>
-                            <span className="info-value">{user.points?.toLocaleString()} P</span>
-                        </div>
-                        <div className="info-item">
-                            <span className="info-label">누적 출석</span>
-                            <span className="info-value">{user.consecDays}일</span>
-                        </div>
-                    </div>
-                </div>
+                <MyInfo
+                    user={user}
+                    onOpenAttendance={()=>setIsAttendenceModalOpen(true)}
+                />
 
                 {/* Portfolio Card */}
-                <div className="mypage-card portfolio-card">
-                    <div className="section-title">포트 폴리오</div>
-                    <div className="placeholder-text"></div>
-                </div>
+                <Card className="portfolio-card">
+                    <div className="card-header">
+                        <span className="section-title">포트 폴리오</span>
+                    </div>
+                    <div className="placeholder-text">보유 자산 현황 준비 중..</div>
+                </Card>
             </div>
 
             <div className="mypage-row-bottom">
-                {/* Titles / Achievements Card */}
-                <div className="mypage-card title-card">
-                    <div className="section-title">
-                        보유 칭호<br />
-                        도전 과제
-                    </div>
-                    <div className="placeholder-text"></div>
-                </div>
+                {/* 도전과제 컴포넌트 */}
+                <AchievementCard onOpenModal={()=>setIsAchievementModalOpen(true)}/>
+
+                {/* 칭호 컴포넌트 */}
+                <TitleCard onOpenModal={()=>setIsTitleModalOpen(true)}/>
 
                 {/* Posts / Comments Card */}
-                <div className="mypage-card posts-card">
-                    <div className="section-title">작성한 게시글 / 댓글</div>
-                    <div className="placeholder-text"></div>
-                </div>
+                <Card className="posts-card">
+                    <div className="card-header">
+                        <span className="section-title">작성한 게시글 / 댓글</span>
+                    </div>
+                    <div className="placeholder-text">최근 활동 내역이 없습니다.</div>
+                </Card>
             </div>
 
             {/* 출석 확인 모달 */}
-            <Modal
+            <AttendanceCheckModal
                 isOpen={isAttendanceModalOpen}
-                onClose={() => setIsAttendenceModalOpen(false)}
-                title="출석 확인"
+                onClose={()=>setIsAttendenceModalOpen(false)}
+                user={user}
+            />
+
+            <Modal
+                isOpen={isAchievementModalOpen}
+                onClose={() => setIsAchievementModalOpen(false)}
+                title="도전 과제 상세"
             >
-                <div className="attendance-calendar">
-                    <div className="calendar-header">
-                        {new Date().getFullYear()}년 {new Date().getMonth() + 1}월
-                    </div>
-                    <div className="calendar-grid">
-                        {['일', '월', '화', '수', '목', '금', '토'].map(day => (
-                            <div key={day} className="calendar-weekday">{day}</div>
-                        ))}
-                        {Array.from({ length: new Date(new Date().getFullYear(), new Date().getMonth(), 1).getDay() }).map((_, i) => (
-                            <div key={`empty-${i}`} className="calendar-date empty"></div>
-                        ))}
-                        {Array.from({ length: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() }).map((_, i) => {
-                            const date = i + 1;
-                            const month = new Date().getMonth() + 1;
-                            const year = new Date().getFullYear();
-                            const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+                <div className="modal-scroll-content">
+                    <p>전체 도전 과제 목록이 여기에 표시됩니다.</p>
+                </div>
+            </Modal>
 
-                            const isToday = date === new Date().getDate();
-                            const isAttended = attendanceHistory.includes(dateStr);
-
-                            return (
-                                <div key={date} className={`calendar-date ${isToday ? 'today' : ''} ${isAttended ? 'attended' : ''}`}>
-                                    <span className="date-num">{date}</span>
-                                    {isAttended && <div className="checked-mark">✔</div>}
-                                </div>
-                            );
-                        })}
-                    </div>
-                    <p className="attendance-info">
-                        오늘도 방문해 주셔서 감사합니다! 🎉
-                    </p>
+            <Modal
+                isOpen={isTitleModalOpen}
+                onClose={() => setIsTitleModalOpen(false)}
+                title="칭호 목록"
+            >
+                <div className="modal-scroll-content">
+                    <p>획득 가능한 전체 칭호가 여기에 표시됩니다.</p>
                 </div>
             </Modal>
         </div>

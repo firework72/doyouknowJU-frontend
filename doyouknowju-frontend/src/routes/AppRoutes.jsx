@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import HomePage from '../pages/HomePage';
-import Signup from '../components/features/signup/Signup';
+import Signup from '../components/features/member/Signup';
 import SearchPage from '../pages/SearchPage';
 import StockDetail from '../components/features/stock/StockDetail'; // Dong : 주식 상세 페이지
 import BoardListPage from '../components/features/community/pages/BoardListPage';

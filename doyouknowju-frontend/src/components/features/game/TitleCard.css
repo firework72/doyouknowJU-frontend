@@ -1,0 +1,33 @@
+/* TitleCard.css */
+
+.title-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 300px;
+}
+
+/* 헤더 배치 설정 */
+.title-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 1.5rem;
+}
+
+/* 더보기 버튼 */
+.title-card .card-header button {
+    color: #333;
+    font-weight: 500;
+    padding-right: 0;
+}
+
+/* 중앙 표시 텍스트 */
+.title-card .placeholder-text {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #bbb;
+    font-size: 1.1rem;
+}
