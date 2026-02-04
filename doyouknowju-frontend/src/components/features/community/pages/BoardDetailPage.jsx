@@ -4,6 +4,7 @@ import axios from 'axios';
 import Button from '../../../common/Button';
 import styles from './BoardDetailPage.module.css';
 import { useAuth } from '@/hooks/AuthContext';
+import { insertReport, REPORT_TYPES } from '@/api/reportApi';
 
 const toDateString = (value) => {
   if (!value) return '-';
@@ -36,6 +37,7 @@ function BoardDetailPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isAuthenticated = !!user;
+  const reporterId = user?.userId ?? user?.id ?? null;
 
   const [board, setBoard] = useState(null);
   const [replies, setReplies] = useState([]);
@@ -44,6 +46,17 @@ function BoardDetailPage() {
   const [editingContent, setEditingContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isReplySubmitting, setIsReplySubmitting] = useState(false);
+  const [reportModal, setReportModal] = useState({
+    isOpen: false,
+    reportType: null,
+    contentId: null,
+    targetId: null,
+  });
+  const [selectedReason, setSelectedReason] = useState('스팸');
+  const [customReason, setCustomReason] = useState('');
+  const [isReporting, setIsReporting] = useState(false);
+
+  const reportReasons = useMemo(() => ['스팸', '욕설', '도배', '허위정보', '기타'], []);
 
 
   useEffect(() => {
@@ -159,6 +172,72 @@ function BoardDetailPage() {
     setEditingContent('');
   };
 
+  const openReportModal = ({ reportType, contentId, targetId }) => {
+    if (!isAuthenticated) {
+      alert('로그인 후 신고할 수 있습니다.');
+      return;
+    }
+
+    if (!targetId || String(targetId).trim() === '' || String(targetId).trim() === '-') {
+      alert('신고 대상을 찾을 수 없습니다.');
+      return;
+    }
+
+    if (String(reporterId) === String(targetId)) {
+      alert('본인의 글/댓글은 신고할 수 없습니다.');
+      return;
+    }
+
+    setSelectedReason('스팸');
+    setCustomReason('');
+    setReportModal({ isOpen: true, reportType, contentId, targetId });
+  };
+
+  const closeReportModal = () => {
+    setReportModal({ isOpen: false, reportType: null, contentId: null, targetId: null });
+    setSelectedReason('스팸');
+    setCustomReason('');
+  };
+
+  const submitReport = async () => {
+    if (!reportModal.isOpen) return;
+    if (!isAuthenticated || !reporterId) {
+      alert('로그인 후 신고할 수 있습니다.');
+      return;
+    }
+
+    const reason = selectedReason === '기타' ? customReason.trim() : selectedReason;
+    if (!reason) {
+      alert('신고 사유를 입력해주세요.');
+      return;
+    }
+
+    if (!window.confirm(`'${reason}' 사유로 신고하시겠습니까?`)) return;
+
+    setIsReporting(true);
+    try {
+      const result = await insertReport({
+        reportType: reportModal.reportType,
+        contentId: reportModal.contentId,
+        reporterId,
+        targetId: reportModal.targetId,
+        reportReason: reason,
+      });
+
+      if (result === 'success') {
+        alert('신고가 접수되었습니다.');
+        closeReportModal();
+      } else {
+        alert('신고 등록에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('신고 요청 실패', error);
+      alert(error?.response?.data || '신고 요청 중 오류가 발생했습니다.');
+    } finally {
+      setIsReporting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className={styles.container}>
@@ -174,6 +253,7 @@ function BoardDetailPage() {
   const title = board.boardTitle ?? board.title ?? '(제목 없음)';
   const writer = board.boardWriter ?? board.userId ?? board.writer ?? '-';
   const createdAt = board.createDate ?? board.createdAt ?? board.createdDate;
+  const boardTargetId = board.boardWriter ?? board.userId ?? board.writer;
 
   const fileUrl =
     board.changeName ? `/dykj/api/boards/files/${encodeURIComponent(board.changeName)}` : null;
@@ -211,6 +291,23 @@ function BoardDetailPage() {
               <a href={fileUrl} className={styles.fileLink} download>
                 {board.originName}
               </a>
+            </div>
+          )}
+          {!isAuthor && (
+            <div className={styles.postBottomBar}>
+              <button
+                type="button"
+                onClick={() =>
+                  openReportModal({
+                    reportType: REPORT_TYPES.BOARD,
+                    contentId: boardId,
+                    targetId: boardTargetId,
+                  })
+                }
+                className={`${styles.actionButton} ${styles.reportButton} ${styles.bottomReportButton}`}
+              >
+                신고
+              </button>
             </div>
           )}
         </div>
@@ -264,14 +361,33 @@ function BoardDetailPage() {
                       <div className={styles.replyTop}>
                         <span className={styles.replyWriter}>{reply.userId}</span>
                         <span className={styles.replyDate}>{toDateString(reply.createDate ?? reply.createdAt)}</span>
-                        {isMyReply && !isEditing && (
+                        {!isEditing && (
                           <div className={styles.replyActions}>
-                            <button onClick={() => handleReplyEdit(reply)} className={styles.editBtn}>
-                              수정
-                            </button>
-                            <button onClick={() => handleReplyDelete(reply.replyId)} className={styles.deleteBtn}>
-                              ✕
-                            </button>
+                            {!isMyReply && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  openReportModal({
+                                    reportType: REPORT_TYPES.REPLY,
+                                    contentId: reply.replyId,
+                                    targetId: reply.userId,
+                                  })
+                                }
+                                className={styles.reportBtn}
+                              >
+                                신고
+                              </button>
+                            )}
+                            {isMyReply && (
+                              <>
+                                <button onClick={() => handleReplyEdit(reply)} className={styles.editBtn}>
+                                  수정
+                                </button>
+                                <button onClick={() => handleReplyDelete(reply.replyId)} className={styles.deleteBtn}>
+                                  ✕
+                                </button>
+                              </>
+                            )}
                           </div>
                         )}
                       </div>
@@ -302,6 +418,47 @@ function BoardDetailPage() {
           </div>
         </div>
       </div>
+
+      {reportModal.isOpen && (
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true">
+          <div className={styles.modal}>
+            <div className={styles.modalTitle}>신고하기</div>
+            <div className={styles.modalDesc}>신고 사유를 선택해주세요.</div>
+
+            <div className={styles.reasonList}>
+              {reportReasons.map((reason) => (
+                <button
+                  key={reason}
+                  type="button"
+                  onClick={() => setSelectedReason(reason)}
+                  className={`${styles.reasonButton} ${selectedReason === reason ? styles.reasonSelected : ''}`}
+                >
+                  {reason}
+                </button>
+              ))}
+            </div>
+
+            {selectedReason === '기타' && (
+              <textarea
+                value={customReason}
+                onChange={(e) => setCustomReason(e.target.value)}
+                placeholder="신고 사유를 입력해주세요."
+                className={styles.reasonInput}
+                maxLength={200}
+              />
+            )}
+
+            <div className={styles.modalActions}>
+              <Button variant="danger" onClick={submitReport} disabled={isReporting}>
+                신고 등록
+              </Button>
+              <Button variant="secondary" onClick={closeReportModal} disabled={isReporting}>
+                취소
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

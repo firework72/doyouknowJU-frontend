@@ -84,7 +84,7 @@ function Header({ logoSrc }) {
                 {suggestions.map((item, index) => (
                   <li key={index} className="suggestion-item" onClick={() => handleSuggestionClick(item)}>
                     <span className="stock-name">{item.name || item.stockName}</span>
-                    <span className="stock-code">{item.id || item.code}</span>
+                    <span className="stock-code">{item.mksc_shrn_iscd || item.stockId || item.code || item.id}</span>
                   </li>
                 ))}
               </ul>
