@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     fetchTop10FallRate,
+    fetchTop10MarketCap,
     fetchTop10RiseRate,
     fetchTop10TradeValueNaver,
     fetchTop10Volume,
@@ -10,7 +11,7 @@ const StockTop10View = () => {
     // 1. 상태 변수 정의
     const [stocks, setStocks] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [activeTab, setActiveTab] = useState('volume'); // 'volume' | 'amount' | 'rise' | 'fall'
+    const [activeTab, setActiveTab] = useState('volume'); // 'volume' | 'amount' | 'rise' | 'fall' | 'marketCap'
 
     // 2. Top 10 데이터를 가져오는 함수
     const fetchTop10 = async () => {
@@ -25,10 +26,12 @@ const StockTop10View = () => {
                 data = await fetchTop10RiseRate();
             } else if (activeTab === 'fall') {
                 data = await fetchTop10FallRate();
+            } else if (activeTab === 'marketCap') {
+                data = await fetchTop10MarketCap();
             }
 
             if (data) {
-                setStocks(data);
+                setStocks(Array.isArray(data) ? data : []);
             }
         } catch (error) {
             console.error("Top 10 데이터 가져오기 실패:", error);
@@ -103,6 +106,7 @@ const StockTop10View = () => {
         stock.stck_prpr ??
         stock.stckPrpr ??
         stock.nowVal ??
+        stock.currentPrice ??
         stock.closePrice ??
         stock.nowPrice ??
         stock.price ??
@@ -112,18 +116,41 @@ const StockTop10View = () => {
         const raw =
             stock.prdy_ctrt ??
             stock.prdyCtrt ??
+            stock.changeRate ??
             stock.fluctuationsRatio ??
             stock.changesRatio ??
             stock.changeRate ??
             stock.changePercent;
-        const value = toNumber(raw);
-        return Number.isFinite(value) ? value : 0;
+
+        let value = toNumber(raw);
+        if (!Number.isFinite(value)) return 0;
+
+        const changeValue = toNumber(stock.changeValue ?? stock.prdyVrss ?? stock.prdy_vrss);
+        if (Number.isFinite(changeValue) && changeValue < 0) return -Math.abs(value);
+
+        const changeSign = String(stock.changeSign ?? stock.prdyVrssSign ?? stock.prdy_vrss_sign ?? '').toUpperCase();
+        const isDownSign = changeSign === '-' || changeSign === 'DOWN' || changeSign === 'FALL' || changeSign === '2';
+        if (isDownSign) value = -Math.abs(value);
+        return value;
     };
 
     const getVolume = (stock) =>
         stock.acml_vol ?? stock.acmlVol ?? stock.accVolume ?? stock.volume ?? '-';
 
     const getTradeValue = (stock) => stock.acml_tr_pbmn ?? stock.accAmount ?? stock.tradeValue ?? stock.amount ?? '-';
+
+    const getMarketCap = (stock) => stock.marketCap ?? stock.mrktTotAmt ?? stock.market_cap ?? '-';
+
+    const emptyMessage =
+        activeTab === 'marketCap'
+            ? '시가총액 Top10 데이터가 없습니다.'
+            : activeTab === 'rise'
+                ? '상승률 Top10 데이터가 없습니다.'
+                : activeTab === 'fall'
+                    ? '하락률 Top10 데이터가 없습니다.'
+                    : activeTab === 'amount'
+                        ? '거래대금 Top10 데이터가 없습니다.'
+                        : '데이터가 없습니다.';
 
     return (
         <div style={{ padding: '20px', fontFamily: 'Outfit, Noto Sans KR, sans-serif', maxWidth: '600px', margin: '0 auto' }}>
@@ -212,6 +239,22 @@ const StockTop10View = () => {
                     >
                         하락률 상위
                     </button>
+                    <button
+                        onClick={() => setActiveTab('marketCap')}
+                        style={{
+                            flex: 1,
+                            padding: '10px',
+                            border: 'none',
+                            borderRadius: '8px',
+                            backgroundColor: activeTab === 'marketCap' ? '#333' : '#f0f0f0',
+                            color: activeTab === 'marketCap' ? '#fff' : '#666',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        시가총액 상위
+                    </button>
                 </div>
             </div>
 
@@ -230,7 +273,7 @@ const StockTop10View = () => {
                             <th style={styles.th}>현재가</th>
                             <th style={styles.th}>등락율</th>
                             <th style={styles.th}>
-                                {activeTab === 'amount' ? '거래대금' : '거래량'}
+                                {activeTab === 'amount' ? '거래대금' : activeTab === 'marketCap' ? '시가총액' : '거래량'}
                             </th>
                         </tr>
                     </thead>
@@ -254,7 +297,9 @@ const StockTop10View = () => {
                                     <td style={{ ...styles.td, textAlign: 'right', fontSize: '12px', color: '#666' }}>
                                         {activeTab === 'amount'
                                             ? formatAmount(getTradeValue(stock)) // 네이버 거래대금
-                                            : formatNumber(getVolume(stock))
+                                            : activeTab === 'marketCap'
+                                                ? formatAmount(getMarketCap(stock))
+                                                : formatNumber(getVolume(stock))
                                         }
                                     </td>
                                 </tr>
@@ -262,7 +307,7 @@ const StockTop10View = () => {
                         ) : (
                             <tr>
                                 <td colSpan="5" style={{ padding: '60px 0', textAlign: 'center', color: '#999' }}>
-                                    {loading ? '데이터 불러오는 중...' : '데이터가 없습니다.'}
+                                    {loading ? '데이터 불러오는 중...' : emptyMessage}
                                 </td>
                             </tr>
                         )}

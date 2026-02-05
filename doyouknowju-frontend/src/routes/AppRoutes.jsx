@@ -10,6 +10,7 @@ import MyPage from '../pages/MyPage';
 import TestLevelUp from '../pages/TestLevelUp';
 import Ranking from '../components/features/ranking/Ranking'; // Dong : 랭킹 페이지
 import Holding from '../components/features/holding/Holding'; // Dong : 보유종목 페이지
+import NewsPage from '../pages/NewsPage';
 
 const AppRoutes = () => {
     return (
@@ -26,6 +27,7 @@ const AppRoutes = () => {
             <Route path="/board/:boardId" element={<BoardDetailPage />} />
             <Route path="/stock/:stockId" element={<StockDetail />} />
             <Route path="/ranking" element={<Ranking />} /> {/* Dong : 랭킹 페이지 */}
+            <Route path="/news" element={<NewsPage />} /> {/* 뉴스 페이지 추가 */}
             <Route path="*" element={<HomePage />} />
         </Routes>
     );

@@ -9,6 +9,7 @@ import AchievementCard from '../components/features/game/Achievement/Achievement
 import TitleCard from '../components/features/game/TItleCard';
 import AchievementModal from '../components/features/game/Achievement/AchievementModal';
 import { achievementApi } from '../api/game/achievementApi';
+import MyActivityCard from '../components/features/member/MyActivityCard';
 
 const MyPage = () => {
     const { user, loading: authLoading, refreshUser } = useAuth();
@@ -115,7 +116,7 @@ const MyPage = () => {
                     <div className="card-header">
                         <span className="section-title">작성한 게시글 / 댓글</span>
                     </div>
-                    <div className="placeholder-text">최근 활동 내역이 없습니다.</div>
+                    <MyActivityCard userId={user?.userId ?? user?.id} />
                 </Card>
             </div>
 
