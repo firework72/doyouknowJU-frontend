@@ -7,6 +7,7 @@ import AttendanceCheckModal from '../components/features/game/Attendance/Attenda
 import MyInfo from '../components/features/member/MyInfo';
 import AchievementCard from '../components/features/game/Achievement/AchievementCard';
 import TitleCard from '../components/features/game/TItleCard';
+import MyActivityCard from '../components/features/member/MyActivityCard';
 
 const MyPage = () => {
     const { user, loading: authLoading, refreshUser } = useAuth();
@@ -77,7 +78,7 @@ const MyPage = () => {
                     <div className="card-header">
                         <span className="section-title">작성한 게시글 / 댓글</span>
                     </div>
-                    <div className="placeholder-text">최근 활동 내역이 없습니다.</div>
+                    <MyActivityCard userId={user?.userId ?? user?.id} />
                 </Card>
             </div>
 
