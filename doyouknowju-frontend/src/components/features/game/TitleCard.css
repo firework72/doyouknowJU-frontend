@@ -17,9 +17,19 @@
 
 /* 더보기 버튼 */
 .title-card .card-header button {
+    font-size: 0.85rem !important;
+    padding: 4px 8px !important;
+    min-width: auto !important;
+    width: fit-content !important;
+    height: auto !important;
+    flex: none !important;
+    /* flex-grow 방지 */
+    color: #888;
+    background: transparent;
+}
+
+.title-card .card-header button:hover {
     color: #333;
-    font-weight: 500;
-    padding-right: 0;
 }
 
 /* 중앙 표시 텍스트 */

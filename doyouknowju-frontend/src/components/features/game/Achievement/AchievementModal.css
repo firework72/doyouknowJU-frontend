@@ -1,0 +1,22 @@
+.achievement-modal-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    /* 1열 (리스트 형태) */
+    gap: 12px;
+    padding: 10px;
+    min-height: 400px;
+    /* 적당한 높이 확보 */
+}
+
+/* 데이터가 없을 때 표시할 텍스트 영역도 그리드 전체를 차지하도록 */
+.achievement-modal-list .placeholder-text {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 0;
+    color: #888;
+}
+
+/* 리스트 형태일 때 아이템 스타일 미세 조정 (선택 사항) */
+.achievement-modal-list .achievement-item-card {
+    /* 가로로 넓게 보이도록 설정됨 (기본 flex-direction이 row라면) */
+}

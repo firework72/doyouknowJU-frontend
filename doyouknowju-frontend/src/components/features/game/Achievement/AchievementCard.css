@@ -6,13 +6,40 @@
     min-height: 300px;
 }
 
+/* 헤더 레이아웃: 양 끝 정렬 */
+.achievement-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+/* 더보기 버튼 스타일링 */
+.achievement-card .card-header button {
+    font-size: 0.85rem !important;
+    padding: 4px 8px !important;
+    min-width: auto !important;
+    width: fit-content !important;
+    height: auto !important;
+    flex: none !important;
+    /* flex-grow 방지 */
+    color: #888;
+}
+
+.achievement-card .card-header button:hover {
+    color: #333;
+    background: transparent;
+}
+
 /* 프리뷰 리스트 영역 */
 .achievement-preview-list {
     flex: 1;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    overflow: hidden; /* 영역을 벗어나지 않게 */
+    overflow: hidden;
+    /* 영역을 벗어나지 않게 */
 }
 
 /* 메인 카드에 들어가는 AchievementItem은 패딩을 조금 줄여서 컴팩트하게 조절 */
