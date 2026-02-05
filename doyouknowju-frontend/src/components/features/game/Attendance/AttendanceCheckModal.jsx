@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Modal } from "../../common";
+import { Modal } from "../../../common";
 import './AttendanceCheckModal.css';
 
 

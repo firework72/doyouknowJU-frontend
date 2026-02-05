@@ -6,7 +6,7 @@ import StockTop10View from '../front/StockView';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/AuthContext';
 import { Button } from '../components/common';
-import AttendanceModal from '../components/features/game/AttendanceModal';
+import AttendanceModal from '../components/features/game/Attendance/AttendanceModal';
 import LevelUpModal from '../components/features/game/LevelUpModal';
 import QuizModal from '../components/features/game/QuizModal';
 
