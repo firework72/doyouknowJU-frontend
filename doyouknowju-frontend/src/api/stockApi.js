@@ -97,3 +97,15 @@ export const fetchTop10FallRate = async () => {
         return [];
     }
 };
+
+// Top 10 Market Cap
+export const fetchTop10MarketCap = async () => {
+    try {
+        const response = await axios.get('/dykj/api/stocks/top10/market-cap');
+        const data = response.data;
+        return Array.isArray(data) ? data : data?.list || data?.data || [];
+    } catch (error) {
+        console.error('Error fetching Top 10 Market Cap:', error);
+        return [];
+    }
+};
