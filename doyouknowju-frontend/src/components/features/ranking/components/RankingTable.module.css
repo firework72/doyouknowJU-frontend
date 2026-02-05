@@ -26,7 +26,20 @@
 .numberCell {
   text-align: right;
   font-variant-numeric: tabular-nums; /* 숫자 너비 고정 */
-  font-family: 'Roboto Mono', monospace; /* 숫자 전용 폰트 추천 */
+  /*font-family: 'Roboto Mono', monospace; /* 숫자 전용 폰트 추천 */
+  font-family: 'Outfit, Noto Sans KR, sans-serif';
+}
+
+.textAlignRight {
+  text-align: right;
+}
+
+.positive {
+  color: #d20d0d;
+}
+
+.negative {
+  color: #0d42d2;
 }
 
 /* 인터랙션 */
