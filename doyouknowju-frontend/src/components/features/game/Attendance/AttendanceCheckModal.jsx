@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { Modal } from "../../../common";
 import './AttendanceCheckModal.css';
-
+import { attendanceApi } from "../../../../api/game/attendanceApi";
 
 const AttendanceCheckModal = ({isOpen, onClose, user}) =>{
     const [attendanceHistory, setAttendanceHistory] = useState([]);
@@ -12,20 +12,12 @@ const AttendanceCheckModal = ({isOpen, onClose, user}) =>{
         }
     },[isOpen, user]);
 
-    const fetchAttendanceHistory = async() =>{
-        try{
-            const response = await fetch('http://localhost:8080/dykj/api/game/attend/history', {
-                method: 'GET',
-                headers: {'Content-Type': 'application/json'},
-                credentials: 'include'
-            });
-
-            if(response.ok){
-                const data = await response.json();
-                setAttendanceHistory(data);
-            }
-        }catch(error){
-            console.error("출석 이력 조회 중 에러 발생: ",error);
+    const fetchAttendanceHistory = async () => {
+        try {
+            const data = await attendanceApi.getHistory();
+            setAttendanceHistory(data);
+        } catch (error) {
+            // API 내부에서 에러 로깅
         }
     };
 

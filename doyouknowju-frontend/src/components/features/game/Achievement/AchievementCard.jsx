@@ -5,8 +5,8 @@ import AchievementItem from "./AchievementItem";
 
 const AchievementCard = ({ achievements = [], onOpenModal, onClaimReward}) => {
     const recentAchievements = [...achievements]
-            .filter(a=>a.achievedAt)
-            .slice(0,2);
+        .filter(a=>a.achievedAt)
+        .slice(0,3);
     
     return(
         <Card className="achievement-card">
@@ -22,9 +22,9 @@ const AchievementCard = ({ achievements = [], onOpenModal, onClaimReward}) => {
             </div>
             <div className="achievement-preview-list">
                 {recentAchievements.length > 0 ? (
-                    recentAchievements.slice(0, 2).map((achiev) => (
+                    recentAchievements.map((achiev) => (
                         <AchievementItem 
-                            key={achiev.ACHIEVEMENT_ID} 
+                            key={achiev.achievementId} 
                             achievement={achiev}
                             isPreview={true} // [팁] 메인용으로 간소화하고 싶을 때 사용
                         />

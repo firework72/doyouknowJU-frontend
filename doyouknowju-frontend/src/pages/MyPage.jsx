@@ -7,6 +7,8 @@ import AttendanceCheckModal from '../components/features/game/Attendance/Attenda
 import MyInfo from '../components/features/member/MyInfo';
 import AchievementCard from '../components/features/game/Achievement/AchievementCard';
 import TitleCard from '../components/features/game/TItleCard';
+import AchievementModal from '../components/features/game/Achievement/AchievementModal';
+import { achievementApi } from '../api/game/achievementApi';
 import MyActivityCard from '../components/features/member/MyActivityCard';
 
 const MyPage = () => {
@@ -16,6 +18,8 @@ const MyPage = () => {
     const [isAttendanceModalOpen, setIsAttendenceModalOpen] = useState(false);
     const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
     const [isTitleModalOpen, setIsTitleModalOpen] = useState(false);
+
+    const [achievements, setAchievements] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -28,14 +32,44 @@ const MyPage = () => {
                 return;
             }
 
-            const isRefreshed = await refreshUser();
-            if(isRefreshed){
+            try {
+                // 병렬로 데이터 로드 가능
+                const isRefreshed = await refreshUser();
+                if (isRefreshed) {
+                    await fetchAchievements();
+                    setLoading(false);
+                }
+            } catch (error) {
+                console.error("데이터 로딩 실패:", error);
                 setLoading(false);
             }
         };
 
         checkSession();
     }, [authLoading, user, navigate, refreshUser]);
+
+    const fetchAchievements = async () => {
+        try {
+            const data = await achievementApi.getAchievements();
+            setAchievements(data);
+        } catch (error) {
+            console.error("도전과제 목록 조회 실패:", error);
+        }
+    };
+
+    const handleClaimReward = async (achievementId) => {
+        try {
+            const result = await achievementApi.claimReward(achievementId);
+            if (result.success) {
+                alert(result.message);
+                // 목록 갱신 및 유저 정보(경험치 등) 갱신
+                await fetchAchievements();
+                await refreshUser();
+            }
+        } catch (error) {
+            alert(error.message);
+        }
+    };
 
     if (authLoading || loading) {
         return (
@@ -68,7 +102,11 @@ const MyPage = () => {
 
             <div className="mypage-row-bottom">
                 {/* 도전과제 컴포넌트 */}
-                <AchievementCard onOpenModal={()=>setIsAchievementModalOpen(true)}/>
+                <AchievementCard 
+                    achievements={achievements}
+                    onOpenModal={()=>setIsAchievementModalOpen(true)}
+                    onClaimReward={handleClaimReward}
+                />
 
                 {/* 칭호 컴포넌트 */}
                 <TitleCard onOpenModal={()=>setIsTitleModalOpen(true)}/>
@@ -89,15 +127,13 @@ const MyPage = () => {
                 user={user}
             />
 
-            <Modal
+            {/* 도전 과제 모달 */}
+            <AchievementModal
                 isOpen={isAchievementModalOpen}
-                onClose={() => setIsAchievementModalOpen(false)}
-                title="도전 과제 상세"
-            >
-                <div className="modal-scroll-content">
-                    <p>전체 도전 과제 목록이 여기에 표시됩니다.</p>
-                </div>
-            </Modal>
+                onClose={()=>setIsAchievementModalOpen(false)}
+                achievements={achievements}
+                onClaimReward={handleClaimReward}
+            />
 
             <Modal
                 isOpen={isTitleModalOpen}
