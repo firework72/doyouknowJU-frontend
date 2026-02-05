@@ -1,0 +1,24 @@
+/* AchievementCard.css */
+
+.achievement-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 300px;
+}
+
+/* 프리뷰 리스트 영역 */
+.achievement-preview-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden; /* 영역을 벗어나지 않게 */
+}
+
+/* 메인 카드에 들어가는 AchievementItem은 패딩을 조금 줄여서 컴팩트하게 조절 */
+.achievement-card .achievement-item-card {
+    border: none;
+    background-color: var(--color-bg-secondary);
+    padding: 1rem !important;
+    margin-bottom: 0;
+}

@@ -34,6 +34,6 @@
 .mypage-check-btn {
     /* 기존 scale(0.5)은 버튼이 너무 작아 보이므로, 
        레이아웃이 깨지지 않는다면 제거하거나 0.8 정도로 조절 추천 */
-    transform: scale(0.9);
+    transform: scale(0.5);
     transform-origin: right;
 }

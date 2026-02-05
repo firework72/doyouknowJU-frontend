@@ -3,9 +3,9 @@ import './MyPage.css';
 import { useAuth } from '../hooks/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Spinner, Button, Modal, Card } from '../components/common';
-import AttendanceCheckModal from '../components/features/game/AttendanceCheckModal';
+import AttendanceCheckModal from '../components/features/game/Attendance/AttendanceCheckModal';
 import MyInfo from '../components/features/member/MyInfo';
-import AchievementCard from '../components/features/game/AchievementCard';
+import AchievementCard from '../components/features/game/Achievement/AchievementCard';
 import TitleCard from '../components/features/game/TItleCard';
 
 const MyPage = () => {
