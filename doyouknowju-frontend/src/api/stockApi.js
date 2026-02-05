@@ -64,3 +64,36 @@ export const fetchTop10TradeAmount = async () => {
         return [];
     }
 };
+
+// Top 10 Trade Value from Naver (Backend-crawled + cached)
+export const fetchTop10TradeValueNaver = async () => {
+    try {
+        const response = await axios.get('/dykj/api/stocks/top10/trade-value/naver');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching Top 10 Trade Value (Naver):', error);
+        return [];
+    }
+};
+
+// Top 10 Rise Rate (KIS)
+export const fetchTop10RiseRate = async () => {
+    try {
+        const response = await axios.get('/dykj/api/stocks/top10/rise-rate');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching Top 10 Rise Rate:', error);
+        return [];
+    }
+};
+
+// Top 10 Fall Rate (KIS)
+export const fetchTop10FallRate = async () => {
+    try {
+        const response = await axios.get('/dykj/api/stocks/top10/fall-rate');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching Top 10 Fall Rate:', error);
+        return [];
+    }
+};

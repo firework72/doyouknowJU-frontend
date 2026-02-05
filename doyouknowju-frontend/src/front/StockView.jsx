@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { fetchTop10Volume, fetchTop10TradeAmount } from '../api/stockApi';
+import {
+    fetchTop10FallRate,
+    fetchTop10RiseRate,
+    fetchTop10TradeValueNaver,
+    fetchTop10Volume,
+} from '../api/stockApi';
 
 const StockTop10View = () => {
     // 1. 상태 변수 정의
     const [stocks, setStocks] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [activeTab, setActiveTab] = useState('volume'); // 'volume' | 'amount'
+    const [activeTab, setActiveTab] = useState('volume'); // 'volume' | 'amount' | 'rise' | 'fall'
 
     // 2. Top 10 데이터를 가져오는 함수
     const fetchTop10 = async () => {
@@ -14,8 +19,12 @@ const StockTop10View = () => {
             let data = [];
             if (activeTab === 'volume') {
                 data = await fetchTop10Volume();
-            } else {
-                data = await fetchTop10TradeAmount();
+            } else if (activeTab === 'amount') {
+                data = await fetchTop10TradeValueNaver();
+            } else if (activeTab === 'rise') {
+                data = await fetchTop10RiseRate();
+            } else if (activeTab === 'fall') {
+                data = await fetchTop10FallRate();
             }
 
             if (data) {
@@ -32,16 +41,25 @@ const StockTop10View = () => {
     useEffect(() => {
         fetchTop10();
 
+        const refreshMs = activeTab === 'amount' ? 20000 : 10000;
         const timer = setInterval(() => {
             fetchTop10();
-        }, 10000);
+        }, refreshMs);
 
         return () => clearInterval(timer);
     }, [activeTab]);
 
     // 4. 등락에 따른 색상 결정 함수
+    const toNumber = (value) => {
+        if (value === null || value === undefined) return NaN;
+        if (typeof value === 'number') return value;
+        const text = String(value).replaceAll(',', '').replaceAll('%', '').trim();
+        if (!text) return NaN;
+        return Number(text);
+    };
+
     const getPriceColor = (val) => {
-        const num = parseFloat(val);
+        const num = toNumber(val);
         if (num > 0) return '#d20d0d'; // 상승 (빨간색)
         if (num < 0) return '#0d42d2'; // 하락 (파란색)
         return '#333'; // 보합
@@ -49,15 +67,63 @@ const StockTop10View = () => {
 
     // 숫자 포맷팅 (거래대금은 억 단위 변환 등 고려 가능하나 일단 localeString)
     const formatNumber = (num) => {
-        return Number(num).toLocaleString();
+        const value = toNumber(num);
+        if (!Number.isFinite(value)) return '-';
+        return value.toLocaleString();
     };
 
     const formatAmount = (amount) => {
         // 거래대금의 경우 단위가 크면 '억' 단위로 표시하는게 좋을수도 있음.
         // 여기서는 일단 원단위/백만원단위 고려없이 그대로 출력하거나,
         // 필요시: return Math.round(amount / 1000000).toLocaleString() + '백만';
-        return Number(amount).toLocaleString();
+        const value = toNumber(amount);
+        if (!Number.isFinite(value)) return '-';
+        if (value >= 100000000) return (value / 100000000).toFixed(1) + '억';
+        return value.toLocaleString();
     };
+
+    const getStockKey = (stock, index) =>
+        stock.mksc_shrn_iscd ||
+        stock.stckShrnIscd ||
+        stock.itemCode ||
+        stock.code ||
+        stock.symbol ||
+        index;
+
+    const getStockName = (stock) =>
+        stock.hts_kor_isnm ||
+        stock.htsKorIsnm ||
+        stock.stockName ||
+        stock.itmsNm ||
+        stock.name ||
+        stock.stockNameKr ||
+        '-';
+
+    const getPrice = (stock) =>
+        stock.stck_prpr ??
+        stock.stckPrpr ??
+        stock.nowVal ??
+        stock.closePrice ??
+        stock.nowPrice ??
+        stock.price ??
+        '-';
+
+    const getChangeRate = (stock) => {
+        const raw =
+            stock.prdy_ctrt ??
+            stock.prdyCtrt ??
+            stock.fluctuationsRatio ??
+            stock.changesRatio ??
+            stock.changeRate ??
+            stock.changePercent;
+        const value = toNumber(raw);
+        return Number.isFinite(value) ? value : 0;
+    };
+
+    const getVolume = (stock) =>
+        stock.acml_vol ?? stock.acmlVol ?? stock.accVolume ?? stock.volume ?? '-';
+
+    const getTradeValue = (stock) => stock.acml_tr_pbmn ?? stock.accAmount ?? stock.tradeValue ?? stock.amount ?? '-';
 
     return (
         <div style={{ padding: '20px', fontFamily: 'Outfit, Noto Sans KR, sans-serif', maxWidth: '600px', margin: '0 auto' }}>
@@ -114,6 +180,38 @@ const StockTop10View = () => {
                     >
                         거래대금 상위
                     </button>
+                    <button
+                        onClick={() => setActiveTab('rise')}
+                        style={{
+                            flex: 1,
+                            padding: '10px',
+                            border: 'none',
+                            borderRadius: '8px',
+                            backgroundColor: activeTab === 'rise' ? '#333' : '#f0f0f0',
+                            color: activeTab === 'rise' ? '#fff' : '#666',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        상승률 상위
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('fall')}
+                        style={{
+                            flex: 1,
+                            padding: '10px',
+                            border: 'none',
+                            borderRadius: '8px',
+                            backgroundColor: activeTab === 'fall' ? '#333' : '#f0f0f0',
+                            color: activeTab === 'fall' ? '#fff' : '#666',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        하락률 상위
+                    </button>
                 </div>
             </div>
 
@@ -132,31 +230,31 @@ const StockTop10View = () => {
                             <th style={styles.th}>현재가</th>
                             <th style={styles.th}>등락율</th>
                             <th style={styles.th}>
-                                {activeTab === 'volume' ? '거래량' : '거래대금'}
+                                {activeTab === 'amount' ? '거래대금' : '거래량'}
                             </th>
                         </tr>
                     </thead>
                     <tbody>
                         {stocks.length > 0 ? (
                             stocks.map((stock, index) => (
-                                <tr key={stock.mksc_shrn_iscd || index} style={{ borderBottom: '1px solid #f5f5f5' }}>
+                                <tr key={getStockKey(stock, index)} style={{ borderBottom: '1px solid #f5f5f5' }}>
                                     <td style={{ ...styles.td, textAlign: 'center', fontWeight: 'bold', color: '#666' }}>{index + 1}</td>
-                                    <td style={{ ...styles.td, fontWeight: 'bold' }}>{stock.hts_kor_isnm}</td>
+                                    <td style={{ ...styles.td, fontWeight: 'bold' }}>{getStockName(stock)}</td>
                                     <td style={{ ...styles.td, textAlign: 'right' }}>
-                                        {formatNumber(stock.stck_prpr)}
+                                        {formatNumber(getPrice(stock))}
                                     </td>
                                     <td style={{
                                         ...styles.td,
                                         textAlign: 'right',
-                                        color: getPriceColor(stock.prdy_ctrt),
+                                        color: getPriceColor(getChangeRate(stock)),
                                         fontWeight: 'bold'
                                     }}>
-                                        {stock.prdy_ctrt > 0 ? '+' : ''}{stock.prdy_ctrt}%
+                                        {getChangeRate(stock) > 0 ? '+' : ''}{getChangeRate(stock)}%
                                     </td>
                                     <td style={{ ...styles.td, textAlign: 'right', fontSize: '12px', color: '#666' }}>
-                                        {activeTab === 'volume'
-                                            ? formatNumber(stock.acml_vol)
-                                            : formatNumber(stock.acml_tr_pbmn) // 거래대금
+                                        {activeTab === 'amount'
+                                            ? formatAmount(getTradeValue(stock)) // 네이버 거래대금
+                                            : formatNumber(getVolume(stock))
                                         }
                                     </td>
                                 </tr>
@@ -172,7 +270,7 @@ const StockTop10View = () => {
                 </table>
             </div>
             <p style={{ fontSize: '11px', color: '#aaa', marginTop: '12px', textAlign: 'center' }}>
-                * 10초마다 자동으로 갱신됩니다.
+                * 탭에 따라 10~20초마다 자동으로 갱신됩니다.
             </p>
         </div>
     );
