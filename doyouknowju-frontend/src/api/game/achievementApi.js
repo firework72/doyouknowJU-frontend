@@ -38,5 +38,24 @@ export const achievementApi = {
             console.error("Error claiming reward:", error);
             throw error;
         }
+    },
+
+    //칭호 목록 조회
+    getMyTitles: async() => {
+        try{
+            const response = await fetch(`${BASE_URL}/titles`,{
+                method: 'GET',
+                headers: {'Content-Type' : 'application/json'},
+                credentials: 'include'
+            });
+
+            if(!response.ok){
+                throw new Error('Failed to fetch Titles');
+            }
+            return await response.json();
+        }catch(error){
+            console.error("Error fetching titles:",error);
+            throw error;
+        }
     }
 };

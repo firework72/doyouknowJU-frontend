@@ -3,7 +3,7 @@ import Modal from '../../common/Modal';
 import { quizApi } from '../../../api/game/quizApi';
 import './QuizModal.css';
 
-const QuizModal = ({ isOpen, onClose, onQuizComplete }) => {
+const QuizModal = ({ isOpen, onClose, onQuizComplete , onLevelUp}) => {
     const [quiz, setQuiz] = useState(null);
     const [loading, setLoading] = useState(false);
     const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -38,9 +38,13 @@ const QuizModal = ({ isOpen, onClose, onQuizComplete }) => {
             const data = await quizApi.solveQuiz(quiz.quizId, answer);
             setResult(data);
 
+            if(onQuizComplete){
+                onQuizComplete(data);
+            }
+
             // 레벨업 체크
             if (data.levelUp && onLevelUp) {
-                // onLevelUp(data.currentLevel);
+                onLevelUp(data.currentLevel);
             }
         } catch (error) {
             alert(error.message || "서버와 통신 중 오류가 발생했습니다.");
