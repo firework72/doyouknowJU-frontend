@@ -11,6 +11,7 @@ import LevelUpModal from '../components/features/game/LevelUpModal';
 import QuizModal from '../components/features/game/QuizModal';
 // [추가] 뉴스 데이터를 가져오기 위한 api 인스턴스
 import api from '../api/trade/axios';
+import Ranking from '../components/features/ranking/Ranking';
 
 function HomePage() {
     const navigate = useNavigate();
@@ -148,9 +149,11 @@ function HomePage() {
                 {/* 하단 행 - 뉴스 구역만 업데이트 */}
                 <div className="grid-row bottom-row">
                     <Card className="medium-card" id="ranking-section">
-                        <h3 className="section-title">랭킹</h3>
-                        <p className="section-description">연간 / 월간 / 주간</p>
-                        <div className="section-content"></div>
+                        <h3 className="section-title">랭킹 Top 3</h3>
+                        <p className="section-description">랭킹은 매일 자정 갱신됩니다.</p>
+                        <div className="section-content">
+                            <Ranking/> {/* Dong : Ranking.jsx 추가 */}
+                        </div>
                     </Card>
                     <Card className="medium-card" id="posts-section">
                         <h3 className="section-title">게시글</h3>

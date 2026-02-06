@@ -8,7 +8,7 @@ import RankingTable from './components/RankingTable';
 
 function Ranking() {
 
-    const GROUP_SIZE = 10;
+    const GROUP_SIZE = 50;
 
     const [page, setPage] = useState(1);
     const [totalPage, setTotalPage] = useState(1);
@@ -39,7 +39,6 @@ function Ranking() {
     useEffect(()=>{
         fetchSeasonRanking();
         fetchTotalPage();
-        setPeriodRanking(periodRanking.slice(0, GROUP_SIZE));
     }, [page, selectedRankingCategory]);
 
     useEffect(()=>{
@@ -89,6 +88,8 @@ function Ranking() {
 
     return (
         <div className={styles.container}>
+            <h1>랭킹</h1>
+            <p>모든 랭킹은 매일 자정 갱신됩니다.</p>
             <div>
                 <Button
                     onClick={()=>{setSelectedRankingCategory("all"); setPage(1);}}
@@ -117,6 +118,11 @@ function Ranking() {
 
             </div>
             <RankingTable data={periodRanking} />
+            <Pagination
+                currentPage={page}
+                totalPages={totalPage}
+                onPageChange={setPage}
+            />
         </div>
     );
 }
