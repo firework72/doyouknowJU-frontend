@@ -76,6 +76,7 @@ const MyPage = () => {
                 alert(result.message);
                 // 목록 갱신 및 유저 정보(경험치 등) 갱신
                 await fetchAchievements();
+                await fetchMyTitles();
                 await refreshUser();
             }
         } catch (error) {
@@ -121,7 +122,10 @@ const MyPage = () => {
                 />
 
                 {/* 칭호 컴포넌트 */}
-                <TitleCard onOpenModal={()=>setIsTitleModalOpen(true)}/>
+                <TitleCard
+                    titles={titles}
+                    onOpenModal={()=>setIsTitleModalOpen(true)}
+                />
 
                 {/* Posts / Comments Card */}
                 <Card className="posts-card">
