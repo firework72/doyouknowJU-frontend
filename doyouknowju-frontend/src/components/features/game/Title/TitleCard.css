@@ -42,12 +42,12 @@
     font-size: 1.1rem;
 }
 
-/* 칭호 미리보기 리스트 */
+/* 칭호 미리보기 리스트 (2x3 그리드) */
 .title-card .title-preview-list {
     flex: 1;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
     align-content: flex-start;
     padding: 0 5px;
 }
@@ -59,4 +59,28 @@
     font-weight: 500;
     border-radius: 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.title-card .title-image-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 8px;
+    border: 1px solid #efefef;
+}
+
+.title-card .title-icon {
+    width: 100%;
+    max-width: 120px;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: contain;
+    transition: transform 0.2s;
+    cursor: pointer;
+}
+
+.title-card .title-icon:hover {
+    transform: scale(1.1);
 }
