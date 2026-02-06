@@ -24,6 +24,16 @@ export const rankingApi = {
         const response = await api.get(`http://localhost:8080/dykj/api/ranking/all/${page}`);
         return response.data;
     },
+
+    getSeasonRanking : async (season, page) => {
+        const response = await api.get(`http://localhost:8080/dykj/api/ranking/${season}/${page}`);
+        return response.data;
+    },
+
+    getRankingCountBySeason : async (season) => {
+        const response = await api.get(`http://localhost:8080/dykj/api/ranking/${season}/count`);
+        return response.data;
+    }
 }
 
 export default rankingApi;

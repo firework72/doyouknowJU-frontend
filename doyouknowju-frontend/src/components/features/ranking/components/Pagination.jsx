@@ -8,7 +8,7 @@ function Pagination({
     onPageChange,
     pageGroupSize = 10,
 }) {
-    if (totalPages <= 1) return null;
+    if (totalPages <= 0) return null;
 
     const currentGroup = Math.ceil(currentPage / pageGroupSize);
     const startPage = (currentGroup - 1) * pageGroupSize + 1;
