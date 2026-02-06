@@ -7,6 +7,7 @@ import { Button, Input, Card } from '@/components/common';
 import { useAuth } from '../../../hooks/AuthContext.jsx';
 import Toast from '../../common/Toast.jsx';
 import SellConfirmModal from './components/SellConfirmModal.jsx';
+import api from '../../../api/trade/axios';
 /*
     필요한 상태값 : 주식 ID, 회원 정보
     필요한 함수 : 주식 매수, 주식 매도
@@ -22,6 +23,7 @@ function StockDetail() {
     const [stockFluctuation, setStockFluctuation] = useState(0);
     const [stockContrastRatio, setStockContrastRatio] = useState(0);
     const [stockName, setStockName] = useState("");
+    const [stockNews, setStockNews] = useState([]);
 
     const [pageLoading, setPageLoading] = useState(true);
     const [toast, setToast] = useState(null);
@@ -31,6 +33,18 @@ function StockDetail() {
     const fetchStockName = async () => {
         const response = await tradeApi.getStockName(stockId);
         setStockName(response);
+        fetchStockNews(response);
+    }
+
+    const fetchStockNews = async (name) => {
+        try {
+            const response = await api.get('/api/news/search', {
+                params: { keyword: name }
+            });
+            setStockNews(response.data);
+        } catch (error) {
+            console.error("뉴스 로드 실패", error);
+        }
     }
 
     const fetchStockInfo = async () => {
@@ -181,6 +195,25 @@ function StockDetail() {
                                 >
                                     매도
                                 </Button>
+                            </Card>
+                            <Card>
+                                <h2>관련 뉴스</h2>
+                                {stockNews && stockNews.length > 0 ? (
+                                    <ul style={{ listStyle: 'none', padding: 0 }}>
+                                        {stockNews.map((news) => (
+                                            <li key={news.newsId} style={{ marginBottom: '10px', borderBottom: '1px solid #eee', paddingBottom: '5px' }}>
+                                                <a href={news.newsUrl} target="_blank" rel="noreferrer" style={{ textDecoration: 'none', color: '#333', display: 'block' }}>
+                                                    <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>{news.title}</div>
+                                                    <div style={{ fontSize: '0.8rem', color: '#666' }}>
+                                                        {news.pubDate} | {news.newsCategory}
+                                                    </div>
+                                                </a>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p>{stockName} 와/과 관련된 결과가 없습니다.</p>
+                                )}
                             </Card>
 
                         </>
