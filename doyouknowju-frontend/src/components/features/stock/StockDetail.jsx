@@ -8,6 +8,7 @@ import { useAuth } from '../../../hooks/AuthContext.jsx';
 import Toast from '../../common/Toast.jsx';
 import SellConfirmModal from './components/SellConfirmModal.jsx';
 import api from '../../../api/trade/axios';
+import StockChart from './components/StockChart.jsx';
 /*
     필요한 상태값 : 주식 ID, 회원 정보
     필요한 함수 : 주식 매수, 주식 매도
