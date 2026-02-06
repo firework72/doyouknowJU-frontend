@@ -9,72 +9,44 @@ import RankingTable from './components/RankingTable';
 
 function Ranking() {
 
+    const GROUP_SIZE = 1;
+
     const [page, setPage] = useState(1);
+    const [totalPage, setTotalPage] = useState(1);
 
     const [selectedRankingCategory, setSelectedRankingCategory] = useState("all");
 
-    const [weeklyRanking, setWeeklyRanking] = useState([]);
-    const [monthlyRanking, setMonthlyRanking] = useState([]);
-    const [yearlyRanking, setYearlyRanking] = useState([]);
     const [allRanking, setAllRanking] = useState([]);
 
     const [periodRanking, setPeriodRanking] = useState([]);
 
-    const fetchWeeklyRanking =  async () => {
+    const fetchSeasonRanking = async () => {
         try {
-            const response = await rankingApi.getWeeklyRanking(page);
-            setWeeklyRanking(response);
+            const response = await rankingApi.getSeasonRanking(selectedRankingCategory, page);
             setPeriodRanking(response);
         } catch (error) {
             console.error(error);
         }
     }
 
-    const fetchMonthlyRanking = async () => {
+    const fetchTotalPage = async () => {
         try {
-            const response = await rankingApi.getMonthlyRanking(page);
-            setMonthlyRanking(response);
-            setPeriodRanking(response);
-        } catch (error) {
-            console.error(error);
-        }
-    }
-
-    const fetchYearlyRanking = async () => {
-        try {
-            const response = await rankingApi.getYearlyRanking(page);
-            setYearlyRanking(response);
-            setPeriodRanking(response);
-        } catch (error) {
-            console.error(error);
-        }
-    }
-
-    const fetchAllRanking = async () => {
-        try {
-            const response = await rankingApi.getAllRanking(page);
-            setAllRanking(response);
+            const response = await rankingApi.getRankingCountBySeason(selectedRankingCategory);
             console.log(response);
+            setTotalPage(Math.ceil(response / GROUP_SIZE));
         } catch (error) {
             console.error(error);
         }
     }
 
     useEffect(()=>{
-        if(selectedRankingCategory === "weekly") {
-            fetchWeeklyRanking();
-        } else if(selectedRankingCategory === "monthly") {
-            fetchMonthlyRanking();
-        } else if(selectedRankingCategory === "yearly") {
-            fetchYearlyRanking();
-        } else {
-            fetchAllRanking();
-        }
+        fetchSeasonRanking();
+        fetchTotalPage();
     }, [page, selectedRankingCategory]);
 
     useEffect(()=>{
-        fetchAllRanking();
-    }, []);
+        setPage(1);
+    }, [selectedRankingCategory]);
 
     // useEffect(()=>{
     //     setWeeklyRanking([
@@ -102,22 +74,18 @@ function Ranking() {
     // }, []);
 
     const handleWeeklyRankingButton = () => {
-        setPage(1);
         setSelectedRankingCategory("weekly");
     }
 
     const handleMonthlyRankingButton = () => {
-        setPage(1);
         setSelectedRankingCategory("monthly");
     }
 
     const handleYearlyRankingButton = () => {
-        setPage(1);
         setSelectedRankingCategory("yearly");
     }
 
     const handleAllRankingButton = () => {
-        setPage(1);
         setSelectedRankingCategory("all");
     }
 
@@ -127,40 +95,35 @@ function Ranking() {
             <p>모든 랭킹은 매일 자정 갱신됩니다.</p>
             <div>
                 <Button
-                    onClick={handleAllRankingButton}
+                    onClick={()=>{setSelectedRankingCategory("all"); setPage(1);}}
                     variant={selectedRankingCategory === "all" ? "primary" : "secondary"}
                 >
                     전체
                 </Button>
                 <Button
-                    onClick={handleWeeklyRankingButton}
+                    onClick={()=>{setSelectedRankingCategory("weekly"); setPage(1);}}
                     variant={selectedRankingCategory === "weekly" ? "primary" : "secondary"}
                 >
                     주간
                 </Button>
                 <Button
-                    onClick={handleMonthlyRankingButton}
+                    onClick={()=>{setSelectedRankingCategory("monthly"); setPage(1);}}
                     variant={selectedRankingCategory === "monthly" ? "primary" : "secondary"}
                 >
                     월간
                 </Button>
                 <Button
-                    onClick={handleYearlyRankingButton}
+                    onClick={()=>{setSelectedRankingCategory("yearly"); setPage(1);}}
                     variant={selectedRankingCategory === "yearly" ? "primary" : "secondary"}
                 >
                     연간
                 </Button>
 
             </div>
-            {
-                selectedRankingCategory === "all" && <AllRankingTable data={allRanking} />
-            }
-            {
-                selectedRankingCategory !== "all" && <RankingTable data={periodRanking} />
-            }
+            <RankingTable data={periodRanking} />
             <Pagination
                 currentPage={page}
-                totalPages={10}
+                totalPages={totalPage}
                 onPageChange={setPage}
             />
         </div>
