@@ -12,6 +12,7 @@ import QuizModal from '../components/features/game/QuizModal';
 // [추가] 뉴스 데이터를 가져오기 위한 api 인스턴스
 import api from '../api/trade/axios';
 import Ranking from '../components/features/ranking/Ranking';
+import PopularBoardsPanel from '../components/features/community/PopularBoardsPanel';
 
 function HomePage() {
     const navigate = useNavigate();
@@ -158,7 +159,9 @@ function HomePage() {
                     <Card className="medium-card" id="posts-section">
                         <h3 className="section-title">게시글</h3>
                         <p className="section-description">실시간 / 인기 게시글</p>
-                        <div className="section-content"></div>
+                        <div className="section-content">
+                            <PopularBoardsPanel />
+                        </div>
                     </Card>
 
                     {/* [핵심 수정] 뉴스 정보 구역 */}
