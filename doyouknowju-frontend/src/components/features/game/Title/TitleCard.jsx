@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Card } from "../../common";
+import { Button, Card } from "../../../common";
 import './TitleCard.css';
 
 const TitleCard = ({onOpenModal}) =>{

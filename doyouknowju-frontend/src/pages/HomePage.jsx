@@ -99,7 +99,6 @@ function HomePage() {
             setLevelUpModal({ isOpen: true, level: data.currentLevel });
         }
     }
-    // --- 원본 로직 유지 끝 ---
 
     return (
         <main className="main-container">
@@ -192,7 +191,7 @@ function HomePage() {
             {/* 모달들 (원본 유지) */}
             <AttendanceModal isOpen={attendanceModal.isOpen} onClose={handleCloseAttendance} data={attendanceModal.data} />
             <LevelUpModal isOpen={levelUpModal.isOpen} onClose={() => setLevelUpModal({ ...levelUpModal, isOpen: false })} level={levelUpModal.level} />
-            <QuizModal isOpen={isQuizModalOpen} onClose={() => setIsQuizModalOpen(false)} onLevelUp={(level) => setLevelUpModal({ isOpen: true, level })} />
+            <QuizModal isOpen={isQuizModalOpen} onClose={() => setIsQuizModalOpen(false)} onLevelUp={(level) => setLevelUpModal({ isOpen: true, level })} onQuizComplete={handleQuizComplete} />
         </main>
     );
 }

@@ -6,10 +6,11 @@ import { Spinner, Button, Modal, Card } from '../components/common';
 import AttendanceCheckModal from '../components/features/game/Attendance/AttendanceCheckModal';
 import MyInfo from '../components/features/member/MyInfo';
 import AchievementCard from '../components/features/game/Achievement/AchievementCard';
-import TitleCard from '../components/features/game/TItleCard';
 import AchievementModal from '../components/features/game/Achievement/AchievementModal';
 import { achievementApi } from '../api/game/achievementApi';
 import MyActivityCard from '../components/features/member/MyActivityCard';
+import TitleCard from '../components/features/game/Title/TitleCard';
+import TitleModal from '../components/features/game/Title/TitleModal';
 
 const MyPage = () => {
     const { user, loading: authLoading, refreshUser } = useAuth();
@@ -20,6 +21,7 @@ const MyPage = () => {
     const [isTitleModalOpen, setIsTitleModalOpen] = useState(false);
 
     const [achievements, setAchievements] = useState([]);
+    const [titles, setTitles] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -37,6 +39,7 @@ const MyPage = () => {
                 const isRefreshed = await refreshUser();
                 if (isRefreshed) {
                     await fetchAchievements();
+                    await fetchMyTitles();
                     setLoading(false);
                 }
             } catch (error) {
@@ -56,6 +59,15 @@ const MyPage = () => {
             console.error("도전과제 목록 조회 실패:", error);
         }
     };
+
+    const fetchMyTitles = async() =>{
+        try{
+            const data = await achievementApi.getMyTitles();
+            setTitles(data);
+        }catch (error) {
+            console.error("칭호 목록 조회 실패: ", error);
+        }
+    }
 
     const handleClaimReward = async (achievementId) => {
         try {
@@ -135,15 +147,12 @@ const MyPage = () => {
                 onClaimReward={handleClaimReward}
             />
 
-            <Modal
+            {/* 칭호 모달 */}
+            <TitleModal
                 isOpen={isTitleModalOpen}
-                onClose={() => setIsTitleModalOpen(false)}
-                title="칭호 목록"
-            >
-                <div className="modal-scroll-content">
-                    <p>획득 가능한 전체 칭호가 여기에 표시됩니다.</p>
-                </div>
-            </Modal>
+                onClose={()=>setIsTitleModalOpen(false)}
+                titles={titles}
+            />
         </div>
     );
 };
