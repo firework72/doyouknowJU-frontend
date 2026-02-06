@@ -129,7 +129,13 @@ const StockTop10View = () => {
         if (Number.isFinite(changeValue) && changeValue < 0) return -Math.abs(value);
 
         const changeSign = String(stock.changeSign ?? stock.prdyVrssSign ?? stock.prdy_vrss_sign ?? '').toUpperCase();
-        const isDownSign = changeSign === '-' || changeSign === 'DOWN' || changeSign === 'FALL' || changeSign === '2';
+        // KIS prdyVrssSign: 1(상한) 2(상승) 3(보합) 4(하한) 5(하락)  -> 4/5 should be treated as negative.
+        const isDownSign =
+            changeSign === '-' ||
+            changeSign === 'DOWN' ||
+            changeSign === 'FALL' ||
+            changeSign === '4' ||
+            changeSign === '5';
         if (isDownSign) value = -Math.abs(value);
         return value;
     };
