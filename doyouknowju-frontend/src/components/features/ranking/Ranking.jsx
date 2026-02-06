@@ -120,13 +120,7 @@ function Ranking() {
                 </Button>
 
             </div>
-            <AllRankingTable data={periodRanking} />
-            {
-                selectedRankingCategory === "all" && <AllRankingTable data={allRanking} />
-            }
-            {
-                selectedRankingCategory !== "all" && <RankingTable data={periodRanking} />
-            }
+            <RankingTable data={periodRanking} />
             <Pagination
                 currentPage={page}
                 totalPages={totalPage}
