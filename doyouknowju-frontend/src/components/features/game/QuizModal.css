@@ -95,19 +95,8 @@
     line-height: 1.5;
 }
 
-.modal-close-btn {
-    background: #8b5cf6;
-    color: white;
-    border: none;
-    padding: 12px 40px;
-    font-size: 1rem;
-    font-weight: bold;
-    border-radius: 12px;
-    cursor: pointer;
-    width: 100%;
-    transition: background 0.2s;
-}
-
-.modal-close-btn:hover {
-    background: #7c3aed;
+@media (max-width: 480px) {
+    .button-group {
+        flex-direction: column;
+    }
 }

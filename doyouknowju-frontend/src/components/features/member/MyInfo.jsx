@@ -2,7 +2,7 @@ import { Button, Card } from "../../common";
 import './MyInfo.css';
 
 
-const MyInfo = ({user, onOpenAttendance}) => {
+const MyInfo = ({ user, onOpenAttendance }) => {
     if(!user) return null;
 
     return(
@@ -13,7 +13,6 @@ const MyInfo = ({user, onOpenAttendance}) => {
                     variant="primary"
                     size="sm"
                     onClick={onOpenAttendance}
-                    className="mypage-check-btn"
                 >
                     출석확인
                 </Button>

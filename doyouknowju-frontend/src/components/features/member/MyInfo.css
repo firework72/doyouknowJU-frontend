@@ -29,13 +29,3 @@
     color: #333;
     font-weight: bold;
 }
-
-.mypage-check-btn {
-    padding: 4px 8px !important;
-    font-size: 0.8rem !important;
-    height: auto !important;
-    width: fit-content !important;
-    min-width: auto !important;
-    flex: none !important;
-    /* transform 제거하여 hover 시 크기 복구 현상 방지 */
-}

@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import Modal from '../../../common/Modal';
+import { Button, Modal } from '../../../common';
 
 const ContentWrapper = styled.div`
   display: flex;
@@ -39,24 +39,6 @@ const InfoText = styled.p`
   color: #666;
 `;
 
-const CloseButton = styled.button`
-  background: #8b5cf6;
-  color: white;
-  border: none;
-  padding: 12px 40px;
-  font-size: 1rem;
-  font-weight: bold;
-  border-radius: 12px;
-  cursor: pointer;
-  width: 100%;
-  transition: background 0.2s, transform 0.2s;
-
-  &:hover {
-    background: #7c3aed;
-    transform: translateY(-2px);
-  }
-`;
-
 const AttendanceModal = ({ isOpen, onClose, data }) => {
     if (!data) return null;
 
@@ -65,7 +47,15 @@ const AttendanceModal = ({ isOpen, onClose, data }) => {
             isOpen={isOpen}
             onClose={onClose}
             title="출석 완료!"
-            footer={<CloseButton onClick={onClose}>확인</CloseButton>}
+            footer={
+              <Button
+                variant='primary'  
+                onClick={onClose}
+                style={{width: '100%'}}
+              >
+                확인
+              </Button>}
+              
         >
             <ContentWrapper>
                 <SuccessIcon>🎉</SuccessIcon>
@@ -73,7 +63,7 @@ const AttendanceModal = ({ isOpen, onClose, data }) => {
                 {data.gainedExp > 0 && (
                     <RewardText>+{data.gainedExp} EXP 획득</RewardText>
                 )}
-                <InfoText>현재 누적으로 {data.cumulativeDays}일째 출석 중입니다!</InfoText>
+                <InfoText>현재 총 {data.cumulativeDays}일째 출석 중입니다!</InfoText>
             </ContentWrapper>
         </Modal>
     );
