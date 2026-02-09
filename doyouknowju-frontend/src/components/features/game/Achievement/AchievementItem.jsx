@@ -3,8 +3,29 @@ import { Card, Button, ProgressBar } from '../../../common';
 import './AchievementItem.css';
 
 const AchievementItem = ({ achievement, onClaimReward, isPreview }) => {
-    // 보상 수령 여부 확인 ('N'이면 미수령 -> 버튼 활성화)
-    const isNotClaimed = achievement.isRewarded === 'N';
+    // 도전과제 상태 도출
+    // 1. 달성 전: achievedAt 이 null 인 경우
+    // 2. 달성 완료/보상 미수령: achievedAt 이 있고 isRewarded 가 'N' 인 경우
+    // 3. 수령 완료: achievedAt 이 있고 isRewarded 가 'Y' 인 경우
+
+    const isAchieved = !!achievement.achievedAt;
+    const isRewarded = achievement.isRewarded === 'Y';
+
+    let buttonText = "진행중...";
+    let buttonVariant = "secondary";
+    let isButtonDisabled = true;
+
+    if (isAchieved) {
+        if (!isRewarded) {
+            buttonText = "보상 받기";
+            buttonVariant = "primary";
+            isButtonDisabled = false;
+        } else {
+            buttonText = "수령 완료";
+            buttonVariant = "secondary";
+            isButtonDisabled = true;
+        }
+    }
 
     return (
         <Card className={`achievement-item-card ${isPreview ? 'preview-mode' : ''}`}>
@@ -12,7 +33,7 @@ const AchievementItem = ({ achievement, onClaimReward, isPreview }) => {
                 <div className="achievement-info">
                     <div className="achievement-title-row">
                         <h4 className="achievement-name">{achievement.achievName}</h4>
-                        <span className="achieved-date">{achievement.achievedAt}</span>
+                        {isAchieved && <span className="achieved-date">{achievement.achievedAt}</span>}
                     </div>
                     <p className="achievement-desc">{achievement.achievDesc}</p>
                 </div>
@@ -22,16 +43,15 @@ const AchievementItem = ({ achievement, onClaimReward, isPreview }) => {
                         <span className="reward-label">보상</span>
                         <span className="reward-value">+{achievement.rewardExp} EXP</span>
                     </div>
-                    
-                    {!isPreview && ( // 프리뷰 모드(카드)에서는 버튼을 숨기거나 작게 처리 가능
-                        <Button 
-                            variant={isNotClaimed ? "primary" : "secondary"}
+
+                    {!isPreview && (
+                        <Button
+                            variant={buttonVariant}
                             size="sm"
-                            disabled={!isNotClaimed}
+                            disabled={isButtonDisabled}
                             onClick={() => onClaimReward(achievement.achievementId)}
-                            className="claim-btn"
                         >
-                            {isNotClaimed ? "보상 받기" : "수령 완료"}
+                            {buttonText}
                         </Button>
                     )}
                 </div>

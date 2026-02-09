@@ -5,7 +5,7 @@
     padding: 1.25rem !important;
     border: 1px solid var(--color-border);
     background-color: #fff;
-    min-height: auto !important; /* 내부용 카드이므로 높이 제한 해제 */
+    min-height: auto !important;
 }
 
 .achievement-main {
@@ -68,13 +68,6 @@
     font-size: 0.9rem;
     font-weight: 700;
     color: #8b5cf6; /* 경험치 강조 컬러 (보라색) */
-}
-
-.claim-btn {
-    padding: 4px 12px !important;
-    font-size: 0.8rem !important;
-    height: 30px !important;
-    border-radius: 15px !important;
 }
 
 .achievement-footer {

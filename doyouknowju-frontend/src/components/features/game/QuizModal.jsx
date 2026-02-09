@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import Modal from '../../common/Modal';
 import { quizApi } from '../../../api/game/quizApi';
 import './QuizModal.css';
+import { Modal, Button } from '../../common';
 
-const QuizModal = ({ isOpen, onClose, onQuizComplete , onLevelUp}) => {
+const QuizModal = ({ isOpen, onClose, onQuizComplete, onLevelUp }) => {
     const [quiz, setQuiz] = useState(null);
     const [loading, setLoading] = useState(false);
     const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -56,7 +56,7 @@ const QuizModal = ({ isOpen, onClose, onQuizComplete , onLevelUp}) => {
             isOpen={isOpen}
             onClose={onClose}
             title="데일리 OX 퀴즈"
-            footer={result ? <button className="modal-close-btn" onClick={onClose}>확인</button> : null}
+            footer={result ? <Button className="primary" onClick={onClose} style={{width: '100%'}}>확인</Button> : null}
         >
             <div className="quiz-content">
                 {loading ? (

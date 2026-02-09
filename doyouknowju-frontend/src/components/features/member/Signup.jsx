@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Signup.css';
 import { useAuth } from '../../../hooks/AuthContext';
+import { Input, Button } from '../../common';
 
 function Signup() {
     const { user } = useAuth();
@@ -103,7 +104,7 @@ function Signup() {
                 }
             } else {
                 console.error(`서버 에러 발생! 상태코드: ${response.status}`);
-                alert(result.message || '회원가입에 실패했습니다.');
+                alert('회원가입에 실패했습니다.');
             }
         } catch (error) {
             console.error('네트워크 또는 통신 오류 발생!');
@@ -124,49 +125,42 @@ function Signup() {
                 <h2 className="signup-title">회원가입</h2>
 
                 {/* 아이디 입력 */}
-                <div className="form-group">
-                    <label className="form-label" htmlFor="userId">아이디</label>
-                    <input
-                        type="text"
-                        id="userId"
-                        name="userId"
-                        className="form-input"
-                        placeholder="아이디를 입력하세요"
-                        value={formData.userId}
-                        onChange={handleChange}
-                    />
-                    {errors.userId && <p className="error-message">{errors.userId}</p>}
-                </div>
+                <Input
+                    label="아이디"
+                    id="userId"
+                    name="userId"
+                    placeholder="아이디를 입력하세요"
+                    value={formData.userId}
+                    onChange={handleChange}
+                    error={errors.userId}
+                    fullWidth
+                />
 
                 {/* 비밀번호 입력 */}
-                <div className="form-group">
-                    <label className="form-label" htmlFor="userPwd">비밀번호</label>
-                    <input
-                        type="password"
-                        id="userPwd"
-                        name="userPwd"
-                        className="form-input"
-                        placeholder="비밀번호를 입력하세요"
-                        value={formData.userPwd}
-                        onChange={handleChange}
-                    />
-                    {errors.userPwd && <p className="error-message">{errors.userPwd}</p>}
-                </div>
+                <Input
+                    label="비밀번호"
+                    type="password"
+                    id="userPwd"
+                    name="userPwd"
+                    placeholder="비밀번호를 입력하세요"
+                    value={formData.userPwd}
+                    onChange={handleChange}
+                    error={errors.userPwd}
+                    fullWidth
+                />
 
                 {/* 전화번호 입력 */}
-                <div className="form-group">
-                    <label className="form-label" htmlFor="phone">전화번호</label>
-                    <input
-                        type="tel"
-                        id="phone"
-                        name="phone"
-                        className="form-input"
-                        placeholder="010-0000-0000"
-                        value={formData.phone}
-                        onChange={handleChange}
-                    />
-                    {errors.phone && <p className="error-message">{errors.phone}</p>}
-                </div>
+                <Input
+                    label="전화번호"
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    placeholder="010-0000-0000"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    error={errors.phone}
+                    fullWidth
+                />
 
                 {/* 알림 수신 동의 */}
                 <div className="checkbox-group">
@@ -185,20 +179,21 @@ function Signup() {
 
                 {/* 버튼 그룹 */}
                 <div className="button-group">
-                    <button
+                    <Button
                         type="submit"
-                        className="btn btn-primary"
-                        disabled={isLoading}
+                        isLoading={isLoading}
+                        style={{ flex: 1 }}
                     >
-                        {isLoading ? '처리중...' : '회원가입'}
-                    </button>
-                    <button
+                        회원가입
+                    </Button>
+                    <Button
                         type="button"
-                        className="btn btn-secondary"
+                        variant="secondary"
                         onClick={handleCancel}
+                        style={{ flex: 1 }}
                     >
                         취소
-                    </button>
+                    </Button>
                 </div>
             </form>
         </div>
