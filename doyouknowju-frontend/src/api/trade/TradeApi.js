@@ -32,15 +32,14 @@ export const tradeApi = {
     },
 
     // 주식 차트 데이터 조회
-    getStockChartData: async (stockId) => {
+    getStockChartData: async (stockId, endDate) => {
         const response = await api.get(`http://localhost:8080/dykj/api/stocks/${stockId}/chart/daily`, {
             params: {
                 period: 'D',
                 start: '19700101',
-                end: '20260209',
+                end: `${endDate}`,
             }
         });
-        console.log(response.data.output2);
         return response.data;
     }
 }
