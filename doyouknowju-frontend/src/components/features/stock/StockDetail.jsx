@@ -161,7 +161,7 @@ function StockDetail() {
                             <h2 className={stockFluctuation > 0 ? styles.riseColor : styles.fallColor}>{stockPrice} ({stockFluctuation}, {stockContrastRatio})</h2>
                             <Card>
                                 <h2>차트</h2>
-                                <p>Stock Chart will be here.</p>
+                                <StockChart stockId={stockId} />
                             </Card>
                             <Card>
                                 <h2>주식 매수/매도</h2>

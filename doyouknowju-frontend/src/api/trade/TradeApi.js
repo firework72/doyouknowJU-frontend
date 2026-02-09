@@ -7,7 +7,6 @@ export const tradeApi = {
 
     // 종목 코드를 바탕으로 종목 이름 조회
     getStockName: async (stockId) => {
-        // TODO: 종목 이름 조회 API 호출 경로 수정 필요
         const response = await api.get(`http://localhost:8080/dykj/api/stock-info/${stockId}/name`);
         return response.data;
     },
@@ -29,6 +28,19 @@ export const tradeApi = {
     // 주식 가격 조회
     getStockPrice: async (stockId) => {
         const response = await api.get(`http://localhost:8080/dykj/api/stocks/${stockId}/price`);
+        return response.data;
+    },
+
+    // 주식 차트 데이터 조회
+    getStockChartData: async (stockId) => {
+        const response = await api.get(`http://localhost:8080/dykj/api/stocks/${stockId}/chart/daily`, {
+            params: {
+                period: 'D',
+                start: '19700101',
+                end: '20260209',
+            }
+        });
+        console.log(response.data.output2);
         return response.data;
     }
 }
