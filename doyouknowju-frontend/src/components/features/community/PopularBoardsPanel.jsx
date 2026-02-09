@@ -81,6 +81,7 @@ const PopularBoardsPanel = () => {
               <span className={styles.meta}>
                 <span className={styles.date}>{toDateString(item.modifyDate ?? item.createDate)}</span>
                 {item.viewCount !== undefined && <span className={styles.views}>조회 {item.viewCount}</span>}
+                {item.stockName && <span className={styles.stock}>{item.stockName}</span>}
               </span>
             </button>
           </li>
@@ -95,7 +96,6 @@ const PopularBoardsPanel = () => {
         <section className={styles.section}>
           <div className={styles.header}>
             <h4 className={styles.heading}>실시간 인기 게시글</h4>
-            <span className={styles.badge}>자유</span>
           </div>
           {renderList(realtimeFree)}
         </section>
@@ -103,7 +103,6 @@ const PopularBoardsPanel = () => {
         <section className={styles.section}>
           <div className={styles.header}>
             <h4 className={styles.heading}>주간 인기 게시글</h4>
-            <span className={styles.badgeAlt}>종목</span>
           </div>
           {renderList(weeklyStock)}
         </section>
@@ -113,4 +112,3 @@ const PopularBoardsPanel = () => {
 };
 
 export default PopularBoardsPanel;
-
