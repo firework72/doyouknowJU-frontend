@@ -62,7 +62,10 @@ function HomePage() {
                 login(data);
                 alert("반가워요, " + data.userId + "님!");
             } else {
-                alert("아이디 또는 비밀번호를 확인해주세요.");
+                const errorData = await response.json();
+                alert(errorData.message || "아이디 또는 비밀번호를 확인해주세요.");
+                setLoginId("");
+                setLoginPwd("");
             }
         } catch (error) {
             console.error("로그인 중 에러 발생: ", error);
