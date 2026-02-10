@@ -2,6 +2,7 @@ import styles from './StockDetail.module.css';
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { tradeApi } from '../../../api/trade/TradeApi.js';
+import { favoriteStockApi } from '../../../api/favoriteStockApi.js';
 import BuyConfirmModal from './components/BuyConfirmModal.jsx';
 import { Button, Input, Card } from '@/components/common';
 import { useAuth } from '../../../hooks/AuthContext.jsx';
@@ -25,6 +26,8 @@ function StockDetail() {
     const [stockContrastRatio, setStockContrastRatio] = useState(0);
     const [stockName, setStockName] = useState("");
     const [stockNews, setStockNews] = useState([]);
+
+    const [isFavorite, setIsFavorite] = useState(false);
 
     const [pageLoading, setPageLoading] = useState(true);
     const [toast, setToast] = useState(null);
@@ -55,6 +58,36 @@ function StockDetail() {
         setStockContrastRatio(priceResponse.output.prdy_ctrt);
     };
 
+    // 관심종목인지 확인
+    const fetchIsFavorite = async () => {
+        try {
+            const response = await favoriteStockApi.getIsFavorite(user.userId, stockId);
+            setIsFavorite(response > 0 ? true : false);
+        } catch (error) {
+            console.error("관심종목 확인 실패", error);
+        }
+    }
+
+    // 관심종목 추가
+    const handleAddFavorite = async () => {
+        try {
+            const response = await favoriteStockApi.addFavorite(user.userId, stockId);
+            setIsFavorite(true);
+        } catch (error) {
+            console.error("관심종목 추가 실패", error);
+        }
+    }
+
+    // 관심종목 삭제
+    const handleRemoveFavorite = async () => {
+        try {
+            const response = await favoriteStockApi.removeFavorite(user.userId, stockId);
+            setIsFavorite(false);
+        } catch (error) {
+            console.error("관심종목 삭제 실패", error);
+        }
+    }
+
     useEffect(() => {
         setPageLoading(true);
         console.log(stockId);
@@ -66,6 +99,8 @@ function StockDetail() {
         const intervalId = setInterval(() => {
             fetchStockInfo();
         }, 10000);
+
+        fetchIsFavorite();
 
         setPageLoading(false);
 
@@ -156,6 +191,7 @@ function StockDetail() {
                         <>
                             <div className={styles.inline}>
                                 <h1>{stockName}</h1>
+                                <h1 onClick={isFavorite ? handleRemoveFavorite : handleAddFavorite}>{isFavorite ? "⭐" : "☆"}</h1>
                                 <span>{stockId}</span>
                             </div>
                             <h2 className={stockFluctuation > 0 ? styles.riseColor : styles.fallColor}>{stockPrice} ({stockFluctuation}, {stockContrastRatio})</h2>

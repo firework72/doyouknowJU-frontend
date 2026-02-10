@@ -91,7 +91,10 @@ const HoldingChart = () => {
 
     return (
         isLoading ? (
-            <Spinner/>
+            <>
+                <Spinner/>
+                <p>차트를 생성하는 중입니다.</p>
+            </>
         ) : (
 
             <div style={{ width: '400px', height: '400px', position: 'relative', alignItems: 'center', justifyContent: 'center' }}>
