@@ -150,7 +150,7 @@ function HomePage() {
                 {/* 하단 행 - 뉴스 구역만 업데이트 */}
                 <div className="grid-row bottom-row">
                     <Card className="medium-card" id="ranking-section">
-                        <h3 className="section-title">랭킹 Top 3</h3>
+                        <h3 className="section-title" onClick={() => navigate('/ranking')} style={{ cursor: 'pointer' }}>랭킹 &gt;</h3>
                         <p className="section-description">랭킹은 매일 자정 갱신됩니다.</p>
                         <div className="section-content">
                             <Ranking/> {/* Dong : Ranking.jsx 추가 */}
