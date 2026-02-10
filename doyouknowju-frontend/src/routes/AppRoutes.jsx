@@ -11,6 +11,7 @@ import TestLevelUp from '../pages/TestLevelUp';
 import RankingPage from '../components/features/ranking/RankingPage'; // Dong : 랭킹 페이지
 import Holding from '../components/features/holding/Holding'; // Dong : 보유종목 페이지
 import NewsPage from '../pages/NewsPage';
+import StockPage from '../components/features/stock/StockPage';
 
 const AppRoutes = () => {
     return (
@@ -25,6 +26,7 @@ const AppRoutes = () => {
             <Route path="/board/write" element={<BoardWritePage />} />
             <Route path="/board/:boardId/edit" element={<BoardWritePage />} />
             <Route path="/board/:boardId" element={<BoardDetailPage />} />
+            <Route path="/stock" element={<StockPage />} /> {/* Dong : 주식 페이지 */}
             <Route path="/stock/:stockId" element={<StockDetail />} />
             <Route path="/ranking" element={<RankingPage />} /> {/* Dong : 랭킹 페이지 */}
             <Route path="/news" element={<NewsPage />} /> {/* 뉴스 페이지 추가 */}

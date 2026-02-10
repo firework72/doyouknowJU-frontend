@@ -14,6 +14,7 @@ import TitleModal from '../components/features/game/Title/TitleModal';
 import LevelUpModal from '../components/features/game/LevelUpModal';
 import { memberApi } from '../api/memberApi';
 import WithdrawalModal from '../components/features/member/WithdrawalModal';
+import HoldingChart from '../components/features/holding/components/HoldingChart'; // Dong : 보유 자산 현황 컴포넌트
 
 const MyPage = () => {
     const { user, loading: authLoading, refreshUser } = useAuth();
@@ -134,9 +135,9 @@ const MyPage = () => {
                 {/* Portfolio Card */}
                 <Card className="portfolio-card">
                     <div className="card-header">
-                        <span className="section-title">포트 폴리오</span>
+                        <span className="section-title" onClick={() => navigate('/holding')} style={{cursor: 'pointer'}}>포트 폴리오 &gt;</span>
                     </div>
-                    <div className="placeholder-text">보유 자산 현황 준비 중..</div>
+                    <HoldingChart /> {/* Dong : 보유 자산 현황 컴포넌트 */}
                 </Card>
             </div>
 

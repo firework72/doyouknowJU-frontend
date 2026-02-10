@@ -1,4 +1,4 @@
-.wrapper {
+﻿.wrapper {
   max-width: 800px;
   margin: 0 auto;
   background-color: var(--color-bg-primary);
@@ -11,6 +11,18 @@
   text-align: center;
   margin-bottom: var(--spacing-xl);
   color: var(--color-text-primary);
+}
+
+.restrictionNotice {
+  margin: 0 0 var(--spacing-md) 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid #fecaca;
+  background: #fff1f2;
+  color: #b91c1c;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-align: center;
 }
 
 .form {
@@ -76,10 +88,10 @@
   border-radius: var(--radius-md);
   overflow: hidden;
   position: relative;
-  /* 삭제 버튼의 기준점 */
+  
 }
 
-/* 이미지 위에 표시될 삭제 버튼 */
+
 .imageDeleteBtn {
   position: absolute;
   width: 24px;
@@ -111,7 +123,7 @@
   font-size: var(--font-size-base);
 }
 
-/* 에디터 내 이미지 크기 고정 */
+
 .quillEditor :global(.ql-editor img) {
   width: 300px !important;
   max-width: 100% !important;
@@ -127,7 +139,7 @@
   background: var(--color-bg-secondary);
 }
 
-/* Placeholder 즉시 사라지게 수정 */
+
 .quillEditor :global(.ql-editor.ql-blank::before) {
   color: #aaa;
 }
@@ -141,15 +153,15 @@
   display: none !important;
 }
 
-/* 되돌리기/다시실행 아이콘 수동 추가 */
+
 .quillEditor :global(.ql-undo::after) {
-  content: "↩";
+  content: "\21B6";
   font-size: 18px;
   font-weight: bold;
 }
 
 .quillEditor :global(.ql-redo::after) {
-  content: "↪";
+  content: "\21B7";
   font-size: 18px;
   font-weight: bold;
 }
@@ -241,9 +253,10 @@
   color: var(--color-danger);
 }
 
-/* 반응형 */
+
 @media (max-width: 768px) {
   .wrapper {
     padding: var(--spacing-lg);
   }
 }
+

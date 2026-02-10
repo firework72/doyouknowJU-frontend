@@ -1,17 +1,17 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import Button from '../../../common/Button';
 import styles from './BoardDetailPage.module.css';
 import { useAuth } from '@/hooks/AuthContext';
 import { insertReport, REPORT_TYPES } from '@/api/reportApi';
+import { canWriteAfterSignupDays, getWriteRestrictionMessage } from '@/utils/accountEligibility';
 
 const toDateString = (value) => {
   if (!value) return '-';
 
   let date;
 
-  // Spring Boot LocalDateTime 기본 설정 시 배열로 오는 경우 처리 [YYYY, MM, DD, HH, mm, ss]
   if (Array.isArray(value)) {
     date = new Date(value[0], value[1] - 1, value[2], value[3] || 0, value[4] || 0, value[5] || 0);
   } else {
@@ -20,7 +20,6 @@ const toDateString = (value) => {
 
   if (isNaN(date.getTime())) return String(value);
 
-  // 한국 시간(KST)으로 변환
   return new Intl.DateTimeFormat('ko-KR', {
     year: 'numeric',
     month: '2-digit',
@@ -37,6 +36,8 @@ function BoardDetailPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isAuthenticated = !!user;
+  const canWriteReply = canWriteAfterSignupDays(user);
+  const writeRestrictionMessage = getWriteRestrictionMessage();
   const reporterId = user?.userId ?? user?.id ?? null;
 
   const [board, setBoard] = useState(null);
@@ -115,6 +116,10 @@ function BoardDetailPage() {
 
   const handleReplySubmit = async () => {
     if (!isAuthenticated) return;
+    if (!canWriteReply) {
+      alert(writeRestrictionMessage);
+      return;
+    }
     if (!replyContent.trim()) return;
 
     setIsReplySubmitting(true);
@@ -332,20 +337,23 @@ function BoardDetailPage() {
             <textarea
               value={replyContent}
               onChange={(e) => setReplyContent(e.target.value)}
-              placeholder={isAuthenticated ? '댓글을 입력하세요' : '로그인 후 댓글을 작성할 수 있습니다.'}
+              placeholder={!isAuthenticated ? '로그인 후 댓글을 작성할 수 있습니다.' : !canWriteReply ? writeRestrictionMessage : '댓글을 입력하세요.'}
               className={styles.replyInput}
-              readOnly={!isAuthenticated}
+              readOnly={!isAuthenticated || !canWriteReply}
             />
             <Button
               variant="secondary"
               onClick={handleReplySubmit}
-              disabled={!isAuthenticated || isReplySubmitting || !replyContent.trim()}
+              disabled={!isAuthenticated || !canWriteReply || isReplySubmitting || !replyContent.trim()}
               isLoading={isReplySubmitting}
               className={styles.replySubmitButton}
             >
               등록
             </Button>
           </div>
+          {isAuthenticated && !canWriteReply && (
+            <p className={styles.restrictionNotice}>{writeRestrictionMessage}</p>
+          )}
 
           <div className={styles.replyList}>
             {replies.length === 0 ? (
@@ -464,3 +472,4 @@ function BoardDetailPage() {
 }
 
 export default BoardDetailPage;
+
