@@ -1,4 +1,4 @@
-.container {
+﻿.container {
   width: 100%;
   display: flex;
   justify-content: center;
@@ -15,9 +15,9 @@
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.4);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
-  /* 그림자 더 부드럽고 깊게 */
+  
   border-radius: var(--radius-2xl);
-  /* 더 둥글게 */
+  
   padding: var(--spacing-3xl);
 }
 
@@ -80,7 +80,7 @@
   border-color: #fca5a5 !important;
 }
 
-/* 게시글 정보 카드 레이아웃 */
+
 .postCard {
   background: var(--color-bg-primary);
   border-radius: var(--radius-lg);
@@ -177,7 +177,7 @@
   font-size: 12px !important;
 }
 
-/* 수정/삭제 버튼 */
+
 .authorActions {
   display: flex;
   justify-content: center;
@@ -185,7 +185,7 @@
   margin-bottom: var(--spacing-2xl);
 }
 
-/* 댓글 영역 */
+
 .replySection {
   margin-top: var(--spacing-3xl);
   background: rgba(var(--color-bg-tertiary-rgb), 0.3);
@@ -202,7 +202,7 @@
 
 .replyInput {
   flex: 4;
-  /* 더 넓게 */
+  
   min-height: 50px;
   padding: 12px 20px;
   font-size: var(--font-size-sm);
@@ -221,7 +221,7 @@
 
 .replySubmitButton {
   flex: 1;
-  /* 너비 줄임 */
+  
   min-width: 100px;
   max-width: 140px;
   padding: 0 !important;
@@ -234,6 +234,16 @@
 
 .replySubmitButton:hover:active {
   transform: scale(0.98);
+}
+
+.restrictionNotice {
+  margin: -8px 0 var(--spacing-md) 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid #fecaca;
+  background: #fff1f2;
+  color: #b91c1c;
+  font-size: var(--font-size-sm);
 }
 
 .replyCount {
@@ -267,7 +277,7 @@
 .replyTop {
   display: flex;
   align-items: center;
-  /* 수직 중앙 정렬 */
+  
   margin-bottom: var(--spacing-xs);
 }
 
@@ -279,11 +289,11 @@
 
 .replyDate {
   font-size: 11px;
-  /* 크기 줄임 */
+  
   color: #c0c0c0;
-  /* 연하게 */
+  
   margin-left: 12px;
-  /* 작성자와 간격 띄우기 */
+  
   font-weight: normal;
 }
 
@@ -302,26 +312,26 @@
 .editBtn,
 .deleteBtn {
   background: none;
-  /* 배경 제거 */
+  
   padding: 0 4px;
   border: none;
   font-size: 11px;
   color: #999;
-  /* 수수한 회색 */
+  
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .editBtn:hover {
   color: var(--color-primary);
-  /* 호버 시에만 색상 표시 */
+  
   text-decoration: underline;
   opacity: 1;
 }
 
 .deleteBtn:hover {
   color: #ff4d4f;
-  /* 호버 시에만 빨간색 */
+  
   background: none;
 }
 
@@ -454,7 +464,7 @@
   gap: var(--spacing-sm);
 }
 
-/* 반응형 */
+
 @media (max-width: 768px) {
   .postHeader {
     grid-template-columns: 80px 1fr;
@@ -478,3 +488,4 @@
     height: 44px !important;
   }
 }
+
