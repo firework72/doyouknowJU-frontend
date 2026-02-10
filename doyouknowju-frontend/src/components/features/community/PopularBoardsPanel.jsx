@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchPopularBoards } from '@/api/boardApi';
 import styles from './PopularBoardsPanel.module.css';
@@ -12,6 +12,7 @@ const toDateString = (value) => {
   } else {
     date = new Date(value);
   }
+
   if (isNaN(date.getTime())) return String(value);
 
   return new Intl.DateTimeFormat('ko-KR', {
@@ -41,10 +42,10 @@ const PopularBoardsPanel = () => {
       fetchPopularBoards({ boardType: 'free', range: 'realtime', limit: 10 }),
       fetchPopularBoards({ boardType: 'stock', range: 'weekly', limit: 10 }),
     ])
-      .then(([a, b]) => {
+      .then(([freeBoards, stockBoards]) => {
         if (!isActive) return;
-        setRealtimeFree(Array.isArray(a) ? a : []);
-        setWeeklyStock(Array.isArray(b) ? b : []);
+        setRealtimeFree(Array.isArray(freeBoards) ? freeBoards : []);
+        setWeeklyStock(Array.isArray(stockBoards) ? stockBoards : []);
       })
       .catch((error) => {
         console.error('인기 게시글 조회 실패', error);
