@@ -2,7 +2,7 @@ import { Button, Card } from "../../common";
 import './MyInfo.css';
 
 
-const MyInfo = ({ user, onOpenAttendance }) => {
+const MyInfo = ({ user, onOpenAttendance, onOpenWithdrawal }) => {
     if(!user) return null;
 
     return(
@@ -39,6 +39,16 @@ const MyInfo = ({ user, onOpenAttendance }) => {
                     <span className="info-label">누적 출석</span>
                     <span className="info-value">{user.consecDays}일</span>
                 </div>
+            </div>
+
+            <div className="card-footer" style={{marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '15px', textAlgn: 'center'}}>
+                <Button
+                    variant="link"
+                    style={{ color: '#999', fontSize: '0.85rem', textDecoration: 'underLine', padding: '0'}}
+                    onClick={()=>{ onOpenWithdrawal(); }}
+                >
+                    회원 탈퇴
+                </Button>
             </div>
         </Card>
     );

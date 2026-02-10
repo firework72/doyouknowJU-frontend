@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import './MyPage.css';
 import { useAuth } from '../hooks/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,9 @@ import { achievementApi } from '../api/game/achievementApi';
 import MyActivityCard from '../components/features/member/MyActivityCard';
 import TitleCard from '../components/features/game/Title/TitleCard';
 import TitleModal from '../components/features/game/Title/TitleModal';
+import LevelUpModal from '../components/features/game/LevelUpModal';
+import { memberApi } from '../api/memberApi';
+import WithdrawalModal from '../components/features/member/WithdrawalModal';
 import HoldingChart from '../components/features/holding/components/HoldingChart'; // Dong : 보유 자산 현황 컴포넌트
 
 const MyPage = () => {
@@ -20,6 +23,9 @@ const MyPage = () => {
     const [isAttendanceModalOpen, setIsAttendenceModalOpen] = useState(false);
     const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
     const [isTitleModalOpen, setIsTitleModalOpen] = useState(false);
+    const [isLevelUpModalOpen, setIsLevelUpModalOpen] = useState(false);
+    const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
+    const [levelUpLevel, setLevelUpLevel] = useState(0);
 
     const [achievements, setAchievements] = useState([]);
     const [titles, setTitles] = useState([]);
@@ -74,16 +80,36 @@ const MyPage = () => {
         try {
             const result = await achievementApi.claimReward(achievementId);
             if (result.success) {
-                alert(result.message);
                 // 목록 갱신 및 유저 정보(경험치 등) 갱신
                 await fetchAchievements();
                 await fetchMyTitles();
                 await refreshUser();
+
+                //레벨업 확인
+                if(result.expResult?.isLevelUp){
+                    setLevelUpLevel(result.expResult.currentLevel);
+                    setIsLevelUpModalOpen(true);
+                } else{
+                    alert(result.message);
+                }
             }
         } catch (error) {
             alert(error.message);
         }
     };
+
+    const handleWithdrawal = useCallback(async(password) => {
+        try{
+            await memberApi.withdraw(password);
+            alert("탈퇴가 완료되었습니다. 그동안 이용해 주셔서 감사합니다.");
+            window.location.href='/';
+        }catch(error) {
+            alert(error.message);
+            throw error;
+        }
+    },[]);
+
+    const handleCloseWithdrawal = useCallback(() => setIsWithdrawalModalOpen(false), []);
 
     if (authLoading || loading) {
         return (
@@ -102,7 +128,8 @@ const MyPage = () => {
                 {/* My Info Card */}
                 <MyInfo
                     user={user}
-                    onOpenAttendance={()=>setIsAttendenceModalOpen(true)}
+                    onOpenAttendance={() => setIsAttendenceModalOpen(true)}
+                    onOpenWithdrawal={() => setIsWithdrawalModalOpen(true)}
                 />
 
                 {/* Portfolio Card */}
@@ -158,6 +185,21 @@ const MyPage = () => {
                 onClose={()=>setIsTitleModalOpen(false)}
                 titles={titles}
             />
+
+            {/* 레벨업 축하 모달 */}
+            <LevelUpModal
+                isOpen={isLevelUpModalOpen}
+                onClose={() => setIsLevelUpModalOpen(false)}
+                level={levelUpLevel}
+            />
+
+            {/* 회원 탈퇴 모달 */}
+            <WithdrawalModal
+                isOpen={isWithdrawalModalOpen}
+                onClose={handleCloseWithdrawal}
+                onWithdraw={handleWithdrawal}
+            />
+
         </div>
     );
 };
