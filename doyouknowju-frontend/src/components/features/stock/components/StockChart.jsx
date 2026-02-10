@@ -1,17 +1,15 @@
 import { createChart, CandlestickSeries } from 'lightweight-charts';
 import { useEffect, useRef, useState } from 'react';
 import { tradeApi } from '../../../../api/trade/TradeApi';
+import { Spinner } from '../../../common';
 
 function StockChart({stockId}) {
 
     const chartContainerRef = useRef(null);
 
-    const [stockChartData, setStockChartData] = useState([]);
-    const [chartData, setChartData] = useState([]);
-    const [isFetching, setIsFetching] = useState(false);
-
-    const stockChartDataRef = useRef(stockChartData);
-    const isFetchingRef = useRef(isFetching);
+    const stockChartDataRef = useRef([]);
+    const chartDataRef = useRef([]);
+    const isFetchingRef = useRef(false);
 
     const date = new Date();
     const year = date.getFullYear();
@@ -19,40 +17,50 @@ function StockChart({stockId}) {
     const day = String(date.getDate()).padStart(2, '0');
     const today = `${year}${month}${day}`;
 
-    let chart = useRef(null);
-    let candleSeries = useRef(null);
-
-    useEffect(() => {
-        isFetchingRef.current = isFetching;
-    }, [isFetching]);
+    const chart = useRef(null);
+    const candleSeries = useRef(null);
 
     const fetchStockChartData = async (endDate) => {
-        setIsFetching(true);
+        isFetchingRef.current = true;
         setTimeout(async () => {
             try {
                 const response = await tradeApi.getStockChartData(stockId, endDate);
-                setStockChartData((prevData) => [...response.output2.reverse(), ...prevData]);
-                console.log("response", response.output2.reverse());
-                console.log("stockChartData after Fetching", stockChartData.current);
+
+                const newData = [...response.output2.reverse(), ...stockChartDataRef.current];
+                stockChartDataRef.current = newData;
+
+                chartDataRef.current = stockChartDataRef.current.map((item)=>{
+                    return {
+                        time: `${item.stck_bsop_date.slice(0, 4)}-${item.stck_bsop_date.slice(4, 6)}-${item.stck_bsop_date.slice(6, 8)}`,
+                        open: Number(item.stck_oprc),
+                        high: Number(item.stck_hgpr),
+                        low: Number(item.stck_lwpr),
+                        close: Number(item.stck_clpr)
+                    }
+                });
+
+                console.log("stockChartData after Fetching", stockChartDataRef.current);
+                candleSeries.current.setData(chartDataRef.current);
             } catch (error) {
                 console.error("주식 차트 데이터 로드 실패", error);
             } finally {
-                setIsFetching(false);
+                isFetchingRef.current = false;
             }
-        }, 2000);
+        }, 750);
     }
 
     useEffect(()=>{
         console.log(stockId);
         if (!chartContainerRef.current) return;
 
-        setStockChartData([]);
+        stockChartDataRef.current = [];
+        chartDataRef.current = [];
 
         // 차트 만들기
         chart.current = createChart(chartContainerRef.current, {
             layout: {
-                background: { type: 'solid', color: '#222' },
-                textColor: 'rgba(255, 255, 255, 0.9)',
+                background: { type: 'solid', color: '#fff' },
+                textColor: 'rgba(36, 36, 36, 0.9)',
             },
             grid: {
                 vertLines: { color: 'rgba(70, 70, 70, 0)' },
@@ -105,10 +113,11 @@ function StockChart({stockId}) {
 
         const handleVisibleRangeChange = (visibleRange) => {
             if (visibleRange.from < 10) {
-                if (!isFetchingRef.current && stockChartDataRef.current.length > 0) {
-                    console.log(stockChartDataRef.current[0]);
-                    let newDate = new Date(stockChartDataRef.current[0].stck_bsop_date);
+                if (!isFetchingRef.current && chartDataRef.current.length > 0) {
+                    console.log("chartDataRef.current[0]",chartDataRef.current[0]);
+                    let newDate = new Date(chartDataRef.current[0].time);
                     newDate.setDate(newDate.getDate() - 1);
+                    console.log("newEndDate", `${newDate.getFullYear()}${String(newDate.getMonth() + 1).padStart(2, '0')}${String(newDate.getDate()).padStart(2, '0')}`);
                     fetchStockChartData(`${newDate.getFullYear()}${String(newDate.getMonth() + 1).padStart(2, '0')}${String(newDate.getDate()).padStart(2, '0')}`);
                 }
             }
@@ -123,21 +132,6 @@ function StockChart({stockId}) {
             chart.current.timeScale().unsubscribeVisibleLogicalRangeChange(handleVisibleRangeChange);
         };
     },[stockId]);
-
-    useEffect(()=>{
-        stockChartDataRef.current = stockChartData;
-        setChartData(stockChartDataRef.current.map((item)=>{
-            return {
-                time: `${item.stck_bsop_date.slice(0, 4)}-${item.stck_bsop_date.slice(4, 6)}-${item.stck_bsop_date.slice(6, 8)}`,
-                open: Number(item.stck_oprc),
-                high: Number(item.stck_hgpr),
-                low: Number(item.stck_lwpr),
-                close: Number(item.stck_clpr)
-            }
-        }));
-        console.log("chartData", chartData);
-        candleSeries.current.setData(chartData);
-    },[stockChartData]);
 
     return (
         <div
