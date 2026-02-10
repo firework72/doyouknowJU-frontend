@@ -10,7 +10,7 @@ const formatTime = (isoString) => {
 };
 
 const ChatWindow = () => {
-    const { user } = useAuth();
+    const { user } = useAuth(); //
     const myId = user?.userId || "Guest";
     const { messages, sendMessage, fetchMessages, hasMore, loading } = useChat(myId);
 
@@ -29,14 +29,31 @@ const ChatWindow = () => {
     const [remainingTime, setRemainingTime] = useState(0);
     const [reportModal, setReportModal] = useState({ isOpen: false, targetMsg: null });
 
-    // [추가] 검색 관련 상태 변수 (Ctrl+F)
     const [showSearch, setShowSearch] = useState(false);
     const [keyword, setKeyword] = useState("");
     const [matches, setMatches] = useState([]);
     const [matchIdx, setMatchIdx] = useState(0);
     const searchInputRef = useRef(null);
 
-    // [추가] 검색어 하이라이팅 함수
+    // [추가] 가입일 기준 7일 경과 여부 계산 로직 (한국식: 가입일 = 1일차)
+    const getChatPermission = () => {
+        if (!user || !user.enrollDate) return { canChat: false, diffDays: 0 };
+        if (user.userRole === 'ADMIN') return { canChat: true, diffDays: 999 };
+
+        const enrollDate = new Date(user.enrollDate);
+        const today = new Date();
+        // 시간 차이를 일 단위로 변환 후 +1 (당일 1일차)
+        const diffTime = Math.abs(today - enrollDate);
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+        return {
+            canChat: diffDays >= 7,
+            diffDays: diffDays
+        };
+    };
+
+    const { canChat, diffDays } = getChatPermission();
+
     const highlightText = (text, query) => {
         if (!query || query.trim() === "") return text;
         const parts = text.split(new RegExp(`(${query})`, 'gi'));
@@ -59,14 +76,15 @@ const ChatWindow = () => {
             const count = await fetchMessages(firstMsgId);
             if (count > 0) {
                 setTimeout(() => {
-                    const afterHeight = scrollContainerRef.current.scrollHeight;
-                    scrollContainerRef.current.scrollTop = afterHeight - beforeHeight;
+                    if (scrollContainerRef.current) {
+                        const afterHeight = scrollContainerRef.current.scrollHeight;
+                        scrollContainerRef.current.scrollTop = afterHeight - beforeHeight;
+                    }
                 }, 0);
             }
         }
     };
 
-    // [추가] 채팅창이 열릴 때(isOpen) 스크롤을 맨 아래로 초기화
     useEffect(() => {
         if (isOpen && messagesEndRef.current) {
             setTimeout(() => {
@@ -75,7 +93,6 @@ const ChatWindow = () => {
         }
     }, [isOpen]);
 
-    // [기존] 새 메시지 도착 시 스크롤 처리 (사용자가 하단을 보고 있을 때만 자동 스크롤)
     useEffect(() => {
         if (!loading && messagesEndRef.current && scrollContainerRef.current) {
             const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
@@ -144,83 +161,58 @@ const ChatWindow = () => {
         };
     }, [isDragging, resizeType, rel, dimensions, position]);
 
-    // [수정] Ctrl+F 단축키 감지 (채팅창이 열려있을 때만 가로채기)
     useEffect(() => {
         const handleKeyDown = (e) => {
             if ((e.ctrlKey || e.metaKey) && (e.key === 'f' || e.key === 'F')) {
-                // 채팅창이 열려있을(isOpen) 때만 가로채서 커스텀 검색창을 엽니다.
                 if (isOpen) {
-                    e.preventDefault(); // 브라우저 기본 검색 차단
+                    e.preventDefault();
                     setShowSearch(prev => !prev);
-                    // 검색창이 열릴 때 포커스 주기
                     setTimeout(() => searchInputRef.current?.focus(), 100);
                 }
-                // isOpen이 false(닫힘)라면 e.preventDefault()를 하지 않으므로
-                // 브라우저 기본(웹사이트 전체 검색) 기능이 정상 작동합니다.
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isOpen]);
 
-    // [추가] 검색어가 바뀔 때마다 일치하는 메시지 인덱스 찾기
     useEffect(() => {
         if (!keyword.trim()) {
             setMatches([]);
             return;
         }
-        // 메시지 내용 중 검색어가 포함된 것들의 인덱스를 추출
         const found = messages.map((m, i) =>
             m.chatContent.toLowerCase().includes(keyword.toLowerCase()) ? i : -1
         ).filter(i => i !== -1);
-
         setMatches(found);
-        setMatchIdx(0); // 검색어가 바뀌면 첫 번째 결과부터 다시 보여줌
+        setMatchIdx(0);
     }, [keyword, messages]);
 
-    // [추가] 검색 결과 이동 (화살표 클릭 시 해당 메시지로 스크롤)
     useEffect(() => {
         if (matches.length > 0 && matches[matchIdx] !== undefined) {
-            const targetIndex = matches[matchIdx];
-            const targetElement = document.getElementById(`msg-${targetIndex}`);
+            const targetElement = document.getElementById(`msg-${matches[matchIdx]}`);
             if (targetElement) {
                 targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
-    }, [matchIdx, matches, showSearch]);
+    }, [matchIdx, matches]);
 
-    // [추가] ESC 키를 누르면 채팅창 닫기 (사용자 편의성 향상)
     useEffect(() => {
         const handleEscKey = (e) => {
-            // 키보드의 'Escape' 키가 눌렸고, 현재 채팅창이 열려있다면(isOpen)
-            if (e.key === 'Escape' && isOpen) {
-                setIsOpen(false); // 채팅창을 닫습니다 (버튼으로 돌아감)
-            }
+            if (e.key === 'Escape' && isOpen) setIsOpen(false);
         };
-
-        // 이벤트 리스너 등록 (윈도우 전체에서 키 입력을 감시)
         window.addEventListener('keydown', handleEscKey);
-
-        // [중요] 뒷정리(Cleanup): 컴포넌트가 사라지거나 재실행될 때 리스너를 지워줍니다.
-        // 이걸 안 하면 메모리 누수가 생기거나, 닫힌 후에도 계속 감시하는 좀비 코드가 됩니다.
-        return () => {
-            window.removeEventListener('keydown', handleEscKey);
-        };
+        return () => window.removeEventListener('keydown', handleEscKey);
     }, [isOpen]);
 
-    // [추가] 바이트 수 계산 및 입력 제한 함수 (오라클 VARCHAR2(500) 대응)
     const handleInputChange = (e) => {
         const text = e.target.value;
-        const byteSize = new TextEncoder().encode(text).length;
-
-        // 500바이트를 넘지 않을 때만 입력 허용
-        if (byteSize <= 500) {
+        if (new TextEncoder().encode(text).length <= 500) {
             setInputValue(text);
         }
     };
 
     const handleSend = () => {
-        if (inputValue.trim() === "" || isCooldown) return;
+        if (inputValue.trim() === "" || isCooldown || !canChat) return;
         sendMessage(inputValue);
         setInputValue("");
         setIsCooldown(true);
@@ -259,38 +251,18 @@ const ChatWindow = () => {
                     <div onMouseDown={onMouseDownDrag} style={{ padding: '10px 15px', backgroundColor: '#f8f9fa', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'move', userSelect: 'none' }}>
                         <h3 style={{ margin: 0, fontSize: `${titleFontSize}px` }}>📈 주식 토론방</h3>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            {/* [추가] 돋보기 아이콘 버튼 (Ctrl+F와 동일 기능) */}
-                            <button
-                                onMouseDown={(e) => e.stopPropagation()} // 드래그 방지
-                                onClick={() => {
-                                    setShowSearch(prev => !prev);
-                                    setTimeout(() => searchInputRef.current?.focus(), 100);
-                                }}
-                                style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '16px' }}
-                                title="검색 (Ctrl+F)"
-                            >
-                                🔍
-                            </button>
+                            <button onMouseDown={(e) => e.stopPropagation()} onClick={() => { setShowSearch(prev => !prev); setTimeout(() => searchInputRef.current?.focus(), 100); }} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '16px' }} title="검색 (Ctrl+F)">🔍</button>
                             <button onMouseDown={(e) => e.stopPropagation()} onClick={() => setIsOpen(false)} style={{ border: 'none', background: 'none', cursor: 'pointer' }}>✖</button>
                         </div>
                     </div>
 
-                    {/* [추가] 검색창 UI (showSearch가 true일 때만 보임) */}
                     {showSearch && (
                         <div style={{ padding: '8px', backgroundColor: '#f0f0f0', display: 'flex', alignItems: 'center', gap: '5px', borderBottom: '1px solid #ddd' }}>
-                            <input
-                                ref={searchInputRef}
-                                value={keyword}
-                                onChange={(e) => setKeyword(e.target.value)}
-                                placeholder="대화 내용 검색 (Ctrl+F)"
-                                style={{ flex: 1, padding: '5px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '13px' }}
-                            />
-                            <span style={{ fontSize: '12px', color: '#666', minWidth: '40px', textAlign: 'center' }}>
-                                {matches.length > 0 ? `${matchIdx + 1}/${matches.length}` : '0/0'}
-                            </span>
-                            <button onClick={() => setMatchIdx(prev => (prev - 1 + matches.length) % matches.length)} style={{ cursor: 'pointer', border: 'none', background: 'none' }} title="이전 결과">⬆️</button>
-                            <button onClick={() => setMatchIdx(prev => (prev + 1) % matches.length)} style={{ cursor: 'pointer', border: 'none', background: 'none' }} title="다음 결과">⬇️</button>
-                            <button onClick={() => { setShowSearch(false); setKeyword(""); }} style={{ cursor: 'pointer', border: 'none', background: 'none' }} title="닫기">✖</button>
+                            <input ref={searchInputRef} value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="검색어 입력..." style={{ flex: 1, padding: '5px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '13px' }} />
+                            <span style={{ fontSize: '12px', color: '#666', minWidth: '40px', textAlign: 'center' }}>{matches.length > 0 ? `${matchIdx + 1}/${matches.length}` : '0/0'}</span>
+                            <button onClick={() => setMatchIdx(prev => (prev - 1 + matches.length) % matches.length)} style={{ cursor: 'pointer', border: 'none', background: 'none' }}>⬆️</button>
+                            <button onClick={() => setMatchIdx(prev => (prev + 1) % matches.length)} style={{ cursor: 'pointer', border: 'none', background: 'none' }}>⬇️</button>
+                            <button onClick={() => { setShowSearch(false); setKeyword(""); }} style={{ cursor: 'pointer', border: 'none', background: 'none' }}>✖</button>
                         </div>
                     )}
 
@@ -301,18 +273,13 @@ const ChatWindow = () => {
                                 <div id={`msg-${idx}`} key={idx} style={{ marginBottom: '15px', textAlign: msg.userId === myId ? 'right' : 'left' }}>
                                     <div style={{ fontSize: `${timeFontSize}px`, color: '#888' }}>{msg.userId}</div>
                                     <div style={{ display: 'flex', flexDirection: msg.userId === myId ? 'row-reverse' : 'row', alignItems: 'flex-end', gap: '5px' }}>
-                                        {/* [수정] 주식봇일 경우 배경색을 노란색(#fff9c4)으로 변경 */}
                                         <div style={{
-                                            padding: '8px 12px',
-                                            borderRadius: '10px',
+                                            padding: '8px 12px', borderRadius: '10px',
                                             backgroundColor: msg.userId === myId ? '#e3f2fd' : (msg.userId === '주식봇🤖' ? '#fff9c4' : '#f5f5f5'),
                                             fontSize: `${baseFontSize}px`,
                                             border: msg.userId === '주식봇🤖' ? '1px solid #ffe082' : 'none',
-                                            // [추가] 긴 단어도 강제로 줄바꿈하여 말풍선 안에 가둡니다.
                                             wordBreak: 'break-all',
-
                                         }}>
-                                            {/* [수정] 검색어 하이라이팅 적용 함수 호출 */}
                                             {highlightText(msg.chatContent, keyword)}
                                         </div>
                                         {msg.userId !== myId && msg.userId !== '주식봇🤖' && (
@@ -336,8 +303,31 @@ const ChatWindow = () => {
                     </div>
 
                     <div style={{ padding: '10px', display: 'flex', borderTop: '1px solid #eee' }}>
-                        <input type="text" value={inputValue} onChange={handleInputChange} onKeyPress={(e) => e.key === 'Enter' && handleSend()} disabled={isCooldown} placeholder={isCooldown ? `${remainingTime}s 대기` : "입력..."} style={{ flex: 1, padding: '8px', fontSize: `${baseFontSize}px` }} />
-                        <button onClick={handleSend} disabled={isCooldown} style={{ marginLeft: '5px', padding: '8px 15px', backgroundColor: isCooldown ? '#ccc' : '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{isCooldown ? `${remainingTime}s` : '전송'}</button>
+                        <input
+                            type="text"
+                            value={inputValue}
+                            onChange={handleInputChange}
+                            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                            disabled={isCooldown || !canChat}
+                            placeholder={
+                                !canChat
+                                    ? `가입 7일 후 가능 (현재 ${diffDays}일차)`
+                                    : (isCooldown ? `${remainingTime}s 대기` : "입력...")
+                            }
+                            style={{ flex: 1, padding: '8px', fontSize: `${baseFontSize}px` }}
+                        />
+                        <button
+                            onClick={handleSend}
+                            disabled={isCooldown || !canChat}
+                            style={{
+                                marginLeft: '5px', padding: '8px 15px',
+                                backgroundColor: (isCooldown || !canChat) ? '#ccc' : '#007bff',
+                                color: 'white', border: 'none', borderRadius: '4px',
+                                cursor: (isCooldown || !canChat) ? 'default' : 'pointer'
+                            }}
+                        >
+                            {isCooldown ? `${remainingTime}s` : '전송'}
+                        </button>
                     </div>
                 </div>
             ) : (
