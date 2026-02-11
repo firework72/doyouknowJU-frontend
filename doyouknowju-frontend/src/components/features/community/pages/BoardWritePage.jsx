@@ -33,6 +33,7 @@ function BoardWritePage() {
   const [selectedStock, setSelectedStock] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [deleteBtnPos, setDeleteBtnPos] = useState({ top: 0, left: 0 });
+  const suggestionRequestIdRef = useRef(0);
 
   useEffect(() => {
     if (!isEditMode) {
@@ -44,18 +45,23 @@ function BoardWritePage() {
   }, [isEditMode, user]);
 
   useEffect(() => {
+    const requestId = ++suggestionRequestIdRef.current;
     const timer = setTimeout(async () => {
       if (stockQuery.length >= 2) {
         const results = await fetchStockSuggestions(stockQuery);
+        if (requestId !== suggestionRequestIdRef.current) return;
         setSuggestions(results);
         setShowSuggestions(true);
       } else {
+        if (requestId !== suggestionRequestIdRef.current) return;
         setSuggestions([]);
         setShowSuggestions(false);
       }
     }, 300);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+    };
   }, [stockQuery]);
 
   useEffect(() => {
@@ -338,7 +344,11 @@ function BoardWritePage() {
                   {showSuggestions && suggestions.length > 0 && (
                     <ul className={styles.suggestions}>
                       {suggestions.map((stock, idx) => (
-                        <li key={idx} onClick={() => handleStockSelect(stock)} className={styles.suggestionItem}>
+                        <li
+                          key={stock.code || stock.id || stock.stockId || stock.mksc_shrn_iscd || `${stock.name}-${idx}`}
+                          onClick={() => handleStockSelect(stock)}
+                          className={styles.suggestionItem}
+                        >
                           <span className={styles.sName}>{stock.name || stock.stockName}</span>
                           <span className={styles.sCode}>
                             {stock.code || stock.id || stock.stockId || stock.mksc_shrn_iscd}

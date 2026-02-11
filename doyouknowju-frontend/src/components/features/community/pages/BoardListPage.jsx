@@ -1,5 +1,5 @@
 ﻿import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import styles from './BoardListPage.module.css';
 import Button from '../../../common/Button';
 import Pagination from '../../../common/Pagination';
@@ -39,6 +39,17 @@ const boardApi = {
   },
 };
 
+const POPULAR_STOCKS = [
+  { name: '삼성전자', id: '005930' },
+  { name: 'SK하이닉스', id: '000660' },
+  { name: 'LG에너지솔루션', id: '373220' },
+  { name: 'NAVER', id: '035420' },
+  { name: '카카오', id: '035720' },
+  { name: '현대차', id: '005380' },
+  { name: '삼성바이오로직스', id: '207940' },
+  { name: 'KIA', id: '000270' },
+];
+
 function BoardListPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -61,46 +72,9 @@ function BoardListPage() {
   const [stockQuery, setStockQuery] = useState('');
   const [stockSuggestions, setStockSuggestions] = useState([]);
   const [showStockSuggestions, setShowStockSuggestions] = useState(false);
+  const suggestionRequestIdRef = useRef(0);
 
-  const popularStocks = [
-    { name: '삼성전자', id: '005930' },
-    { name: 'SK하이닉스', id: '000660' },
-    { name: 'LG에너지솔루션', id: '373220' },
-    { name: 'NAVER', id: '035420' },
-    { name: '카카오', id: '035720' },
-    { name: '현대차', id: '005380' },
-    { name: '삼성바이오로직스', id: '207940' },
-    { name: 'KIA', id: '000270' },
-  ];
-
-  useEffect(() => {
-    const page = parseInt(searchParams.get('page')) || 1;
-    const condition = searchParams.get('condition') || 'title';
-    const keyword = searchParams.get('keyword') || '';
-    const stockId = searchParams.get('stockId') || '';
-
-    setSearchCondition(condition);
-    setSearchKeyword(keyword);
-
-    fetchBoards(page, condition, keyword, boardType, stockId);
-  }, [searchParams, boardType]);
-
-  useEffect(() => {
-    const timer = setTimeout(async () => {
-      if (stockQuery.length >= 2) {
-        const results = await fetchStockSuggestions(stockQuery);
-        setStockSuggestions(results);
-        setShowStockSuggestions(true);
-      } else {
-        setStockSuggestions([]);
-        setShowStockSuggestions(false);
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [stockQuery]);
-
-  const fetchBoards = async (page, condition, keyword, type, stockId) => {
+  const fetchBoards = useCallback(async (page, condition, keyword, type, stockId) => {
     setIsLoading(true);
 
     try {
@@ -124,15 +98,47 @@ function BoardListPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const handlePageChange = (page) => {
+  useEffect(() => {
+    const page = parseInt(searchParams.get('page')) || 1;
+    const condition = searchParams.get('condition') || 'title';
+    const keyword = searchParams.get('keyword') || '';
+    const stockId = searchParams.get('stockId') || '';
+
+    setSearchCondition(condition);
+    setSearchKeyword(keyword);
+
+    fetchBoards(page, condition, keyword, boardType, stockId);
+  }, [searchParams, boardType, fetchBoards]);
+
+  useEffect(() => {
+    const requestId = ++suggestionRequestIdRef.current;
+    const timer = setTimeout(async () => {
+      if (stockQuery.length >= 2) {
+        const results = await fetchStockSuggestions(stockQuery);
+        if (requestId !== suggestionRequestIdRef.current) return;
+        setStockSuggestions(results);
+        setShowStockSuggestions(true);
+      } else {
+        if (requestId !== suggestionRequestIdRef.current) return;
+        setStockSuggestions([]);
+        setShowStockSuggestions(false);
+      }
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [stockQuery]);
+
+  const handlePageChange = useCallback((page) => {
     const params = new URLSearchParams(searchParams);
     params.set('page', page);
     setSearchParams(params);
-  };
+  }, [searchParams, setSearchParams]);
 
-  const handleSearch = (e) => {
+  const handleSearch = useCallback((e) => {
     e.preventDefault();
     const params = new URLSearchParams(searchParams);
     params.set('page', '1');
@@ -146,17 +152,17 @@ function BoardListPage() {
     }
 
     setSearchParams(params);
-  };
+  }, [searchParams, searchKeyword, searchCondition, setSearchParams]);
 
-  const handleBoardClick = (boardId) => {
+  const handleBoardClick = useCallback((boardId) => {
     navigate(`/board/${boardId}`);
-  };
+  }, [navigate]);
 
-  const handleWrite = () => {
+  const handleWrite = useCallback(() => {
     navigate('/board/write');
-  };
+  }, [navigate]);
 
-  const handleStockSelect = (stock) => {
+  const handleStockSelect = useCallback((stock) => {
     const stockId = stock.code || stock.id || stock.stockId || stock.mksc_shrn_iscd;
     const stockName = stock.name || stock.stockName;
 
@@ -168,15 +174,15 @@ function BoardListPage() {
     setSearchParams(params);
     setStockQuery('');
     setShowStockSuggestions(false);
-  };
+  }, [searchParams, setSearchParams]);
 
-  const clearStockFilter = () => {
+  const clearStockFilter = useCallback(() => {
     const params = new URLSearchParams(searchParams);
     params.delete('stockId');
     params.delete('stockName');
     params.set('page', '1');
     setSearchParams(params);
-  };
+  }, [searchParams, setSearchParams]);
 
   return (
     <div className={styles.container}>
@@ -219,7 +225,11 @@ function BoardListPage() {
                 {showStockSuggestions && stockSuggestions.length > 0 && (
                   <ul className={styles.stockSuggestions}>
                     {stockSuggestions.map((stock, idx) => (
-                      <li key={idx} onClick={() => handleStockSelect(stock)} className={styles.stockSuggestionItem}>
+                      <li
+                        key={stock.code || stock.id || stock.stockId || stock.mksc_shrn_iscd || `${stock.name}-${idx}`}
+                        onClick={() => handleStockSelect(stock)}
+                        className={styles.stockSuggestionItem}
+                      >
                         <span className={styles.sName}>{stock.name || stock.stockName}</span>
                         <span className={styles.sCode}>{stock.code || stock.id || stock.stockId || stock.mksc_shrn_iscd}</span>
                       </li>
@@ -232,7 +242,7 @@ function BoardListPage() {
             <div className={styles.popularSection}>
               <h4 className={styles.popularTitle}>실시간 인기 종목</h4>
               <div className={styles.popularList}>
-                {popularStocks.map((stock) => (
+                {POPULAR_STOCKS.map((stock) => (
                   <button key={stock.id} onClick={() => handleStockSelect(stock)} className={styles.popularBadge}>
                     {stock.name}
                   </button>
