@@ -6,9 +6,9 @@ import rankingApi from '../../../api/ranking/RankingApi';
 import { Button } from '../../common';
 import RankingTable from './components/RankingTable';
 
-function Ranking() {
+function Ranking({groupSize = 50}) {
 
-    const GROUP_SIZE = 10;
+    const GROUP_SIZE = groupSize;
 
     const [page, setPage] = useState(1);
     const [totalPage, setTotalPage] = useState(1);
@@ -19,7 +19,7 @@ function Ranking() {
 
     const fetchSeasonRanking = async () => {
         try {
-            const response = await rankingApi.getSeasonRanking(selectedRankingCategory, page);
+            const response = await rankingApi.getSeasonRanking(selectedRankingCategory, page, GROUP_SIZE);
             setPeriodRanking(response);
         } catch (error) {
             console.error(error);
