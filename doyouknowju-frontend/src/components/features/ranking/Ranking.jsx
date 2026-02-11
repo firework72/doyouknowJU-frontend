@@ -20,6 +20,7 @@ function Ranking({groupSize = 50}) {
     const fetchSeasonRanking = async () => {
         try {
             const response = await rankingApi.getSeasonRanking(selectedRankingCategory, page, GROUP_SIZE);
+            console.log(response);
             setPeriodRanking(response);
         } catch (error) {
             console.error(error);

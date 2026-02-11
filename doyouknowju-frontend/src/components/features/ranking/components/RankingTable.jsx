@@ -1,4 +1,5 @@
 import styles from './RankingTable.module.css';
+import { getImageUrl } from '@/api/game/titleApi.js';
 
 function RankingTable({data}) {
     return (
@@ -17,7 +18,17 @@ function RankingTable({data}) {
                     data?.map((ranking, index) => (
                         <tr key={index} className={styles.row}>
                             <td className={styles.td}>{ranking.rank}</td>
-                            <td className={styles.td}>{ranking.userId}</td>
+                            <td className={styles.td}>
+                                <span>
+                                    {ranking.titleImgUrl && (
+                                        <img
+                                            src={getImageUrl(ranking.titleImgUrl)}
+                                            alt={ranking.titleName}
+                                            className="homepage-equipped-title-img"
+                                        />
+                                    )}
+                                </span>{ranking.userId}
+                            </td>
                             <td className={`${styles.td} ${styles.numberCell}`}>{ranking.startPoint.toLocaleString()}</td>
                             <td className={`${styles.td} ${styles.numberCell}`}>{ranking.currentPoint.toLocaleString()}</td>
                             <td className={`${styles.td} ${styles.numberCell} ${ranking.returnRate > 0 ? styles.positive : styles.negative}`}>{ranking.returnRate.toFixed(2)}%</td>
