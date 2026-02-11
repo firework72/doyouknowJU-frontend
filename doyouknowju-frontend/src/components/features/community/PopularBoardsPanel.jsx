@@ -70,7 +70,7 @@ const PopularBoardsPanel = () => {
     return (
       <ol className={styles.list}>
         {items.map((item, index) => (
-          <li key={item.boardId ?? `${index}`} className={styles.item}>
+          <li key={item.boardId ?? `${item.boardTitle ?? 'board'}-${item.createDate ?? index}`} className={styles.item}>
             <button
               type="button"
               className={styles.row}

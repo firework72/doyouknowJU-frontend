@@ -61,11 +61,17 @@ function BoardDetailPage() {
 
 
   useEffect(() => {
-    const fetchBoard = async () => {
+    const fetchBoardAndReplies = async () => {
       setIsLoading(true);
       try {
-        const { data } = await axios.get(`/dykj/api/boards/detail/${boardId}`);
-        setBoard(data);
+        const [boardResponse, repliesResponse] = await Promise.all([
+          axios.get(`/dykj/api/boards/detail/${boardId}`),
+          axios.get(`/dykj/api/boards/${boardId}/replies`),
+        ]);
+
+        setBoard(boardResponse.data);
+        const replyData = repliesResponse.data;
+        setReplies(Array.isArray(replyData) ? replyData : replyData?.list || []);
       } catch (error) {
         console.error('게시글 조회 실패', error);
         alert('게시글을 조회할 수 없습니다.');
@@ -75,7 +81,7 @@ function BoardDetailPage() {
       }
     };
 
-    fetchBoard();
+    fetchBoardAndReplies();
   }, [boardId, navigate]);
 
   const fetchReplies = useCallback(async () => {
@@ -86,10 +92,6 @@ function BoardDetailPage() {
       console.error('댓글 조회 실패', error);
     }
   }, [boardId]);
-
-  useEffect(() => {
-    fetchReplies();
-  }, [fetchReplies]);
 
   const isAuthor = useMemo(() => {
     if (!board) return false;
