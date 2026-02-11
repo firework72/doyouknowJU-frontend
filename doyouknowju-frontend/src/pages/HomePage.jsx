@@ -161,7 +161,7 @@ function HomePage() {
                         <h3 className="section-title" onClick={() => navigate('/ranking')} style={{ cursor: 'pointer' }}>랭킹 &gt;</h3>
                         <p className="section-description">랭킹은 매일 자정 갱신됩니다.</p>
                         <div className="section-content">
-                            <Ranking/> {/* Dong : Ranking.jsx 추가 */}
+                            <Ranking groupSize={3} /> {/* Dong : Ranking.jsx 추가 */}
                         </div>
                     </Card>
                     <Card className="medium-card" id="posts-section">

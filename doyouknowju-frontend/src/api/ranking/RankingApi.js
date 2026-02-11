@@ -25,8 +25,8 @@ export const rankingApi = {
         return response.data;
     },
 
-    getSeasonRanking : async (season, page) => {
-        const response = await api.get(`http://localhost:8080/dykj/api/ranking/${season}/${page}`);
+    getSeasonRanking : async (season, page, groupSize) => {
+        const response = await api.get(`http://localhost:8080/dykj/api/ranking/${season}/${page}/${groupSize}`);
         return response.data;
     },
 

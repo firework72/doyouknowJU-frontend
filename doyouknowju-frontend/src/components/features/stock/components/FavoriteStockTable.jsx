@@ -37,6 +37,9 @@ function FavoriteStockTable({userId}) {
                 <div key={stock.stockId}>
                     <Card style={{cursor: 'pointer'}} onClick={() => navigate(`/stock/${stock.stockId}`)}>
                         <p><strong>{stock.stockId}&nbsp;&nbsp;&nbsp;&nbsp;{stock.stockName}</strong></p>
+                        <p>{stock.stockPrice}</p>
+                        <p>{stock.stockPriceChange}</p>
+                        <p>{stock.stockPriceChangeRate}</p>
                     </Card>
                 </div>
             ))}
