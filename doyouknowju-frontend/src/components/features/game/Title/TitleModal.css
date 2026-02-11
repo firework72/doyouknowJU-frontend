@@ -21,6 +21,21 @@
     gap: 12px;
     transition: transform 0.2s, box-shadow 0.2s;
     min-height: 120px;
+    cursor: pointer;
+    position: relative;
+}
+
+.title-item.equipped {
+    border: 2px solid var(--color-success);
+    background-color: rgba(16, 185, 129, 0.05);
+    cursor: default;
+}
+
+.title-info-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
 }
 
 .title-item:hover {

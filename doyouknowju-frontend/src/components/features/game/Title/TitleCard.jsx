@@ -43,6 +43,9 @@ const TitleCard = ({ titles, onOpenModal }) => {
                                     title={title.titleName}
                                 />
                             )}
+                            {title.isEquipped === 'Y' &&(
+                                <Badge variant="succeess" className="card-equipped-badge">장착중</Badge>
+                            )}
                         </div>
                     ))
                 ) : (
