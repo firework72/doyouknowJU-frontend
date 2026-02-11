@@ -5,7 +5,7 @@ import Input from '../components/common/Input';
 import StockTop10View from '../front/StockView';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/AuthContext';
-import { Button } from '../components/common';
+import { Badge, Button } from '../components/common';
 import AttendanceModal from '../components/features/game/Attendance/AttendanceModal';
 import LevelUpModal from '../components/features/game/LevelUpModal';
 import QuizModal from '../components/features/game/QuizModal';
@@ -122,6 +122,11 @@ function HomePage() {
                         {user ? (
                             <div className="user-profile">
                                 <h3 className="section-title">내 정보</h3>
+                                {user.equipeedTitleName && (
+                                    <div className="equipped-title-display">
+                                        <Badge variant="success">[{user.equippedTitleName}]</Badge>
+                                    </div>
+                                )}
                                 <p className="welcome-msg"><strong>{user.userId}</strong>님, 환영합니다!</p>
                                 <div className="user-stats">
                                     <p>보유 자산: {user.points?.toLocaleString()}원</p>

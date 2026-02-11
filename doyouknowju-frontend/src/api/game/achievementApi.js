@@ -57,5 +57,26 @@ export const achievementApi = {
             console.error("Error fetching titles:",error);
             throw error;
         }
+    },
+
+    // 칭호 장착
+    equipTitle: async (titleId) =>{
+        try{
+            const response = await fetch(`${BASE_URL}/titles/equip`,{
+                method: 'POST',
+                headers: { 'Content-Type' : 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ titleId })
+            });
+
+            if(!response.ok){
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to equip title');
+            }
+            return await response.json();
+        }catch(error){
+            console.error("Error equipping title: ", error);
+            throw error;
+        }
     }
 };

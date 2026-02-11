@@ -69,6 +69,14 @@
     border-radius: 8px;
     padding: 8px;
     border: 1px solid #efefef;
+   position: relative;
+}
+
+.card-equipped-badge {
+    position: absolute;
+    bottom: -5px;
+    font-size: 0.6rem !important;
+    padding: 0 4px !important;
 }
 
 .title-card .title-icon {

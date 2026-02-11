@@ -184,6 +184,10 @@ const MyPage = () => {
                 isOpen={isTitleModalOpen}
                 onClose={()=>setIsTitleModalOpen(false)}
                 titles={titles}
+                onEquip={async()=>{
+                    await refreshUser();
+                    await fetchMyTitles();
+                }}
             />
 
             {/* 레벨업 축하 모달 */}

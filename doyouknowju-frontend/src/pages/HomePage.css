@@ -139,6 +139,10 @@
     }
 }
 
+.equipped-title-display {
+    margin-bottom: 8px;
+}
+
 /* 내정보 버튼/폼 스타일 */
 .login-form {
     display: flex;
