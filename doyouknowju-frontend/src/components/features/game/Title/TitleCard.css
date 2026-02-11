@@ -72,11 +72,16 @@
    position: relative;
 }
 
-.card-equipped-badge {
+.title-card .card-equipped-badge {
     position: absolute;
     bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
     font-size: 0.6rem !important;
     padding: 0 4px !important;
+    line-height: 1.4;
+    z-index: 1;
+    white-space: nowrap;
 }
 
 .title-card .title-icon {

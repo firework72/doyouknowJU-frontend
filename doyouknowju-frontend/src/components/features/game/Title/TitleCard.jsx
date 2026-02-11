@@ -1,22 +1,10 @@
 import { Button, Card, Badge } from "../../../common";
 import './TitleCard.css';
+import { getImageUrl } from "../../../../api/game/titleApi";
 
 const TitleCard = ({ titles, onOpenModal }) => {
     // 최근 획득한 순서대로 최대 4개까지만 표시
     const recentTitles = titles?.slice(0, 4) || [];
-
-    // 이미지 경로 처리 함수
-    const getImageUrl = (url) => {
-        if (!url) return null;
-        if (url.startsWith('http')) return url;
-
-        // 백엔드 컨텍스트 루트 포함 여부 확인
-        const contextPath = '/dykj';
-        const cleanUrl = url.startsWith('/') ? url : `/${url}`;
-
-        if (cleanUrl.startsWith(contextPath)) return cleanUrl;
-        return `${contextPath}${cleanUrl}`;
-    };
 
     return (
         <Card className="title-card">
@@ -43,8 +31,8 @@ const TitleCard = ({ titles, onOpenModal }) => {
                                     title={title.titleName}
                                 />
                             )}
-                            {title.isEquipped === 'Y' &&(
-                                <Badge variant="succeess" className="card-equipped-badge">장착중</Badge>
+                            {title.isEquipped === 'Y' && (
+                                <Badge variant="success" className="card-equipped-badge">장착중</Badge>
                             )}
                         </div>
                     ))

@@ -8,6 +8,7 @@ import MyInfo from '../components/features/member/MyInfo';
 import AchievementCard from '../components/features/game/Achievement/AchievementCard';
 import AchievementModal from '../components/features/game/Achievement/AchievementModal';
 import { achievementApi } from '../api/game/achievementApi';
+import { titleApi } from '../api/game/titleApi';
 import MyActivityCard from '../components/features/member/MyActivityCard';
 import TitleCard from '../components/features/game/Title/TitleCard';
 import TitleModal from '../components/features/game/Title/TitleModal';
@@ -69,7 +70,7 @@ const MyPage = () => {
 
     const fetchMyTitles = async() =>{
         try{
-            const data = await achievementApi.getMyTitles();
+            const data = await titleApi .getMyTitles();
             setTitles(data);
         }catch (error) {
             console.error("칭호 목록 조회 실패: ", error);
@@ -184,7 +185,7 @@ const MyPage = () => {
                 isOpen={isTitleModalOpen}
                 onClose={()=>setIsTitleModalOpen(false)}
                 titles={titles}
-                onEquip={async()=>{
+                onEquip={async () =>{
                     await refreshUser();
                     await fetchMyTitles();
                 }}

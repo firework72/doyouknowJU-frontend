@@ -48,3 +48,61 @@
   color: var(--color-text-secondary);
   border: 1px solid var(--color-border);
 }
+
+/* ===== 칭호 전용 색상 변형 (Title Color Variants) ===== */
+
+/* 보라색 (Purple) - 예: 연속 출석 관련 칭호 */
+.badge-title-purple {
+  background-color: rgba(139, 92, 246, 0.1);
+  color: #7c3aed;
+  border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+/* 주황색 (Orange) - 예: 퀴즈 관련 칭호 */
+.badge-title-orange {
+  background-color: rgba(249, 115, 22, 0.1);
+  color: #ea580c;
+  border: 1px solid rgba(249, 115, 22, 0.25);
+}
+
+/* 청록색 (Teal) - 예: 게시판 활동 칭호 */
+.badge-title-teal {
+  background-color: rgba(20, 184, 166, 0.1);
+  color: #0d9488;
+  border: 1px solid rgba(20, 184, 166, 0.25);
+}
+
+/* 핑크색 (Pink) - 예: 특별/이벤트 칭호 */
+.badge-title-pink {
+  background-color: rgba(236, 72, 153, 0.1);
+  color: #db2777;
+  border: 1px solid rgba(236, 72, 153, 0.25);
+}
+
+/* 금색 (Gold) - 예: 고레벨/프리미엄 칭호 */
+.badge-title-gold {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(217, 119, 6, 0.08));
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* 남색 (Indigo) - 예: 투자 실적 칭호 */
+.badge-title-indigo {
+  background-color: rgba(99, 102, 241, 0.1);
+  color: #4f46e5;
+  border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+/* 에메랄드 (Emerald) - 예: 수익률 관련 칭호 */
+.badge-title-emerald {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+/* 빨간색 (Rose) - 예: 희귀/전설급 칭호 */
+.badge-title-rose {
+  background-color: rgba(244, 63, 94, 0.1);
+  color: #e11d48;
+  border: 1px solid rgba(244, 63, 94, 0.25);
+}

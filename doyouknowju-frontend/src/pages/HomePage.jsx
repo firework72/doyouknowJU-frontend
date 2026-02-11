@@ -13,6 +13,7 @@ import QuizModal from '../components/features/game/QuizModal';
 import api from '../api/trade/axios';
 import Ranking from '../components/features/ranking/Ranking';
 import PopularBoardsPanel from '../components/features/community/PopularBoardsPanel';
+import { getImageUrl } from '../api/game/titleApi';
 
 function HomePage() {
     const navigate = useNavigate();
@@ -122,9 +123,16 @@ function HomePage() {
                         {user ? (
                             <div className="user-profile">
                                 <h3 className="section-title">내 정보</h3>
-                                {user.equipeedTitleName && (
+                                {user.equippedTitleName && (
                                     <div className="equipped-title-display">
-                                        <Badge variant="success">[{user.equippedTitleName}]</Badge>
+                                        {user.equippedTitleImgUrl && (
+                                            <img
+                                                src={getImageUrl(user.equippedTitleImgUrl)}
+                                                alt={user.equippedTitleName}
+                                                className="homepage-equipped-title-img"
+                                            />
+                                        )}
+                                        <Badge variant={user.equippedTitleColor || 'success'}>[{user.equippedTitleName}]</Badge>
                                     </div>
                                 )}
                                 <p className="welcome-msg"><strong>{user.userId}</strong>님, 환영합니다!</p>
