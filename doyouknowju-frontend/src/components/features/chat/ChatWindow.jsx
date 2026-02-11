@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import useChat from '../../../hooks/useChat';
 import axios from 'axios';
 import { useAuth } from '@/hooks/AuthContext';
+import { titleApi, getImageUrl } from '../../../api/game/titleApi';
 
 const formatTime = (isoString) => {
     if (!isoString) return "";
@@ -35,6 +36,9 @@ const ChatWindow = () => {
     const [matchIdx, setMatchIdx] = useState(0);
     const searchInputRef = useRef(null);
 
+    // 유저별 칭호 정보를 저장할 상태
+    const [userTitlesMap, setUserTitlesMap] = useState({});
+
     // [추가] 가입일 기준 7일 경과 여부 계산 로직 (한국식: 가입일 = 1일차)
     const getChatPermission = () => {
         if (!user || !user.enrollDate) return { canChat: false, diffDays: 0 };
@@ -65,7 +69,7 @@ const ChatWindow = () => {
     };
 
     const baseFontSize = Math.max(12, dimensions.width / 28);
-    const titleFontSize = baseFontSize + 4;
+    // const titleFontSize = baseFontSize + 4; // 사용되지 않아 주석 처리
     const timeFontSize = Math.max(9, baseFontSize - 3);
 
     const handleScroll = async (e) => {
@@ -84,6 +88,48 @@ const ChatWindow = () => {
             }
         }
     };
+
+    // 메시지 목록이 업데이트될 때마다 칭호 정보가 없는 유저들을 확인하여 일괄 조회
+    useEffect(() => {
+        if (!messages || messages.length === 0) return;
+
+        const missingUserIds = new Set();
+        messages.forEach(msg => {
+            // 시스템, 봇 제외
+            if (msg.userId === '시스템🤖' || msg.userId === '주식봇🤖') return;
+
+            // 이미 맵에 정보가 있거나, 메시지 자체에 정보가 있으면 패스
+            // 하지만 메시지 자체 정보(실시간)를 우선으로 하되, 
+            // 히스토리 메시지(정보 없음)는 맵에서 확인해야 함.
+            // 맵에 없으면 조회 대상
+            if (!userTitlesMap[msg.userId] && !msg.userTitle) {
+                missingUserIds.add(msg.userId);
+            }
+        });
+
+        if (missingUserIds.size > 0) {
+            titleApi.getEquippedTitlesList(Array.from(missingUserIds))
+                .then(titleList => {
+                    setUserTitlesMap(prev => {
+                        const newMap = { ...prev };
+                        if (titleList && titleList.length > 0) {
+                            titleList.forEach(title => {
+                                if (title.userId) {
+                                    newMap[title.userId] = {
+                                        titleName: title.titleName,
+                                        titleImgUrl: title.titleImgUrl,
+                                        titleColor: title.titleColor
+                                    };
+                                }
+                            });
+                        }
+                        // 조회했으나 칭호가 없는 유저도 있을 수 있음 (빈 객체라도 넣어 중복 조회 방지 가능하지만 일단 생략)
+                        return newMap;
+                    });
+                })
+                .catch(err => console.error("칭호 정보 조회 실패:", err));
+        }
+    }, [messages]); // messages 의존성 경고 무시 가능 혹은 messages 변경 시마다 실행
 
     useEffect(() => {
         if (isOpen && messagesEndRef.current) {
@@ -233,6 +279,19 @@ const ChatWindow = () => {
         } catch (e) { alert("서버 통신 실패"); }
     };
 
+    const getDisplayTitleInfo = (msg) => {
+        // 1. 메시지 자체에 정보가 있으면 우선 사용 (실시간 메시지)
+        if (msg.userTitle || msg.userTitleImgUrl) {
+            return {
+                titleName: msg.userTitle,
+                titleImgUrl: msg.userTitleImgUrl,
+                titleColor: msg.userTitleColor
+            };
+        }
+        // 2. 없으면 맵에서 조회 (히스토리 메시지)
+        return userTitlesMap[msg.userId] || null;
+    };
+
     return (
         <>
             {isOpen ? (
@@ -249,7 +308,7 @@ const ChatWindow = () => {
                     <div onMouseDown={(e) => onMouseDownResize(e, 'se')} style={{ position: 'absolute', bottom: 0, right: 0, width: '15px', height: '15px', cursor: 'se-resize', zIndex: 1001 }} />
 
                     <div onMouseDown={onMouseDownDrag} style={{ padding: '10px 15px', backgroundColor: '#f8f9fa', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'move', userSelect: 'none' }}>
-                        <h3 style={{ margin: 0, fontSize: `${titleFontSize}px` }}>📈 주식 토론방</h3>
+                        <h3 style={{ margin: 0, fontSize: `${baseFontSize + 4}px` }}>📈 주식 토론방</h3>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <button onMouseDown={(e) => e.stopPropagation()} onClick={() => { setShowSearch(prev => !prev); setTimeout(() => searchInputRef.current?.focus(), 100); }} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '16px' }} title="검색 (Ctrl+F)">🔍</button>
                             <button onMouseDown={(e) => e.stopPropagation()} onClick={() => setIsOpen(false)} style={{ border: 'none', background: 'none', cursor: 'pointer' }}>✖</button>
@@ -269,26 +328,50 @@ const ChatWindow = () => {
                     <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                         <div ref={scrollContainerRef} onScroll={handleScroll} style={{ flex: 1, overflowY: 'scroll', padding: '15px' }}>
                             {loading && <div style={{ textAlign: 'center', fontSize: '12px', color: '#999' }}>불러오는 중...</div>}
-                            {Array.isArray(messages) && messages.map((msg, idx) => (
-                                <div id={`msg-${idx}`} key={idx} style={{ marginBottom: '15px', textAlign: msg.userId === myId ? 'right' : 'left' }}>
-                                    <div style={{ fontSize: `${timeFontSize}px`, color: '#888' }}>{msg.userId}</div>
-                                    <div style={{ display: 'flex', flexDirection: msg.userId === myId ? 'row-reverse' : 'row', alignItems: 'flex-end', gap: '5px' }}>
-                                        <div style={{
-                                            padding: '8px 12px', borderRadius: '10px',
-                                            backgroundColor: msg.userId === myId ? '#e3f2fd' : (msg.userId === '주식봇🤖' ? '#fff9c4' : '#f5f5f5'),
-                                            fontSize: `${baseFontSize}px`,
-                                            border: msg.userId === '주식봇🤖' ? '1px solid #ffe082' : 'none',
-                                            wordBreak: 'break-all',
-                                        }}>
-                                            {highlightText(msg.chatContent, keyword)}
+                            {Array.isArray(messages) && messages.map((msg, idx) => {
+                                const titleInfo = getDisplayTitleInfo(msg);
+                                return (
+                                    <div id={`msg-${idx}`} key={idx} style={{ marginBottom: '15px', textAlign: msg.userId === myId ? 'right' : 'left' }}>
+                                        <div style={{ fontSize: `${timeFontSize}px`, color: '#888', display: 'flex', alignItems: 'center', justifyContent: msg.userId === myId ? 'flex-end' : 'flex-start', gap: '5px' }}>
+                                            {/* 칭호 이미지 표시 (우선) */}
+                                            {titleInfo && titleInfo.titleImgUrl ? (
+                                                <img
+                                                    src={getImageUrl(titleInfo.titleImgUrl)}
+                                                    alt={titleInfo.titleName || "칭호"}
+                                                    style={{ height: '20px', verticalAlign: 'middle' }}
+                                                    title={titleInfo.titleName}
+                                                />
+                                            ) : (
+                                                /* 이미지가 없는데 텍스트가 있으면 텍스트 표시 (혹은 이미지 로드 실패 시) */
+                                                titleInfo && titleInfo.titleName && (
+                                                    <span style={{
+                                                        fontWeight: 'bold',
+                                                        color: titleInfo.titleColor || '#007bff'
+                                                    }}>
+                                                        [{titleInfo.titleName}]
+                                                    </span>
+                                                )
+                                            )}
+                                            <span>{msg.userId}</span>
                                         </div>
-                                        {msg.userId !== myId && msg.userId !== '주식봇🤖' && (
-                                            <button onClick={() => setReportModal({ isOpen: true, targetMsg: msg })} style={{ border: 'none', background: 'none', cursor: 'pointer' }}>🚨</button>
-                                        )}
-                                        <span style={{ fontSize: `${timeFontSize}px`, color: '#aaa' }}>{formatTime(msg.sendTime)}</span>
+                                        <div style={{ display: 'flex', flexDirection: msg.userId === myId ? 'row-reverse' : 'row', alignItems: 'flex-end', gap: '5px' }}>
+                                            <div style={{
+                                                padding: '8px 12px', borderRadius: '10px',
+                                                backgroundColor: msg.userId === myId ? '#e3f2fd' : (msg.userId === '주식봇🤖' ? '#fff9c4' : '#f5f5f5'),
+                                                fontSize: `${baseFontSize}px`,
+                                                border: msg.userId === '주식봇🤖' ? '1px solid #ffe082' : 'none',
+                                                wordBreak: 'break-all',
+                                            }}>
+                                                {highlightText(msg.chatContent, keyword)}
+                                            </div>
+                                            {msg.userId !== myId && msg.userId !== '주식봇🤖' && (
+                                                <button onClick={() => setReportModal({ isOpen: true, targetMsg: msg })} style={{ border: 'none', background: 'none', cursor: 'pointer' }}>🚨</button>
+                                            )}
+                                            <span style={{ fontSize: `${timeFontSize}px`, color: '#aaa' }}>{formatTime(msg.sendTime)}</span>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                )
+                            })}
                             <div ref={messagesEndRef} />
                         </div>
 
