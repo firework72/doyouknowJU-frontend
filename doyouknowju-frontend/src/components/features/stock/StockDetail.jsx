@@ -191,7 +191,7 @@ function StockDetail() {
                         <>
                             <div className={styles.inline}>
                                 <h1>{stockName}</h1>
-                                <h1 onClick={isFavorite ? handleRemoveFavorite : handleAddFavorite}>{isFavorite ? "⭐" : "☆"}</h1>
+                                <h1 onClick={isFavorite ? handleRemoveFavorite : handleAddFavorite} style={{cursor: 'pointer'}}>{isFavorite ? "⭐" : "☆"}</h1>
                                 <span>{stockId}</span>
                             </div>
                             <h2 className={stockFluctuation > 0 ? styles.riseColor : styles.fallColor}>{stockPrice} ({stockFluctuation}, {stockContrastRatio})</h2>

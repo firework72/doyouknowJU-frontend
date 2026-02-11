@@ -7,11 +7,11 @@ function HoldingTable({data}) {
                 <tr>
                     <th className={styles.th}>종목코드</th>
                     <th className={styles.th}>종목이름</th>
-                    <th className={styles.th}>보유수량</th>
-                    <th className={styles.th}>매입가격</th>
-                    <th className={styles.th}>현재가격</th>
-                    <th className={styles.th}>평가손익</th>
-                    <th className={styles.th}>평가손익률</th>
+                    <th className={styles.thRight}>보유수량</th>
+                    <th className={styles.thRight}>평균단가</th>
+                    <th className={styles.thRight}>현재가</th>
+                    <th className={styles.thRight}>평가손익</th>
+                    <th className={styles.thRight}>수익률</th>
                 </tr>
             </thead>
             <tbody>
@@ -20,11 +20,17 @@ function HoldingTable({data}) {
                         <tr key={index} className={styles.row}>
                             <td className={styles.td}>{holding.stockId}</td>
                             <td className={styles.td}>{holding.stockName}</td>
-                            <td className={`${styles.td} ${styles.numberCell}`}>{holding.totalCount}</td>
-                            <td className={`${styles.td} ${styles.numberCell}`}>{holding.totalPrice}</td>
-                            <td className={`${styles.td} ${styles.numberCell}`}>{holding.currentPrice * holding.totalCount}</td>
-                            <td className={`${styles.td} ${styles.numberCell}`}>{holding.profitAndLoss}</td>
-                            <td className={`${styles.td} ${styles.numberCell}`}>{holding.profitAndLossRate}</td>
+                            <td className={`${styles.td} ${styles.numberCell}`}>{holding.totalCount.toLocaleString()}</td>
+                            <td className={`${styles.td} ${styles.numberCell}`}>{(holding.totalPrice / holding.totalCount).toFixed(0).toLocaleString()}</td>
+                            <td className={`${styles.td} ${styles.numberCell}`}>
+                                {(holding.currentPrice).toFixed(0).toLocaleString()}
+                            </td>
+                            <td className={`${styles.td} ${styles.numberCell} ${holding.profitAndLoss > 0 ? styles.positive : styles.negative}`}>
+                                {holding.profitAndLoss.toLocaleString()}
+                            </td>
+                            <td className={`${styles.td} ${styles.numberCell} ${holding.profitAndLossRate > 0 ? styles.positive : styles.negative}`}>
+                                {holding.profitAndLossRate.toFixed(2)}%
+                            </td>
                         </tr>
                     ))
                 }
