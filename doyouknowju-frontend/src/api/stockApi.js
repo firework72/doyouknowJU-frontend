@@ -1,5 +1,68 @@
 import axios from 'axios';
 
+const findArrayDeep = (value, depth = 0) => {
+    if (depth > 4 || value === null || value === undefined) return null;
+    if (Array.isArray(value)) return value;
+
+    if (typeof value === 'string') {
+        try {
+            const parsed = JSON.parse(value);
+            return findArrayDeep(parsed, depth + 1);
+        } catch {
+            return null;
+        }
+    }
+
+    if (typeof value !== 'object') return null;
+
+    for (const nested of Object.values(value)) {
+        const found = findArrayDeep(nested, depth + 1);
+        if (Array.isArray(found)) return found;
+    }
+
+    return null;
+};
+
+const toArrayPayload = (raw) => {
+    let data = raw;
+
+    if (typeof data === 'string') {
+        try {
+            data = JSON.parse(data);
+        } catch {
+            return [];
+        }
+    }
+
+    if (Array.isArray(data)) return data;
+    if (!data || typeof data !== 'object') return [];
+
+    const candidates = [
+        data.output,
+        data.output1,
+        data.output2,
+        data.list,
+        data.data,
+        data.items,
+        data.result,
+    ];
+
+    for (const candidate of candidates) {
+        if (Array.isArray(candidate)) return candidate;
+        if (typeof candidate === 'string') {
+            try {
+                const parsed = JSON.parse(candidate);
+                if (Array.isArray(parsed)) return parsed;
+            } catch {
+                // noop
+            }
+        }
+    }
+
+    const deepArray = findArrayDeep(data);
+    return Array.isArray(deepArray) ? deepArray : [];
+};
+
 /**
  * Fetch stock suggestions based on search query.
  * @param {string} query - The search term.
@@ -106,6 +169,30 @@ export const fetchTop10MarketCap = async () => {
         return Array.isArray(data) ? data : data?.list || data?.data || [];
     } catch (error) {
         console.error('Error fetching Top 10 Market Cap:', error);
+        return [];
+    }
+};
+
+export const fetchKospiIndexChart = async (params = {}) => {
+    try {
+        const response = await axios.get('/dykj/api/stocks/index/kospi/chart', {
+            params: { period: 1, ...params },
+        });
+        return toArrayPayload(response.data);
+    } catch (error) {
+        console.error('Error fetching KOSPI index chart:', error);
+        return [];
+    }
+};
+
+export const fetchKosdaqIndexChart = async (params = {}) => {
+    try {
+        const response = await axios.get('/dykj/api/stocks/index/kosdaq/chart', {
+            params: { period: 1, ...params },
+        });
+        return toArrayPayload(response.data);
+    } catch (error) {
+        console.error('Error fetching KOSDAQ index chart:', error);
         return [];
     }
 };
