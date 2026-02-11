@@ -19,7 +19,7 @@ function Ranking() {
 
     const fetchSeasonRanking = async () => {
         try {
-            const response = await rankingApi.getSeasonRanking(selectedRankingCategory, page);
+            const response = await rankingApi.getSeasonRanking(selectedRankingCategory, page, GROUP_SIZE);
             setPeriodRanking(response);
         } catch (error) {
             console.error(error);
@@ -87,7 +87,10 @@ function Ranking() {
     }
 
     return (
-        <div className={styles.container}>
+        <div className={`${styles.container} `}
+            style={{
+               marginTop: "120px",
+            }}>
             <h1>랭킹</h1>
             <p>모든 랭킹은 매일 자정 갱신됩니다.</p>
             <div>
