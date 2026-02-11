@@ -78,5 +78,27 @@ export const achievementApi = {
             console.error("Error equipping title: ", error);
             throw error;
         }
+    },
+
+    
+    // [추가] 여러 사용자의 장착 칭호 정보 대량 조회
+    getEquippedTitlesList: async (userIds) => {
+        try {
+            const response = await fetch(`${BASE_URL}/titles/equipped-list`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userIds })
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch equipped titles list');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error("Error fetching equipped titles list:", error);
+            throw error;
+        }
     }
 };
+
+
+

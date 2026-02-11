@@ -2,23 +2,13 @@ import React from 'react';
 import { Modal, Badge } from '../../../common';
 import './TitleModal.css';
 import { achievementApi } from '../../../../api/game/achievementApi';
+import { titleApi, getImageUrl } from '../../../../api/game/titleApi';
 
 const TitleModal = ({ isOpen, onClose, titles, onEquip }) => {
-    // 이미지 경로 처리 함수
-    const getImageUrl = (url) => {
-        if (!url) return null;
-        if (url.startsWith('http')) return url;
-
-        const contextPath = '/dykj';
-        const cleanUrl = url.startsWith('/') ? url : `/${url}`;
-
-        if (cleanUrl.startsWith(contextPath)) return cleanUrl;
-        return `${contextPath}${cleanUrl}`;
-    };
 
     const handleEquip = async (titleId) => {
         try {
-            const result = await achievementApi.equipTitle(titleId);
+            const result = await titleApi.equipTitle(titleId);
             if (result.success) {
                 alert(result.message);
                 if (onEquip) onEquip();
