@@ -44,25 +44,33 @@ function HomePage() {
         return Number.isFinite(parsed) ? parsed : null;
     };
 
+    const toSignedValue = (rawValue, rawSign) => {
+        const numeric = toNumber(rawValue);
+        if (numeric === null) return null;
+
+        const signCode = String(rawSign ?? '').trim();
+        const absValue = Math.abs(numeric);
+
+        if (signCode === '1' || signCode === '2') return absValue;
+        if (signCode === '4' || signCode === '5') return -absValue;
+        if (signCode === '3') return 0;
+        return numeric;
+    };
+
     const toIndexChartPoints = (rows) => {
         if (!Array.isArray(rows)) return [];
 
         const points = rows
             .map((item, idx) => {
-                const close =
-                    toNumber(item?.bstp_nmix_prpr) ??
-                    toNumber(item?.close) ??
-                    toNumber(item?.stck_clpr) ??
-                    toNumber(item?.stckPrpr) ??
-                    toNumber(item?.stck_prpr) ??
-                    toNumber(item?.nowVal) ??
-                    toNumber(item?.value) ??
-                    toNumber(item?.price);
+                const close = toNumber(item?.bstp_nmix_prpr);
 
                 if (close === null) return null;
 
                 const rawTime = String(item?.stck_cntg_hour ?? '').trim();
                 const timeNumber = /^\d{6}$/.test(rawTime) ? Number(rawTime) : null;
+                if (timeNumber === 888888) return null;
+                const rawDate = String(item?.stck_bsop_date ?? item?.xymd ?? '').trim();
+                const dateNumber = /^\d{8}$/.test(rawDate) ? Number(rawDate) : null;
 
                 return {
                     value: close,
@@ -75,18 +83,81 @@ function HomePage() {
                         idx,
                     ),
                     timeNumber,
-                    dayDiff: toNumber(item?.bstp_nmix_prdy_vrss) ?? toNumber(item?.prdy_vrss),
-                    dayRate: toNumber(item?.bstp_nmix_prdy_ctrt) ?? toNumber(item?.prdy_ctrt),
+                    dateNumber,
+                    sortKey: (dateNumber ?? 0) * 1000000 + (timeNumber ?? 0),
+                    dayDiff: toSignedValue(item?.bstp_nmix_prdy_vrss, item?.prdy_vrss_sign),
+                    dayRate: toSignedValue(item?.bstp_nmix_prdy_ctrt, item?.prdy_vrss_sign),
+                    tickVolume: toNumber(item?.cntg_vol),
                 };
             })
             .filter(Boolean);
 
         const validTimePoints = points.filter(
-            (point) => point.timeNumber !== null && point.timeNumber >= 0 && point.timeNumber <= 235959,
+            (point) =>
+                point.timeNumber !== null &&
+                point.timeNumber !== 888888 &&
+                point.timeNumber >= 90000 &&
+                point.timeNumber <= 153000,
         );
 
-        const base = validTimePoints.length > 1 ? validTimePoints : points;
+        const latestDate = validTimePoints
+            .filter((point) => point.dateNumber !== null)
+            .reduce((max, point) => Math.max(max, point.dateNumber), 0);
+
+        const sameSessionPoints = latestDate
+            ? validTimePoints.filter((point) => point.dateNumber === latestDate)
+            : validTimePoints;
+
+        const base = sameSessionPoints.length > 1 ? sameSessionPoints : validTimePoints;
         return [...base].sort((a, b) => (a.timeNumber ?? 0) - (b.timeNumber ?? 0));
+    };
+
+    const loadIndexCharts = async (isCancelled = () => false) => {
+        const formatYmd = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}${month}${day}`;
+        };
+
+        const today = new Date();
+        const start = formatYmd(today);
+        const end = formatYmd(today);
+
+        try {
+            const [kospiRows, kosdaqRows] = await Promise.all([
+                fetchKospiIndexChart({ start, end, period: 1 }),
+                fetchKosdaqIndexChart({ start, end, period: 1 }),
+            ]);
+
+            let nextKospiRows = kospiRows;
+            let nextKosdaqRows = kosdaqRows;
+
+            const isKospiEmpty = !Array.isArray(nextKospiRows) || nextKospiRows.length === 0;
+            const isKosdaqEmpty = !Array.isArray(nextKosdaqRows) || nextKosdaqRows.length === 0;
+
+            if (isKospiEmpty || isKosdaqEmpty) {
+                const [fallbackKospiRows, fallbackKosdaqRows] = await Promise.all([
+                    fetchKospiIndexChart(),
+                    fetchKosdaqIndexChart(),
+                ]);
+
+                if (isKospiEmpty) nextKospiRows = fallbackKospiRows;
+                if (isKosdaqEmpty) nextKosdaqRows = fallbackKosdaqRows;
+            }
+
+            if (isCancelled()) return;
+            setKospiChart(toIndexChartPoints(nextKospiRows));
+            setKosdaqChart(toIndexChartPoints(nextKosdaqRows));
+        } catch (err) {
+            console.error('지수 차트 조회 실패:', err);
+            if (isCancelled()) return;
+            setKospiChart([]);
+            setKosdaqChart([]);
+        } finally {
+            if (isCancelled()) return;
+            setIndexChartLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -97,54 +168,25 @@ function HomePage() {
         api.get('/api/news')
             .then((res) => setNewsList(res.data))
             .catch((err) => console.error('뉴스 불러오기 실패:', err));
+    }, []);
 
-        const formatYmd = (date) => {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}${month}${day}`;
+    useEffect(() => {
+        let cancelled = false;
+        const pollingIntervalMs = 20000;
+
+        const poll = async () => {
+            if (cancelled) return;
+            await loadIndexCharts(() => cancelled);
         };
 
-        const endDate = new Date();
-        const startDate = new Date(endDate);
-        startDate.setDate(startDate.getDate() - 1);
-
-        const start = formatYmd(startDate);
-        const end = formatYmd(endDate);
-
         setIndexChartLoading(true);
-        Promise.all([
-            fetchKospiIndexChart({ start, end, period: 1 }),
-            fetchKosdaqIndexChart({ start, end, period: 1 }),
-        ])
-            .then(async ([kospiRows, kosdaqRows]) => {
-                let nextKospiRows = kospiRows;
-                let nextKosdaqRows = kosdaqRows;
+        poll();
+        const intervalId = setInterval(poll, pollingIntervalMs);
 
-                const isKospiEmpty = !Array.isArray(nextKospiRows) || nextKospiRows.length === 0;
-                const isKosdaqEmpty = !Array.isArray(nextKosdaqRows) || nextKosdaqRows.length === 0;
-
-                if (isKospiEmpty || isKosdaqEmpty) {
-                    const [fallbackKospiRows, fallbackKosdaqRows] = await Promise.all([
-                        fetchKospiIndexChart(),
-                        fetchKosdaqIndexChart(),
-                    ]);
-
-                    if (isKospiEmpty) nextKospiRows = fallbackKospiRows;
-                    if (isKosdaqEmpty) nextKosdaqRows = fallbackKosdaqRows;
-                }
-
-                setKospiChart(toIndexChartPoints(nextKospiRows));
-                setKosdaqChart(toIndexChartPoints(nextKosdaqRows));
-            })
-            .catch((err) => {
-                console.error('지수 차트 조회 실패:', err);
-                setKospiChart([]);
-                setKosdaqChart([]);
-            })
-            .finally(() => {
-                setIndexChartLoading(false);
-            });
+        return () => {
+            cancelled = true;
+            clearInterval(intervalId);
+        };
     }, []);
 
     const handleLogin = async () => {
@@ -215,23 +257,28 @@ function HomePage() {
         }
     };
 
-    const buildSparklineCoordinates = (points, width, height, padding = 8) => {
+    const buildChartPaths = (points, width, height, baselineValue, padding = 8) => {
         if (!points || points.length === 0) {
-            return { linePath: '', areaPath: '', minValue: 0, maxValue: 0 };
+            return { linePath: '', areaPath: '', minValue: 0, maxValue: 0, baselineY: height / 2 };
         }
 
         const values = points.map((point) => point.value);
+        const baseline = Number.isFinite(baselineValue) ? baselineValue : points[0]?.value ?? 0;
         const rawMin = Math.min(...values);
         const rawMax = Math.max(...values);
-        const pad = Math.max((rawMax - rawMin) * 0.12, rawMax * 0.0015, 0.5);
+        const span = Math.max(rawMax - rawMin, 0.01);
+
+        const pad = span * 0.08;
         const minValue = rawMin - pad;
         const maxValue = rawMax + pad;
-        const valueRange = maxValue - minValue || 1;
+        const range = Math.max(maxValue - minValue, 0.01);
         const stepX = points.length > 1 ? (width - padding * 2) / (points.length - 1) : 0;
+
+        const toY = (value) => height - padding - ((value - minValue) / range) * (height - padding * 2);
 
         const coords = points.map((point, index) => {
             const x = padding + stepX * index;
-            const y = height - padding - ((point.value - minValue) / valueRange) * (height - padding * 2);
+            const y = toY(point.value);
             return { x, y };
         });
 
@@ -241,19 +288,11 @@ function HomePage() {
 
         const first = coords[0];
         const last = coords[coords.length - 1];
-        const areaPath = `${linePath} L ${last.x.toFixed(2)} ${(height - padding).toFixed(2)} L ${first.x.toFixed(2)} ${(height - padding).toFixed(2)} Z`;
+        const baselineYRaw = toY(baseline);
+        const baselineY = Math.max(padding, Math.min(height - padding, baselineYRaw));
+        const areaPath = `${linePath} L ${last.x.toFixed(2)} ${baselineY.toFixed(2)} L ${first.x.toFixed(2)} ${baselineY.toFixed(2)} Z`;
 
-        return { linePath, areaPath, minValue, maxValue };
-    };
-
-    const formatIndexTime = (raw) => {
-        const value = String(raw ?? '').replace(/\D/g, '');
-        if (value.length >= 6) {
-            const hh = value.slice(0, 2);
-            const mm = value.slice(2, 4);
-            return `${hh}:${mm}`;
-        }
-        return '';
+        return { linePath, areaPath, minValue, maxValue, baselineY };
     };
 
     const formatIndexValue = (value) => value.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -270,26 +309,52 @@ function HomePage() {
             );
         }
 
-        const latest = points.length > 0 ? points[points.length - 1]?.value : null;
-        const previous = points.length > 1 ? points[points.length - 2]?.value : null;
-        const latestPoint = points.length > 0 ? points[points.length - 1] : null;
+        const orderedPoints = [...points].sort((a, b) => (a.timeNumber ?? 0) - (b.timeNumber ?? 0));
+        const latest = orderedPoints.length > 0 ? orderedPoints[orderedPoints.length - 1]?.value : null;
+        const previous = orderedPoints.length > 1 ? orderedPoints[orderedPoints.length - 2]?.value : null;
+        const latestPoint = orderedPoints.length > 0 ? orderedPoints[orderedPoints.length - 1] : null;
+        const latestSignedPoint =
+            [...orderedPoints].reverse().find(
+                (point) =>
+                    point?.dayDiff !== null &&
+                    point?.dayDiff !== undefined &&
+                    Number.isFinite(point?.dayDiff),
+            ) ?? latestPoint;
         const minuteDiff = latest !== null && previous !== null ? latest - previous : 0;
         const minuteRate = previous ? (minuteDiff / previous) * 100 : 0;
-        const diff = latestPoint?.dayDiff ?? minuteDiff;
-        const changeRate = latestPoint?.dayRate ?? minuteRate;
+        const diff = latestSignedPoint?.dayDiff ?? minuteDiff;
+        const changeRate = latestSignedPoint?.dayRate ?? minuteRate;
         const width = 360;
-        const height = 150;
+        const chartHeight = 112;
         const chartPadding = 10;
-        const { linePath, areaPath, minValue, maxValue } = buildSparklineCoordinates(points, width, 112, chartPadding);
-        const firstLabel = formatIndexTime(points[0]?.label);
-        const middleLabel = formatIndexTime(points[Math.floor(points.length / 2)]?.label);
-        const lastLabel = formatIndexTime(points[points.length - 1]?.label);
+        const hasDayDiff =
+            latestSignedPoint?.dayDiff !== null &&
+            latestSignedPoint?.dayDiff !== undefined &&
+            Number.isFinite(latestSignedPoint?.dayDiff);
+        const prevCloseCandidate =
+            latest !== null && hasDayDiff ? latest - latestSignedPoint.dayDiff : null;
+        const openCandidate = orderedPoints[0]?.value ?? latest ?? 0;
+        const baselineValue =
+            prevCloseCandidate !== null && Number.isFinite(prevCloseCandidate) && prevCloseCandidate > 0
+                ? prevCloseCandidate
+                : openCandidate;
+        const drawPoints = orderedPoints;
+        const { linePath, areaPath, minValue, maxValue, baselineY } = buildChartPaths(
+            drawPoints,
+            width,
+            chartHeight,
+            baselineValue,
+            chartPadding,
+        );
         const isUp = (diff ?? 0) >= 0;
         const toneClass = isUp ? 'is-up' : 'is-down';
+        const clipIdPrefix = `index-${title.toLowerCase()}`;
+        const tickStep = (maxValue - minValue) / 4;
         const tickValues = [
             maxValue,
-            maxValue - (maxValue - minValue) / 3,
-            maxValue - ((maxValue - minValue) * 2) / 3,
+            maxValue - tickStep,
+            maxValue - tickStep * 2,
+            maxValue - tickStep * 3,
             minValue,
         ];
 
@@ -307,18 +372,38 @@ function HomePage() {
                         : `${diff >= 0 ? '+' : ''}${diff.toFixed(2)} (${changeRate >= 0 ? '+' : ''}${changeRate.toFixed(2)}%)`}
                 </div>
                 <div className="index-mini-chart-wrap">
-                    <svg viewBox={`0 0 ${width} ${height}`} className="index-mini-svg" preserveAspectRatio="none">
+                    <svg viewBox={`0 0 ${width} ${chartHeight}`} className="index-mini-svg" preserveAspectRatio="none">
                         <defs>
-                            <linearGradient id={`${title}-fill`} x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor={isUp ? 'rgba(229, 57, 53, 0.40)' : 'rgba(30, 136, 229, 0.40)'} />
-                                <stop offset="100%" stopColor={isUp ? 'rgba(229, 57, 53, 0.04)' : 'rgba(30, 136, 229, 0.04)'} />
+                            <linearGradient id={`${clipIdPrefix}-up-fill`} x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="rgba(229, 57, 53, 0.42)" />
+                                <stop offset="100%" stopColor="rgba(229, 57, 53, 0.04)" />
                             </linearGradient>
+                            <linearGradient id={`${clipIdPrefix}-down-fill`} x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="rgba(30, 136, 229, 0.04)" />
+                                <stop offset="100%" stopColor="rgba(30, 136, 229, 0.42)" />
+                            </linearGradient>
+                            <clipPath id={`${clipIdPrefix}-top-clip`}>
+                                <rect x="0" y="0" width={width} height={baselineY} />
+                            </clipPath>
+                            <clipPath id={`${clipIdPrefix}-bottom-clip`}>
+                                <rect x="0" y={baselineY} width={width} height={chartHeight - baselineY} />
+                            </clipPath>
                         </defs>
-                        <line x1="8" y1="20" x2="292" y2="20" className="index-grid-line" />
-                        <line x1="8" y1="56" x2="292" y2="56" className="index-grid-line index-grid-mid" />
-                        <line x1="8" y1="92" x2="292" y2="92" className="index-grid-line" />
-                        {areaPath && <path d={areaPath} fill={`url(#${title}-fill)`} />}
-                        {linePath && <path d={linePath} className="index-mini-line" />}
+                        <line x1="8" y1={chartPadding} x2="292" y2={chartPadding} className="index-grid-line" />
+                        <line x1="8" y1={baselineY} x2="292" y2={baselineY} className="index-baseline" />
+                        <line x1="8" y1={chartHeight - chartPadding} x2="292" y2={chartHeight - chartPadding} className="index-grid-line" />
+                        {areaPath && (
+                            <>
+                                <path d={areaPath} fill={`url(#${clipIdPrefix}-up-fill)`} clipPath={`url(#${clipIdPrefix}-top-clip)`} />
+                                <path d={areaPath} fill={`url(#${clipIdPrefix}-down-fill)`} clipPath={`url(#${clipIdPrefix}-bottom-clip)`} />
+                            </>
+                        )}
+                        {linePath && (
+                            <>
+                                <path d={linePath} className="index-mini-line-up" clipPath={`url(#${clipIdPrefix}-top-clip)`} />
+                                <path d={linePath} className="index-mini-line-down" clipPath={`url(#${clipIdPrefix}-bottom-clip)`} />
+                            </>
+                        )}
                     </svg>
                     <div className="index-y-axis">
                         {tickValues.map((tick, idx) => (
@@ -327,9 +412,9 @@ function HomePage() {
                     </div>
                 </div>
                 <div className="index-x-axis">
-                    <span>{firstLabel || '-'}</span>
-                    <span>{middleLabel || '-'}</span>
-                    <span>{lastLabel || '-'}</span>
+                    <span>09:00</span>
+                    <span>12:15</span>
+                    <span>15:30</span>
                 </div>
             </div>
         );
