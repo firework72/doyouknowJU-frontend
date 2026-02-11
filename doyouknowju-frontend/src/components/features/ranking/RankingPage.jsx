@@ -89,7 +89,7 @@ function Ranking() {
     return (
         <div className={`${styles.container} `}
             style={{
-               marginTop: "120px",
+               marginTop: "100px",
             }}>
             <h1>랭킹</h1>
             <p>모든 랭킹은 매일 자정 갱신됩니다.</p>
