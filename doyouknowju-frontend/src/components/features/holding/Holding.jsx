@@ -48,7 +48,7 @@ function Holding() {
                                 </div>
                             </div>
                         </div>
-                        <h2>현재 자산 : {currentAsset}원</h2>
+                        <h2>현재 자산 : <span className={styles.numberCell}>{currentAsset.toLocaleString()}</span>원</h2>
                         <HoldingTable data={holdings}></HoldingTable>
                     </div>
                     {

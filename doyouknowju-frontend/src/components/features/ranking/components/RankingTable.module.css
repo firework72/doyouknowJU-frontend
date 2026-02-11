@@ -1,3 +1,5 @@
+@import url('https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.1/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css');
+
 .table {
   width: 100%;
   border-collapse: collapse; /* 테두리 합치기 */
@@ -27,7 +29,8 @@
   text-align: right;
   font-variant-numeric: tabular-nums; /* 숫자 너비 고정 */
   /*font-family: 'Roboto Mono', monospace; /* 숫자 전용 폰트 추천 */
-  font-family: 'Outfit, Noto Sans KR, sans-serif';
+  font-family: 'Wanted Sans Variable', Noto Sans KR, sans-serif;
+  font-weight: 700;
 }
 
 .textAlignRight {
