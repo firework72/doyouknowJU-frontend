@@ -1,23 +1,19 @@
-/* Main 컨테이너 스타일 */
-.main-container {
+﻿.main-container {
     width: 100%;
     margin: 0 auto;
     padding: 32px 40px;
     background-color: #e8ecef;
     min-height: calc(100vh - 80px);
-    /* 헤더 높이 제외 */
     display: flex;
     flex-direction: column;
 }
 
-/* 그리드 레이아웃 */
 .main-grid {
     display: flex;
     flex-direction: column;
     gap: 24px;
     width: 100%;
     flex: 1;
-    /* 남은 높이 모두 차지 */
 }
 
 .grid-row {
@@ -25,16 +21,8 @@
     gap: 24px;
     width: 100%;
     flex: 1;
-    /* 각 행이 균등하게 남은 높이 차지 (혹은 내용물에 따라 조절) */
 }
 
-/* 섹션 카드 기본 스타일 - Card 컴포넌트로 대체되더라도 커스텀 스타일이 필요할 수 있음 */
-/* .section-card 스타일은 Card.css의 기본 스타일로 대체될 수 있지만, 
-   레이아웃 잡아주는 flex 속성 등은 유지해야 할 수 있음. 
-   하지만 Card.jsx는 .card 클래스를 가지고 있고 props로 className을 받음.
-*/
-
-/* 기존 .large-card, .medium-card, .small-card는 flex 속성을 제어하므로 유지 */
 .large-card {
     flex: 2;
     min-height: 280px;
@@ -50,28 +38,24 @@
     min-height: 260px;
 }
 
-/* 섹션 제목 */
 .section-title {
     font-size: 20px;
     font-weight: 600;
     color: #333;
-    margin: 0 0 16px 0;
+    margin: 0 0 12px 0;
 }
 
-/* 섹션 설명 */
 .section-description {
     font-size: 15px;
     color: #888;
     margin: 6px 0;
 }
 
-/* 섹션 컨텐츠 (나중에 데이터 렌더링용) */
 .section-content {
     width: 100%;
-    margin-top: 20px;
+    margin-top: 14px;
 }
 
-/* 상단 행 - 급상승, 급하락이 크고 내정보가 작음 */
 .top-row .large-card {
     flex: 2;
 }
@@ -81,7 +65,6 @@
     min-width: 280px;
 }
 
-/* 하단 행 - 랭킹, 게시글이 크고 뉴스정보가 작음 */
 .bottom-row .medium-card {
     flex: 2;
 }
@@ -91,7 +74,153 @@
     min-width: 280px;
 }
 
-/* 반응형 디자인 */
+.equipped-title-display {
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.homepage-equipped-title-img {
+    width: 60px;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: contain;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.auth-links {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #666;
+}
+
+.auth-link,
+.auth-link-btn {
+    color: #4a90e2;
+    text-decoration: none;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+}
+
+.auth-link:hover,
+.auth-link-btn:hover {
+    text-decoration: underline;
+}
+
+.home-auth-btn {
+    transform: scale(0.7);
+    margin: -5px;
+}
+
+.home-auth-btn:hover {
+    transform: scale(0.7) !important;
+    filter: brightness(1.1);
+}
+
+.index-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.index-switch {
+    display: inline-flex;
+    gap: 6px;
+}
+
+.index-switch-btn {
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #4b5563;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.index-switch-btn.is-active {
+    border-color: #111827;
+    color: #111827;
+    font-weight: 700;
+}
+
+.index-toolbar {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    background: #eef1f5;
+    border-radius: 8px;
+    padding: 2px;
+    margin-bottom: 10px;
+}
+
+.index-toolbar-btn {
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    border-radius: 6px;
+    font-size: 12px;
+    padding: 6px 10px;
+    cursor: pointer;
+}
+
+.index-toolbar-btn.is-active {
+    background: #fff;
+    color: #111827;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.index-chart-loading {
+    font-size: 14px;
+    color: #5d6470;
+    padding: 16px;
+    background: #f5f7fa;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.index-ohlc-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 13px;
+    color: #374151;
+    margin-bottom: 10px;
+}
+
+.index-ohlc-row .is-up {
+    color: #dc2626;
+    font-weight: 700;
+}
+
+.index-ohlc-row .is-down {
+    color: #2563eb;
+    font-weight: 700;
+}
+
+.index-advanced-chart {
+    width: 100%;
+    height: 360px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+}
+
 @media (max-width: 1200px) {
     .main-container {
         padding: 24px 32px;
@@ -114,6 +243,12 @@
     }
 }
 
+@media (max-width: 768px) {
+    .index-advanced-chart {
+        height: 300px;
+    }
+}
+
 @media (max-width: 576px) {
     .main-container {
         padding: 16px;
@@ -123,7 +258,6 @@
         flex-direction: column;
     }
 
-    /* Card 컴포넌트에 className으로 전달될 때 스타일 적용 */
     .card {
         flex: 1 1 100%;
         min-height: 180px;
@@ -136,193 +270,5 @@
 
     .section-description {
         font-size: 14px;
-    }
-}
-
-.equipped-title-display {
-    margin-bottom: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-}
-
-.homepage-equipped-title-img {
-    width: 60px;
-    height: auto;
-    aspect-ratio: 16 / 9;
-    object-fit: contain;
-}
-
-/* 내정보 버튼/폼 스타일 */
-.login-form {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    width: 100%;
-}
-
-.auth-links {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 10px;
-    font-size: 14px;
-    color: #666;
-}
-
-.auth-link, .auth-link-btn {
-    color: #4a90e2;
-    text-decoration: none;
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    font: inherit;
-}
-
-.auth-link:hover, .auth-link-btn:hover {
-    text-decoration: underline;
-}
-
-.home-auth-btn{
-    transform: scale(0.7);
-    margin: -5px;
-}
-
-.home-auth-btn:hover{
-    transform: scale(0.7) !important;
-    filter: brightness(1.1);
-}
-
-.index-chart-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
-    margin-top: 12px;
-}
-
-.index-chart-loading {
-    font-size: 14px;
-    color: #5d6470;
-    padding: 16px;
-    background: #f5f7fa;
-    border-radius: 10px;
-    text-align: center;
-}
-
-.index-mini-card {
-    border: 1px solid #dfe3ea;
-    background: #ffffff;
-    border-radius: 10px;
-    padding: 8px 10px 10px;
-}
-
-.index-mini-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 4px;
-}
-
-.index-mini-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: #23262d;
-}
-
-.index-mini-price {
-    font-size: 30px;
-    font-weight: 700;
-    line-height: 1;
-}
-
-.index-mini-sub {
-    font-size: 26px;
-    font-weight: 700;
-    margin: 4px 0 8px;
-}
-
-.index-mini-card.is-up .index-mini-price,
-.index-mini-card.is-up .index-mini-sub {
-    color: #d60000;
-}
-
-.index-mini-card.is-down .index-mini-price,
-.index-mini-card.is-down .index-mini-sub {
-    color: #1662cc;
-}
-
-.index-mini-chart-wrap {
-    display: flex;
-    align-items: stretch;
-    gap: 8px;
-}
-
-.index-mini-svg {
-    width: calc(100% - 70px);
-    height: 150px;
-    display: block;
-    background: linear-gradient(180deg, #f7f8fa 0%, #f1f3f6 100%);
-    border-top: 1px solid #e8ebf0;
-    border-bottom: 1px solid #e8ebf0;
-}
-
-.index-mini-line-up,
-.index-mini-line-down {
-    fill: none;
-    stroke-width: 2.4;
-}
-
-.index-mini-line-up {
-    stroke: #e53935;
-}
-
-.index-mini-line-down {
-    stroke: #1e88e5;
-}
-
-.index-grid-line {
-    stroke: #d9dde3;
-    stroke-width: 1;
-}
-
-.index-baseline {
-    stroke: #a7afb9;
-    stroke-width: 1.2;
-    stroke-dasharray: 3 3;
-}
-
-.index-y-axis {
-    width: 62px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    font-size: 10px;
-    color: #7a818c;
-    text-align: right;
-    padding: 2px 0 2px;
-}
-
-.index-x-axis {
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    color: #7a818c;
-    margin-top: 6px;
-    padding: 0 6px 0 4px;
-}
-
-@media (max-width: 768px) {
-    .index-mini-title {
-        font-size: 16px;
-    }
-
-    .index-mini-price {
-        font-size: 24px;
-    }
-
-    .index-mini-sub {
-        font-size: 20px;
     }
 }

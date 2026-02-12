@@ -63,6 +63,44 @@ const toArrayPayload = (raw) => {
     return Array.isArray(deepArray) ? deepArray : [];
 };
 
+const toIndexChartRows = (raw) => {
+    let data = raw;
+
+    if (typeof data === 'string') {
+        try {
+            data = JSON.parse(data);
+        } catch {
+            return [];
+        }
+    }
+
+    if (!data) return [];
+
+    if (Array.isArray(data?.output)) return data.output;
+    if (Array.isArray(data?.output2)) return data.output2;
+    if (Array.isArray(data)) return data;
+
+    if (typeof data?.output === 'string') {
+        try {
+            const parsed = JSON.parse(data.output);
+            if (Array.isArray(parsed)) return parsed;
+        } catch {
+            // noop
+        }
+    }
+
+    if (typeof data?.output2 === 'string') {
+        try {
+            const parsed = JSON.parse(data.output2);
+            if (Array.isArray(parsed)) return parsed;
+        } catch {
+            // noop
+        }
+    }
+
+    return [];
+};
+
 /**
  * Fetch stock suggestions based on search query.
  * @param {string} query - The search term.
@@ -178,7 +216,7 @@ export const fetchKospiIndexChart = async (params = {}) => {
         const response = await axios.get('/dykj/api/stocks/index/kospi/chart', {
             params: { period: 1, ...params },
         });
-        return toArrayPayload(response.data);
+        return toIndexChartRows(response.data);
     } catch (error) {
         console.error('Error fetching KOSPI index chart:', error);
         return [];
@@ -190,7 +228,7 @@ export const fetchKosdaqIndexChart = async (params = {}) => {
         const response = await axios.get('/dykj/api/stocks/index/kosdaq/chart', {
             params: { period: 1, ...params },
         });
-        return toArrayPayload(response.data);
+        return toIndexChartRows(response.data);
     } catch (error) {
         console.error('Error fetching KOSDAQ index chart:', error);
         return [];
