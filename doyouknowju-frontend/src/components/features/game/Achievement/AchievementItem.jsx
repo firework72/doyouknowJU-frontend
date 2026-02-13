@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card, Button, ProgressBar } from '../../../common';
+import { getImageUrl } from '../../../../api/game/titleApi';
 import './AchievementItem.css';
 
 const AchievementItem = ({ achievement, onClaimReward, isPreview }) => {
@@ -42,6 +43,15 @@ const AchievementItem = ({ achievement, onClaimReward, isPreview }) => {
                     <div className="reward-info">
                         <span className="reward-label">보상</span>
                         <span className="reward-value">+{achievement.rewardExp} EXP</span>
+                        {achievement.rewardTitleImgUrl && (
+                            <div className="reward-title-wrapper" title={achievement.rewardTitleName}>
+                                <img
+                                    src={getImageUrl(achievement.rewardTitleImgUrl)}
+                                    alt={achievement.rewardTitleName}
+                                    className="reward-title-img"
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {!isPreview && (
