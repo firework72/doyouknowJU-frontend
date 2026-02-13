@@ -49,3 +49,22 @@
 .row:hover {
   background-color: #f1f3f5;
 }
+
+.userInfo {
+  display: flex;
+  flex-direction: column; /* 세로 배치 */
+  gap: 4px; /* 이미지와 텍스트 사이 간격 */
+}
+
+.titleImg {
+  width: 80px; /* 이미지 크기 확대 (기존보다 더 크게) */
+  height: 28px;
+  object-fit: contain;
+  margin-bottom: -8px; /* 이미지 아래 간격 줄임 */
+}
+
+.nickname {
+  font-size: 1.1em; /* 텍스트 크기 확대 */
+  font-weight: bold; /* 텍스트 굵게 */
+  margin-top: 0;
+}

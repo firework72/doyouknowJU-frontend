@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { favoriteStockApi } from "../../../../api/favoriteStockApi";
 import { Card, Spinner } from "../../../common";
 import { useNavigate } from "react-router-dom";
+import styles from "./FavoriteStockTable.module.css";
 
 function FavoriteStockTable({userId}) {
 
@@ -33,16 +34,33 @@ function FavoriteStockTable({userId}) {
             <Spinner />
         ) : (
             <>
-            {favoriteStocks.map((stock) => (
-                <div key={stock.stockId}>
-                    <Card style={{cursor: 'pointer'}} onClick={() => navigate(`/stock/${stock.stockId}`)}>
-                        <p><strong>{stock.stockId}&nbsp;&nbsp;&nbsp;&nbsp;{stock.stockName}</strong></p>
-                        <p>{stock.stockPrice}</p>
-                        <p>{stock.stockPriceChange}</p>
-                        <p>{stock.stockPriceChangeRate}</p>
-                    </Card>
-                </div>
-            ))}
+            {favoriteStocks.map((stock) => {
+                const change = Number(stock.stockPriceChange);
+                let priceClass = styles.priceNeutral;
+                let arrow = '-';
+
+                if (change > 0) {
+                    priceClass = styles.priceUp;
+                    arrow = '▲';
+                } else if (change < 0) {
+                    priceClass = styles.priceDown;
+                    arrow = '▼';
+                }
+
+                return (
+                    <div key={stock.stockId}>
+                        <Card className={styles.card} onClick={() => navigate(`/stock/${stock.stockId}`)}>
+                            <div className={styles.stockInfo}>
+                                {stock.stockId}&nbsp;&nbsp;&nbsp;&nbsp;{stock.stockName}
+                            </div>
+                            <div className={`${styles.priceInfo} ${priceClass}`}>
+                                <span className={`${styles.stockPrice} ${styles.numberCell}`}>{stock.stockPrice}</span>
+                                <span className={`${styles.numberCell}`}>{arrow}{Math.abs(change)} ({stock.stockPriceChangeRate}%)</span>
+                            </div>
+                        </Card>
+                    </div>
+                );
+            })}
             </>
         )}
         </>

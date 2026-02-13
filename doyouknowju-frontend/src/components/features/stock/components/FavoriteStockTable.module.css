@@ -1,0 +1,35 @@
+.card {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.stockInfo {
+    font-weight: bold;
+}
+
+.priceInfo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.stockPrice {
+    font-size: 1.2em; /* 다른 텍스트보다 조금 더 크게 */
+    font-weight: bold;
+}
+
+.priceUp {
+    color: #ef4444; /* Red */
+}
+
+.priceDown {
+    color: #3b82f6; /* Blue */
+}
+
+.priceNeutral {
+    color: black;
+}
