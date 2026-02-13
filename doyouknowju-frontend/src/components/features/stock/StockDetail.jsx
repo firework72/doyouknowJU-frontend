@@ -1,5 +1,5 @@
 import styles from './StockDetail.module.css';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { tradeApi } from '../../../api/trade/TradeApi.js';
 import { favoriteStockApi } from '../../../api/favoriteStockApi.js';
@@ -10,12 +10,15 @@ import Toast from '../../common/Toast.jsx';
 import SellConfirmModal from './components/SellConfirmModal.jsx';
 import api from '../../../api/trade/axios';
 import StockChart from './components/StockChart.jsx';
+import holdingApi from '../../../api/holding/holdingApi';
 /*
     필요한 상태값 : 주식 ID, 회원 정보
     필요한 함수 : 주식 매수, 주식 매도
 */
 
 function StockDetail() {
+
+    const navigate = useNavigate();
 
     const { stockId } = useParams();
     const { user, setUser } = useAuth();
@@ -26,6 +29,7 @@ function StockDetail() {
     const [stockContrastRatio, setStockContrastRatio] = useState(0);
     const [stockName, setStockName] = useState("");
     const [stockNews, setStockNews] = useState([]);
+    const [holdingTotalCount, setHoldingTotalCount] = useState(0);
 
     const [isFavorite, setIsFavorite] = useState(false);
 
@@ -57,6 +61,17 @@ function StockDetail() {
         setStockFluctuation(priceResponse.output.prdy_vrss);
         setStockContrastRatio(priceResponse.output.prdy_ctrt);
     };
+
+    const fetchHoldingTotalCount = async () => {
+        if (!user) return;
+        try {
+            const response = await holdingApi.getHoldingTotalCountByUserIdAndStockId(user.userId, stockId);
+            console.log("보유개수", response);
+            setHoldingTotalCount(response);
+        } catch (error) {
+            console.error("종목 보유개수 확인 실패", error);
+        }
+    }
 
     // 관심종목인지 확인
     const fetchIsFavorite = async () => {
@@ -98,6 +113,7 @@ function StockDetail() {
         fetchStockName();
         // 마운트 시 초기 1회 주식 현재가 정보 조회
         fetchStockInfo();
+        fetchHoldingTotalCount();
         // 이후 10초마다 주식 현재가 정보 갱신
         const intervalId = setInterval(() => {
             fetchStockInfo();
@@ -161,6 +177,13 @@ function StockDetail() {
     const handleSell = async () => {
         // 종목코드, 매도개수, 매도가격, 회원ID, 거래종류, 총매도가격 전달
 
+        const nowTime = new Date();
+
+        if (nowTime.getHours() >= 15 && nowTime.getMinutes() > 30 || nowTime.getHours() < 9 || nowTime.getDay() === 0 || nowTime.getDay() === 6) {
+            showToast("error", "장 거래 시간이 아닙니다.");
+            return;
+        }
+
         const data = {
             stockId: stockId,
             tradeCount: stockCount,
@@ -201,12 +224,16 @@ function StockDetail() {
                         <>
                             <div className={styles.inline}>
                                 <h1>{stockName}</h1>
+                                <span>{stockId}</span>
                                 {user &&
                                     <h1 onClick={isFavorite ? handleRemoveFavorite : handleAddFavorite} style={{cursor: 'pointer'}}>{isFavorite ? "⭐" : "☆"}</h1>
                                 }
-                                <span>{stockId}</span>
                             </div>
-                            <h2 className={stockFluctuation > 0 ? styles.riseColor : styles.fallColor}>{stockPrice} ({stockFluctuation}, {stockContrastRatio}%)</h2>
+                            <h2 className={stockFluctuation > 0 ? styles.riseColor : styles.fallColor}>{Number(stockPrice).toLocaleString()} ({Number(stockFluctuation).toLocaleString()}, {stockContrastRatio}%)</h2>
+                            <Button onClick={() => navigate(`/board?page=1&stockId=${stockId}&stockName=${stockName}`)}
+                                    style={{width: '400px'}}>
+                                {stockName} 게시판 바로가기
+                            </Button>
                             <Card>
                                 <h2>차트</h2>
                                 <StockChart stockId={stockId} />
@@ -216,7 +243,8 @@ function StockDetail() {
                                 <Card>
                                     <h2>주식 매수/매도</h2>
                                     <p>수량을 선택하고 매수/매도 버튼을 눌러 거래하세요.</p>
-                                    <p>현재 {user.points}원을 보유하고 있습니다.</p>
+                                    <p>현재 {user.points.toLocaleString()}P를 보유하고 있습니다.</p>
+                                    <p>현재 이 주식을 {holdingTotalCount.toLocaleString()}주 보유하고 있습니다.</p>
                                     <br></br>
                                     <div className={styles.alignRow}>
                                         <Input
@@ -234,14 +262,14 @@ function StockDetail() {
                                     </div>
                                     <Button
                                         variant="danger"
-                                        disabled={stockPrice === 0}
+                                        disabled={stockPrice === 0 || !stockCount || stockCount === 0 }
                                         onClick={() => setBuyModalOpen(true)}
                                     >
                                         매수
                                     </Button>
                                     <Button
                                         variant="primary"
-                                        disabled={stockPrice === 0}
+                                        disabled={stockPrice === 0 || !stockCount || stockCount === 0 }
                                         onClick={() => setSellModalOpen(true)}
                                     >
                                         매도
@@ -291,9 +319,9 @@ function StockDetail() {
                     </>
                 }>
                 <p>매수하시겠습니까?</p>
-                <p>주식 수량 : {stockCount}</p>
-                <p>주식 가격 : {stockPrice}</p>
-                <p>총 가격 : {stockCount * stockPrice}</p>
+                <p>주문 수량 : {Number(stockCount).toLocaleString()}</p>
+                <p>주식 가격 : {Number(stockPrice).toLocaleString()} P</p>
+                <p>총 가격 : {Number(stockCount * stockPrice).toLocaleString()} P</p>
             </BuyConfirmModal>
             <SellConfirmModal isOpen={sellModalOpen}
                 onClose={() => setSellModalOpen(false)}
@@ -314,9 +342,9 @@ function StockDetail() {
                     </>
                 }>
                 <p>매도하시겠습니까?</p>
-                <p>주식 수량 : {stockCount}</p>
-                <p>주식 가격 : {stockPrice}</p>
-                <p>총 가격 : {stockCount * stockPrice}</p>
+                <p>주문 수량 : {Number(stockCount).toLocaleString()}</p>
+                <p>주식 가격 : {Number(stockPrice).toLocaleString()} P</p>
+                <p>총 가격 : {Number(stockCount * stockPrice).toLocaleString()} P</p>
             </SellConfirmModal>
             {
                 toast && (

@@ -5,7 +5,7 @@ const COLOR_PALETTE = [
 
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
-import { holdingApi } from '../../../../api/holding/HoldingApi';
+import { holdingApi } from '../../../../api/holding/holdingApi';
 import { useAuth } from '../../../../hooks/AuthContext';
 import { useEffect, useState } from 'react';
 import { Spinner } from '../../../common';
@@ -116,7 +116,7 @@ const HoldingChart = () => {
                     )} P
                     </div>
                 </div>
-                <Doughnut data={data} options={options} />  
+                <Doughnut style={{alignItems: 'center', justifyContent: 'center', width: '400px', height: '400px'}} data={data} options={options} />  
             </div>
         )
     );
