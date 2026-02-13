@@ -17,6 +17,16 @@
     margin-left: auto;
 }
 
+/* 숫자 전용 스타일 */
+.numberCell {
+  text-align: right;
+  font-variant-numeric: tabular-nums; /* 숫자 너비 고정 */
+  /*font-family: 'Roboto Mono', monospace; /* 숫자 전용 폰트 추천 */
+  font-family: 'Wanted Sans Variable', Noto Sans KR, sans-serif;
+  font-weight: 700;
+}
+
+
 .stockPrice {
     font-size: 1.2em; /* 다른 텍스트보다 조금 더 크게 */
     font-weight: bold;
