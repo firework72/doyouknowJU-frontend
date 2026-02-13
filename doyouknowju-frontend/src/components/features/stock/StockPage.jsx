@@ -9,7 +9,7 @@ import FavoriteStockTable from './components/FavoriteStockTable';
 function StockPage() {
 
     const { user } = useAuth();
-    const userId = user.userId;
+    const userId = user?.userId;
 
     const [query, setQuery] = useState('');
     const [suggestions, setSuggestions] = useState([]);
@@ -67,7 +67,13 @@ function StockPage() {
             )}
           </div>
           <h2>⭐ 관심 종목 리스트</h2>
-          <FavoriteStockTable userId={userId} />
+          {
+            user ? (
+              <FavoriteStockTable userId={userId} />
+            ) : (
+              <p>로그인 후 관심 종목을 확인할 수 있습니다.</p>
+            )
+          }
           </div>
 
         </>

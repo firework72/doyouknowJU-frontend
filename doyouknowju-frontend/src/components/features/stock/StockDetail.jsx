@@ -60,6 +60,7 @@ function StockDetail() {
 
     // 관심종목인지 확인
     const fetchIsFavorite = async () => {
+        if (!user) return;
         try {
             const response = await favoriteStockApi.getIsFavorite(user.userId, stockId);
             setIsFavorite(response > 0 ? true : false);
@@ -70,6 +71,7 @@ function StockDetail() {
 
     // 관심종목 추가
     const handleAddFavorite = async () => {
+        if (!user) return;
         try {
             const response = await favoriteStockApi.addFavorite(user.userId, stockId);
             setIsFavorite(true);
@@ -80,6 +82,7 @@ function StockDetail() {
 
     // 관심종목 삭제
     const handleRemoveFavorite = async () => {
+        if (!user) return;
         try {
             const response = await favoriteStockApi.removeFavorite(user.userId, stockId);
             setIsFavorite(false);
@@ -198,7 +201,9 @@ function StockDetail() {
                         <>
                             <div className={styles.inline}>
                                 <h1>{stockName}</h1>
-                                <h1 onClick={isFavorite ? handleRemoveFavorite : handleAddFavorite} style={{cursor: 'pointer'}}>{isFavorite ? "⭐" : "☆"}</h1>
+                                {user &&
+                                    <h1 onClick={isFavorite ? handleRemoveFavorite : handleAddFavorite} style={{cursor: 'pointer'}}>{isFavorite ? "⭐" : "☆"}</h1>
+                                }
                                 <span>{stockId}</span>
                             </div>
                             <h2 className={stockFluctuation > 0 ? styles.riseColor : styles.fallColor}>{stockPrice} ({stockFluctuation}, {stockContrastRatio}%)</h2>
@@ -206,40 +211,43 @@ function StockDetail() {
                                 <h2>차트</h2>
                                 <StockChart stockId={stockId} />
                             </Card>
-                            <Card>
-                                <h2>주식 매수/매도</h2>
-                                <p>수량을 선택하고 매수/매도 버튼을 눌러 거래하세요.</p>
-                                <p>현재 {user.points}원을 보유하고 있습니다.</p>
-                                <br></br>
-                                <div className={styles.alignRow}>
-                                    <Input
-                                        type="text"
-                                        placeholder="수량"
-                                        disabled={stockPrice === 0}
-                                        value={stockCount}
-                                        min={1}
-                                        max={999999999}
-                                        maxLength={9}
-                                        step={1}
-                                        onChange={(e) => handleStockCountChange(e)}
-                                    />
+                            {
+                                user &&                     
+                                <Card>
+                                    <h2>주식 매수/매도</h2>
+                                    <p>수량을 선택하고 매수/매도 버튼을 눌러 거래하세요.</p>
+                                    <p>현재 {user.points}원을 보유하고 있습니다.</p>
+                                    <br></br>
+                                    <div className={styles.alignRow}>
+                                        <Input
+                                            type="text"
+                                            placeholder="수량"
+                                            disabled={stockPrice === 0}
+                                            value={stockCount}
+                                            min={1}
+                                            max={999999999}
+                                            maxLength={9}
+                                            step={1}
+                                            onChange={(e) => handleStockCountChange(e)}
+                                        />
 
-                                </div>
-                                <Button
-                                    variant="danger"
-                                    disabled={stockPrice === 0}
-                                    onClick={() => setBuyModalOpen(true)}
-                                >
-                                    매수
-                                </Button>
-                                <Button
-                                    variant="primary"
-                                    disabled={stockPrice === 0}
-                                    onClick={() => setSellModalOpen(true)}
-                                >
-                                    매도
-                                </Button>
-                            </Card>
+                                    </div>
+                                    <Button
+                                        variant="danger"
+                                        disabled={stockPrice === 0}
+                                        onClick={() => setBuyModalOpen(true)}
+                                    >
+                                        매수
+                                    </Button>
+                                    <Button
+                                        variant="primary"
+                                        disabled={stockPrice === 0}
+                                        onClick={() => setSellModalOpen(true)}
+                                    >
+                                        매도
+                                    </Button>
+                                </Card>
+                            }
                             <Card>
                                 <h2>관련 뉴스</h2>
                                 {stockNews && stockNews.length > 0 ? (
