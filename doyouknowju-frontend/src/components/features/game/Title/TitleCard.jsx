@@ -4,7 +4,7 @@ import { getImageUrl } from "../../../../api/game/titleApi";
 
 const TitleCard = ({ titles, onOpenModal }) => {
     // 최근 획득한 순서대로 최대 4개까지만 표시
-    const recentTitles = titles?.slice(0, 4) || [];
+    const recentTitles = titles?.slice(0, 6) || [];
 
     return (
         <Card className="title-card">

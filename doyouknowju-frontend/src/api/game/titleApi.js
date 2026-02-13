@@ -49,6 +49,26 @@ export const titleApi = {
         }
     },
 
+    // 칭호 장착 해제
+    unequipTitle: async () =>{
+        try{
+            const response = await fetch(`${BASE_URL}/titles/unequip`,{
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json'},
+                credentials: 'include'
+            });
+
+            if(!response.ok){
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to unequip title');
+            }
+            return await response.json();
+        }catch(error){
+            console.error("Error unequipping title: ", error);
+            throw error;
+        }
+    },
+
     // 여러 사용자의 장착 칭호 정보 대량 조회
     getEquippedTitlesList: async (userIds) => {
         try {

@@ -16,6 +16,7 @@ import LevelUpModal from '../components/features/game/LevelUpModal';
 import { memberApi } from '../api/memberApi';
 import WithdrawalModal from '../components/features/member/WithdrawalModal';
 import HoldingChart from '../components/features/holding/components/HoldingChart'; // Dong : 보유 자산 현황 컴포넌트
+import ReportModal from '../components/features/member/ReportModal';
 
 const MyPage = () => {
     const { user, loading: authLoading, refreshUser } = useAuth();
@@ -26,6 +27,7 @@ const MyPage = () => {
     const [isTitleModalOpen, setIsTitleModalOpen] = useState(false);
     const [isLevelUpModalOpen, setIsLevelUpModalOpen] = useState(false);
     const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [levelUpLevel, setLevelUpLevel] = useState(0);
 
     const [achievements, setAchievements] = useState([]);
@@ -131,6 +133,7 @@ const MyPage = () => {
                     user={user}
                     onOpenAttendance={() => setIsAttendenceModalOpen(true)}
                     onOpenWithdrawal={() => setIsWithdrawalModalOpen(true)}
+                    onOpenReport={() => setIsReportModalOpen(true)}
                 />
 
                 {/* Portfolio Card */}
@@ -205,6 +208,11 @@ const MyPage = () => {
                 onWithdraw={handleWithdrawal}
             />
 
+            {/* 신고 관리 모달 */}
+            <ReportModal
+                isOpen={isReportModalOpen}
+                onClose={()=>setIsReportModalOpen(false)}
+            />
         </div>
     );
 };

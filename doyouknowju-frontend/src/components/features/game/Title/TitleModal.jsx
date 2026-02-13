@@ -18,6 +18,18 @@ const TitleModal = ({ isOpen, onClose, titles, onEquip }) => {
         }
     };
 
+    const handleUnequip = async() =>{
+        try{
+            const result = await titleApi.unequipTitle();
+            if(result.success){
+                alert(result.message);
+                if(onEquip) onEquip();
+            }
+        }catch(error){
+            alert(error.message);
+        }
+    };
+
     return (
         <Modal
             isOpen={isOpen}
@@ -30,7 +42,13 @@ const TitleModal = ({ isOpen, onClose, titles, onEquip }) => {
                         <div
                             key={title.titleId}
                             className={`title-item ${title.isEquipped === 'Y' ? 'equipped' : ''}`}
-                            onClick={() => title.isEquipped !== 'Y' && handleEquip(title.titleId)}
+                            onClick={() => {
+                                if(title.isEquipped === 'Y'){
+                                    handleUnequip();
+                                } else {
+                                    handleEquip(title.titleId);
+                                }
+                            }}      
                         >
                             <div className="title-info-wrap">
                                 {title.titleImgUrl && (

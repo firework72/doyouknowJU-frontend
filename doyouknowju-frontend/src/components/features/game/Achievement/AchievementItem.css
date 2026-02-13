@@ -70,6 +70,22 @@
     color: #8b5cf6; /* 경험치 강조 컬러 (보라색) */
 }
 
+.reward-title-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    /* 우측 정렬 */
+    margin-top: 4px;
+}
+
+.reward-title-img {
+    width: 80px;
+    height: 24px;
+    object-fit: contain;
+    border: 1px solid #eee;
+    background-color: #fff;
+    padding: 2px;
+}
+
 .achievement-footer {
     display: flex;
     align-items: center;

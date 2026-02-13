@@ -445,19 +445,17 @@ function HomePage() {
                         {user ? (
                             <div className="user-profile">
                                 <h3 className="section-title">내 정보</h3>
-                                {user.equippedTitleName && (
-                                    <div className="equipped-title-display">
-                                        {user.equippedTitleImgUrl && (
-                                            <img
-                                                src={getImageUrl(user.equippedTitleImgUrl)}
-                                                alt={user.equippedTitleName}
-                                                className="homepage-equipped-title-img"
-                                            />
-                                        )}
-                                        <Badge variant={user.equippedTitleColor || 'success'}>[{user.equippedTitleName}]</Badge>
-                                    </div>
-                                )}
-                                <p className="welcome-msg"><strong>{user.userId}</strong>님, 환영합니다!</p>
+                                <div className="user-info-area">
+                                    {user.equippedTitleImgUrl && (
+                                        <img
+                                            src={getImageUrl(user.equippedTitleImgUrl)}
+                                            alt={user.equippedTitleName}
+                                            className="homepage-title-banner"
+                                            title={user.equippedTitleName}
+                                        />
+                                    )}
+                                    <p className="welcome-msg"><strong>{user.userId}</strong>님, 환영합니다!</p>
+                                </div>
                                 <div className="user-stats">
                                     <p>보유 자산: {user.points?.toLocaleString()}원</p>
                                     <p>레벨: {user.userLevel}</p>

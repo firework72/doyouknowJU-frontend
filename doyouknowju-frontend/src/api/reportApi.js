@@ -17,3 +17,12 @@ export const insertReport = async ({ reportType, contentId, reporterId, targetId
   return data;
 };
 
+export const getReportList = async() =>{
+  try{
+    const { data } = await axios.get('/dykj/api/report/list');
+    return data;
+  }catch(error){
+    console.error('신고 목록 조회 실패: ', error);
+    throw error;
+  }
+};

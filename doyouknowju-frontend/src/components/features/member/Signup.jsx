@@ -162,21 +162,6 @@ function Signup() {
                     fullWidth
                 />
 
-                {/* 알림 수신 동의 */}
-                <div className="checkbox-group">
-                    <input
-                        type="checkbox"
-                        id="isReceiveNotification"
-                        name="isReceiveNotification"
-                        className="checkbox-input"
-                        checked={formData.isReceiveNotification}
-                        onChange={handleChange}
-                    />
-                    <label className="checkbox-label" htmlFor="isReceiveNotification">
-                        알림 수신에 동의합니다
-                    </label>
-                </div>
-
                 {/* 버튼 그룹 */}
                 <div className="button-group">
                     <Button
