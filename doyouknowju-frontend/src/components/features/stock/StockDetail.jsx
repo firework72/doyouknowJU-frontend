@@ -126,6 +126,13 @@ function StockDetail() {
     const handleBuy = async () => {
         // 종목코드, 매수개수, 매수가격, 회원ID, 거래종류, 총매수가격 전달
 
+        const nowTime = new Date();
+
+        if (nowTime.getHours() >= 15 && nowTime.getMinutes() > 30 || nowTime.getHours() < 9 || nowTime.getDay() === 0 || nowTime.getDay() === 6) {
+            showToast("error", "장 거래 시간이 아닙니다.");
+            return;
+        }
+
         const data = {
             stockId: stockId,
             tradeCount: stockCount,
@@ -194,7 +201,7 @@ function StockDetail() {
                                 <h1 onClick={isFavorite ? handleRemoveFavorite : handleAddFavorite} style={{cursor: 'pointer'}}>{isFavorite ? "⭐" : "☆"}</h1>
                                 <span>{stockId}</span>
                             </div>
-                            <h2 className={stockFluctuation > 0 ? styles.riseColor : styles.fallColor}>{stockPrice} ({stockFluctuation}, {stockContrastRatio})</h2>
+                            <h2 className={stockFluctuation > 0 ? styles.riseColor : styles.fallColor}>{stockPrice} ({stockFluctuation}, {stockContrastRatio}%)</h2>
                             <Card>
                                 <h2>차트</h2>
                                 <StockChart stockId={stockId} />
