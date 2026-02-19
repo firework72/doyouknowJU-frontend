@@ -4,6 +4,22 @@ import './Signup.css';
 import { useAuth } from '../../../hooks/AuthContext';
 import { Input, Button } from '../../common';
 
+// 아이디, 비밀번호 입력 조건
+// 아이디: 5~20자, 영어 소문자+숫자 허용, 숫자만 불가
+const validateUserId = (id) => /^(?=.*[a-z])[a-z0-9]{5,20}$/.test(id);
+
+// 비밀번호: 8~30자, 대소문자/숫자/특수기호 중 2종류 이상 조합
+const validatePassword = (pwd) =>{
+    if (pwd.length < 8 || pwd.length > 30) return false;
+    const hasUpper = /[A-Z]/.test(pwd);
+    const hasLower = /[a-z]/.test(pwd);
+    const hasDigit = /[0-9]/.test(pwd);
+    const hasSpecial = /[^A-Za-z0-9]/.test(pwd);
+    const count = [hasUpper || hasLower, hasDigit, hasSpecial].filter(Boolean).length;
+    const groupCount = [hasUpper||hasLower , hasDigit, hasSpecial].filter(Boolean).length;
+    return groupCount >= 2;
+}
+
 function Signup() {
     const { user } = useAuth();
     const navigate = useNavigate();
@@ -19,12 +35,20 @@ function Signup() {
     const [formData, setFormData] = useState({
         userId: '',
         userPwd: '',
+        userPwdConfirm: '',
         phone: '',
         isReceiveNotification: false
     });
 
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
+
+    // 아이디 중복 확인 결과
+    const [idCheckStatus, setIdCheckStatus] = useState(null);
+
+    // 비밀번호 입력 여부
+    const [pwdTouched, setPwdTouched] = useState(false);
+    const [pwdConfirmTouched, setPwdConfirmTouched] = useState(false);
 
     // 입력값 변경 핸들러
     const handleChange = (e) => {
@@ -34,46 +58,50 @@ function Signup() {
             [name]: type === 'checkbox' ? checked : value
         }));
 
+        if(name === 'userId'){
+            setIdCheckStatus(null);
+        }
+        if(name === 'userPwd'){
+            setPwdTouched(true);
+        }
+        if(name === 'userPwdConfirm'){
+            setPwdConfirmTouched(true);
+        }
+
         // 에러 메시지 초기화
         if (errors[name]) {
-            setErrors(prev => ({
-                ...prev,
-                [name]: ''
-            }));
+            setErrors(prev => ({ ...prev, [name]: '' }));
         }
     };
 
-    // 유효성 검사
-    const validateForm = () => {
-        const newErrors = {};
-
-        if (!formData.userId.trim()) {
-            newErrors.userId = '아이디를 입력해주세요.';
-        } else if (formData.userId.length < 4 || formData.userId.length > 20) {
-            newErrors.userId = '아이디는 4~20자로 입력해주세요.';
+    // 아이디 중복 확인
+    const handleCheckId = async() => {
+        try{
+            const response = await fetch(
+                `http://localhost:8080/dykj/api/members/checkId?userId=${encodeURIComponent(formData.userId)}`
+            );
+            if(!response.ok) throw new Error('서버 오류');
+            const isExists = await response.json();
+            setIdCheckStatus(isExists ? 'duplicate' : 'available');
+        } catch (err) {
+            alert('중복 확인 중 오류가 발생했습니다.');
         }
+    };
 
-        if (!formData.userPwd.trim()) {
-            newErrors.userPwd = '비밀번호를 입력해주세요.';
-        } else if (formData.userPwd.length < 4) {
-            newErrors.userPwd = '비밀번호는 4자 이상 입력해주세요.';
-        }
-
-        if (!formData.phone.trim()) {
-            newErrors.phone = '전화번호를 입력해주세요.';
-        } else if (!/^[0-9-]+$/.test(formData.phone)) {
-            newErrors.phone = '올바른 전화번호 형식으로 입력해주세요.';
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+    // 전화번호 입력 확인
+    const validatePhone = (phone) =>{
+        if(!phone.trim()) return '전화번호를 입력해주세요.';
+        if(!/^[0-9-]+$/.test(phone)) return '올바른 전화번호 형식으로 입력해주세요.';
+        return '';
     };
 
     // 회원가입 제출
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!validateForm()) {
+        const phoneError = validatePhone(formData.phone);
+        if(phoneError) {
+            setErrors(prev => ({ ...prev, phone: phoneError}));
             return;
         }
 
@@ -82,9 +110,7 @@ function Signup() {
         try {
             const response = await fetch('http://localhost:8080/dykj/api/members/signup', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     userId: formData.userId,
                     userPwd: formData.userPwd,
@@ -115,58 +141,176 @@ function Signup() {
     };
 
     // 취소 버튼 핸들러
-    const handleCancel = () => {
-        navigate('/');
-    };
+    const handleCancel = () => navigate('/');
+
+    //아이디 입력 상태
+    const isUserIdFormatValid = validateUserId(formData.userId);
+    const idHasInput = formData.userId.length > 0;
+
+    let idInputClass = '';
+    let idMessage = null;
+    let idMessageType= ''; // 가능 여부
+
+    if(idHasInput && !isUserIdFormatValid){
+        idInputClass = 'input-error';
+        idMessage = '아이디는 5~20자의 영어 소문자, 숫자만 입력 가능합니다.';
+        idMessageType = 'error';
+    } else if (idCheckStatus === 'available'){
+        idInputClass = 'input-success';
+        idMessage = '사용 가능한 아이디입니다.';
+        idMessageType = 'success';
+    } else if (idCheckStatus === 'duplicate'){
+        idInputClass = 'input-error';
+        idMessage = '이미 사용 중인 아이디입니다.';
+        idMessageType = 'error';
+    }
+
+    // 비밀번호 상태
+    const isPwdValid = validatePassword(formData.userPwd);
+    
+    let pwdInputClass = '';
+    let pwdMessage = null;
+    let pwdMessageType = '';
+
+    if(pwdTouched) {
+        if(!isPwdValid){
+            pwdInputClass = 'input-error';
+            pwdMessage = '비밀번호는 8~30자의 영어 대소문자, 특수기호, 숫자만 입력 가능합니다.';
+            pwdMessageType = 'error';
+        } else {
+            pwdInputClass = 'input-success';
+            pwdMessage = '사용가능한 비밀번호입니다.';
+            pwdMessageType = 'success';
+        }
+    }
+
+    // 비밀번호 확인 상태
+    const isPwdMatch = formData.userPwd === formData.userPwdConfirm && formData.userPwdConfirm !== '';
+
+    let pwdConfirmClass = '';
+    let pwdConfirmMessage = null;
+    let pwdConfirmMessageType = '';
+
+    if(pwdConfirmTouched){
+        if(!isPwdMatch){
+            pwdConfirmClass = 'input-error';
+            pwdConfirmMessage = '비밀번호와 일치하지 않습니다.';
+            pwdConfirmMessageType = 'error';
+        } else {
+            pwdConfirmClass = 'input-success';
+        }
+    }
+
+    // 회원가입 버튼 활성화
+    const isSubmitEnabled =
+        isUserIdFormatValid &&
+        idCheckStatus === 'available' &&
+        isPwdValid &&
+        isPwdMatch;
 
     return (
         <div className="signup-container">
             <form className="signup-form" onSubmit={handleSubmit}>
                 <h2 className="signup-title">회원가입</h2>
 
-                {/* 아이디 입력 */}
-                <Input
-                    label="아이디"
-                    id="userId"
-                    name="userId"
-                    placeholder="아이디를 입력하세요"
-                    value={formData.userId}
-                    onChange={handleChange}
-                    error={errors.userId}
-                    fullWidth
-                />
+                {/* 아이디 입력, 중복 확인 버튼 */}
+                <div className="signup-field">
+                    <div className="id-input-row">
+                        <Input
+                            label="아이디"
+                            id="userId"
+                            name="userId"
+                            placeholder="아이디를 입력하세요"
+                            value={formData.userId}
+                            onChange={handleChange}
+                            fullWidth
+                            className={idInputClass}
+                        />
+                        <Button
+                            type="button"
+                            variant='secondary'
+                            size='sm'
+                            className='id-check-btn'
+                            disabled={!isUserIdFormatValid}
+                            onClick={handleCheckId}
+                        >
+                            중복 확인
+                        </Button>
+                    </div>
+                    {idMessage && (
+                        <div className="field-status">
+                            <span className={idMessageType === 'success' ? 'success-message' : 'input-error-message'}>
+                                {idMessage}
+                            </span>
+                        </div>
+                    )}
+                </div>
 
                 {/* 비밀번호 입력 */}
-                <Input
-                    label="비밀번호"
-                    type="password"
-                    id="userPwd"
-                    name="userPwd"
-                    placeholder="비밀번호를 입력하세요"
-                    value={formData.userPwd}
-                    onChange={handleChange}
-                    error={errors.userPwd}
-                    fullWidth
-                />
+                <div className="signup-field">
+                    <Input
+                        label="비밀번호"
+                        type="password"
+                        id="userPwd"
+                        name="userPwd"
+                        placeholder="비밀번호를 입력하세요"
+                        value={formData.userPwd}
+                        onChange={handleChange}
+                        fullWidth
+                        className={pwdInputClass}
+                    />
+                    {pwdMessage && (
+                        <div className="field-status">
+                            <span className={pwdMessageType === 'success' ? 'success-message' : 'input-error-message'}>
+                                {pwdMessage}
+                            </span>
+                        </div>
+                    )}
+                </div>
+
+                {/* 비밀번호 확인 입력 */}
+                <div className="signup-field">
+                    <Input
+                        label="비밀번호 확인"
+                        type="password"
+                        id="userPwdConfirm"
+                        name="userPwdConfirm"
+                        placeholder="비밀번호를 다시 입력하세요"
+                        value={formData.userPwdConfirm}
+                        onChange={handleChange}
+                        fullWidth
+                        className={pwdConfirmClass}
+                    />
+                    {pwdConfirmMessage && (
+                        <div className="field-status">
+                            <span className={pwdConfirmMessageType === 'success' ? 'success-message' : 'input-error-message'}>
+                                {pwdConfirmMessage}
+                            </span>
+                        </div>
+                    )}
+                </div>
 
                 {/* 전화번호 입력 */}
-                <Input
-                    label="전화번호"
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    placeholder="010-0000-0000"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    error={errors.phone}
-                    fullWidth
-                />
+                <div className="signup-field">
+                    <Input
+                        label="전화번호"
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        placeholder="010-0000-0000"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        error={errors.phone}
+                        fullWidth
+                    />
+                </div>
 
                 {/* 버튼 그룹 */}
                 <div className="button-group">
                     <Button
                         type="submit"
                         isLoading={isLoading}
+                        disabled={!isSubmitEnabled}
                         style={{ flex: 1 }}
                     >
                         회원가입
