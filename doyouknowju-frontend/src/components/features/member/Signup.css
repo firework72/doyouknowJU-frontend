@@ -60,6 +60,45 @@
     margin-top: 4px;
 }
 
+/* 각 입력 필드 섹션 공통 간격 */
+.signup-field {
+    margin-bottom: 1rem;
+}
+
+.signup-field .input-wrapper {
+    margin-bottom: 0;
+}
+
+/* 아이디 입력창 + 중복확인 버튼 행 */
+.id-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    /* 버튼 하단을 input 하단에 맞춤 */
+}
+
+.id-input-row .input-wrapper {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.id-check-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+/* 성공 메시지 */
+.success-message {
+    color: #22c55e;
+    font-size: 0.75rem;
+    margin-top: 4px;
+}
+
+/* 상태 메시지 래퍼 */
+.field-status {
+    margin-top: 4px;
+}
+
 /* 반응형 */
 @media (max-width: 480px) {
     .signup-form {

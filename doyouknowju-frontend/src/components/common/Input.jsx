@@ -12,11 +12,11 @@ const Input = ({
   const inputId = id || props.name || Math.random().toString(36).substr(2, 9);
 
   return (
-    <div className={`input-wrapper ${fullWidth ? 'w-full' : ''} ${className}`}>
+    <div className={`input-wrapper ${fullWidth ? 'w-full' : ''}`}>
       {label && <label htmlFor={inputId} className="input-label">{label}</label>}
       <input 
         id={inputId} 
-        className={`input-field ${error ? 'input-error' : ''}`} 
+        className={`input-field ${error ? 'input-error' : ''} ${className}`} 
         {...props} 
       />
       {error && <span className="input-error-message">{error}</span>}
