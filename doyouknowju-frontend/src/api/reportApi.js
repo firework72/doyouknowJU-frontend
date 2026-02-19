@@ -26,3 +26,25 @@ export const getReportList = async() =>{
     throw error;
   }
 };
+
+// 신고 조회
+export const getReportById = async(reportId) =>{
+  try{
+    const { data } = await axios.get(`/dykj/api/report/${reportId}`);
+    return data;
+  } catch(error) {
+    console.error('신고 조회 실패: ', error);
+    throw error;
+  }
+};
+
+//신고 상태 변경
+export const updateReportStatus = async (reportId, status) =>{
+  try{
+    const{ data } = await axios.put(`/dykj/api/report/${reportId}/status`, { status });
+    return data;
+  } catch(error) {
+    console.error('신고 상태 변경 실패: ', error);
+    throw error;
+  }
+};

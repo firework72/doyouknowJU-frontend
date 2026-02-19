@@ -22,7 +22,7 @@ function Header({ logoSrc }) {
     isLoading
   } = useNotification(user ? user.userId : null);
 
-  // [흰색 화면 해결] 상태 선언을 명확히 분리합니다.
+  // [흰색 화면 해결] 상태 선언을 분리
   const [showNotiList, setShowNotiList] = useState(false);
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
@@ -72,7 +72,10 @@ function Header({ logoSrc }) {
             <Link to="/stock" className="nav-button">주식 페이지</Link>
             <Link to="/news" className="nav-button">뉴스 페이지</Link>
             <Link to="/board" className="nav-button">게시판 페이지</Link>
-            <Link to="/mypage" className="nav-button">마이 페이지</Link>
+            {user?.userRole ==='ADMIN'
+              ? <Link to="/admin" className="nav-button" style={{ color: '#e74c3c', fontWeight: '700'}}>관리자 페이지</Link>
+              : <Link to="/mypage" className="nav-button">마이 페이지</Link>
+            }
           </nav>
         </div>
 

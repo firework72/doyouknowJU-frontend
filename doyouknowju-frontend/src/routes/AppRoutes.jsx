@@ -12,12 +12,14 @@ import RankingPage from '../components/features/ranking/RankingPage'; // Dong : 
 import Holding from '../components/features/holding/Holding'; // Dong : 보유종목 페이지
 import NewsPage from '../pages/NewsPage';
 import StockPage from '../components/features/stock/StockPage';
+import AdminPage from '../pages/AdminPage';
 
 const AppRoutes = () => {
     return (
         <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/mypage" element={<MyPage />} />
+            <Route path="/admin/*" element={<AdminPage />} /> {/* [taek] 관리자 페이지 추가 */}
             <Route path="/holding" element={<Holding />} /> {/* Dong : 보유종목 페이지 */}
             <Route path="/signup" element={<Signup />} />
             <Route path="/test-levelup" element={<TestLevelUp />} />

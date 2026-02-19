@@ -1,0 +1,36 @@
+.ban-modal-content {
+    padding: 10px 0;
+}
+
+.ban-options {
+    margin-top: 20px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.ban-options select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    flex: 1;
+}
+
+.ban-submit-btn {
+    padding: 10px 20px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.ban-submit-btn:hover:not(:disabled) {
+    background-color: #c82333;
+}
+
+.ban-submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

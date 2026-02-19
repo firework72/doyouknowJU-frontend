@@ -1,0 +1,12 @@
+.admin-page-container {
+    display: flex;
+    min-height: calc(100vh - 80px);
+    /* Header 높이 제외 */
+    background-color: #f8f9fa;
+}
+
+.admin-content {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+}
