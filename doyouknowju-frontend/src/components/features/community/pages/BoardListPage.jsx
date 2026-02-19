@@ -56,12 +56,12 @@ const TitleUser = ({ userId, userTitleImgUrl }) => {
 
   return (
     <span className={styles.userWithTitle}>
-      <span className={styles.userIdText}>{userId || '-'}</span>
       {imageSrc && (
         <span className={styles.titleBadge}>
           <img src={imageSrc} alt="칭호" className={styles.titleIcon} />
         </span>
       )}
+      <span className={styles.userIdText}>{userId || '-'}</span>
     </span>
   );
 };
@@ -72,7 +72,11 @@ function BoardListPage() {
   const { user } = useAuth();
 
   const isAuthenticated = !!user;
-  const [boardType, setBoardType] = useState('free');
+  const [boardType, setBoardType] = useState(() => {
+    const queryType = (searchParams.get('boardType') || '').toLowerCase();
+    if (queryType === 'stock' || searchParams.get('stockId')) return 'stock';
+    return 'free';
+  });
   const [boards, setBoards] = useState([]);
 
   const [pageInfo, setPageInfo] = useState({
@@ -117,6 +121,15 @@ function BoardListPage() {
   }, []);
 
   useEffect(() => {
+    const queryType = (searchParams.get('boardType') || '').toLowerCase();
+    const shouldBeStock = queryType === 'stock' || !!searchParams.get('stockId');
+    const nextType = shouldBeStock ? 'stock' : 'free';
+    if (nextType !== boardType) {
+      setBoardType(nextType);
+    }
+  }, [searchParams, boardType]);
+
+  useEffect(() => {
     const page = parseInt(searchParams.get('page')) || 1;
     const condition = searchParams.get('condition') || 'title';
     const keyword = searchParams.get('keyword') || '';
@@ -127,6 +140,21 @@ function BoardListPage() {
 
     fetchBoards(page, condition, keyword, boardType, stockId);
   }, [searchParams, boardType, fetchBoards]);
+
+  const handleBoardTypeChange = useCallback((nextType) => {
+    setBoardType(nextType);
+
+    const params = new URLSearchParams(searchParams);
+    params.set('boardType', nextType);
+    params.set('page', '1');
+
+    if (nextType === 'free') {
+      params.delete('stockId');
+      params.delete('stockName');
+    }
+
+    setSearchParams(params);
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     const requestId = ++suggestionRequestIdRef.current;
@@ -206,13 +234,13 @@ function BoardListPage() {
         <div className={styles.topActions}>
           <div className={styles.tabContainer}>
             <button
-              onClick={() => setBoardType('free')}
+              onClick={() => handleBoardTypeChange('free')}
               className={`${styles.tabButton} ${boardType === 'free' ? styles.activeTab : ''}`}
             >
               자유게시판
             </button>
             <button
-              onClick={() => setBoardType('stock')}
+              onClick={() => handleBoardTypeChange('stock')}
               className={`${styles.tabButton} ${boardType === 'stock' ? styles.activeTab : ''}`}
             >
               종목토론방
