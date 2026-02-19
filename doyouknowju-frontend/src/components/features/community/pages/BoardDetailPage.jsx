@@ -37,12 +37,12 @@ const TitleUser = ({ userId, userTitleImgUrl, className }) => {
 
   return (
     <span className={`${styles.userWithTitle} ${className || ''}`.trim()}>
-      <span className={styles.userIdText}>{userId || '-'}</span>
       {imageSrc && (
         <span className={styles.titleBadge}>
           <img src={imageSrc} alt="칭호" className={styles.titleIcon} />
         </span>
       )}
+      <span className={styles.userIdText}>{userId || '-'}</span>
     </span>
   );
 };

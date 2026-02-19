@@ -309,7 +309,6 @@ function HomePage() {
 
     useEffect(() => {
         if (!chartContainerRef.current || !selectedRows.length) return;
-
         const chart = createChart(chartContainerRef.current, {
             autoSize: true,
             layout: {
