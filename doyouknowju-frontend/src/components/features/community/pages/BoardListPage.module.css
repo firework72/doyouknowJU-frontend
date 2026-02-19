@@ -186,6 +186,35 @@
   text-align: center;
 }
 
+.userWithTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  max-width: 100%;
+  line-height: 1;
+}
+
+.userIdText {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.titleBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 0;
+}
+
+.titleIcon {
+  width: auto;
+  height: 15px;
+  max-width: none;
+  display: block;
+}
+
 
 .titleCell {
   text-align: center !important;

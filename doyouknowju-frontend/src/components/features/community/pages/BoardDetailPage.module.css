@@ -109,6 +109,8 @@
   padding: var(--spacing-md);
   color: var(--color-text-primary);
   border-right: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
 }
 
 .headerValue:last-child {
@@ -282,9 +284,35 @@
 }
 
 .replyWriter {
+  font-size: var(--font-size-sm);
+}
+
+.userWithTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  line-height: 1;
+}
+
+.userIdText {
   font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
-  font-size: var(--font-size-sm);
+}
+
+.titleBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 0;
+}
+
+.titleIcon {
+  width: auto;
+  height: 15px;
+  max-width: none;
+  display: block;
 }
 
 .replyDate {

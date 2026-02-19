@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchPopularBoards } from '@/api/boardApi';
+import { getImageUrl } from '@/api/game/titleApi';
 import styles from './PopularBoardsPanel.module.css';
 
 const toDateString = (value) => {
@@ -80,6 +81,14 @@ const PopularBoardsPanel = () => {
               <span className={styles.rank}>{item.dataRank ?? index + 1}</span>
               <span className={styles.title}>{item.boardTitle ?? '(제목 없음)'}</span>
               <span className={styles.meta}>
+                <span className={styles.writerWrap}>
+                  <span className={styles.writer}>{item.userId ?? '-'}</span>
+                  {item.userTitleImgUrl && (
+                    <span className={styles.titleBadge}>
+                      <img src={getImageUrl(item.userTitleImgUrl)} alt="칭호" className={styles.titleIcon} />
+                    </span>
+                  )}
+                </span>
                 <span className={styles.date}>{toDateString(item.modifyDate ?? item.createDate)}</span>
                 {item.viewCount !== undefined && <span className={styles.views}>조회 {item.viewCount}</span>}
                 {item.stockName && <span className={styles.stock}>{item.stockName}</span>}
