@@ -6,6 +6,7 @@ import styles from './BoardDetailPage.module.css';
 import { useAuth } from '@/hooks/AuthContext';
 import { insertReport, REPORT_TYPES } from '@/api/reportApi';
 import { canWriteAfterSignupDays, getWriteRestrictionMessage } from '@/utils/accountEligibility';
+import { getImageUrl } from '@/api/game/titleApi';
 
 const toDateString = (value) => {
   if (!value) return '-';
@@ -29,6 +30,21 @@ const toDateString = (value) => {
     hour12: false,
     timeZone: 'Asia/Seoul'
   }).format(date).replace(/\. /g, '-').replace('.', '');
+};
+
+const TitleUser = ({ userId, userTitleImgUrl, className }) => {
+  const imageSrc = getImageUrl(userTitleImgUrl);
+
+  return (
+    <span className={`${styles.userWithTitle} ${className || ''}`.trim()}>
+      <span className={styles.userIdText}>{userId || '-'}</span>
+      {imageSrc && (
+        <span className={styles.titleBadge}>
+          <img src={imageSrc} alt="칭호" className={styles.titleIcon} />
+        </span>
+      )}
+    </span>
+  );
 };
 
 function BoardDetailPage() {
@@ -259,6 +275,7 @@ function BoardDetailPage() {
 
   const title = board.boardTitle ?? board.title ?? '(제목 없음)';
   const writer = board.boardWriter ?? board.userId ?? board.writer ?? '-';
+  const writerTitleImgUrl = board.userTitleImgUrl ?? board.writerTitleImgUrl ?? board.titleImgUrl;
   const createdAt = board.createDate ?? board.createdAt ?? board.createdDate;
   const boardTargetId = board.boardWriter ?? board.userId ?? board.writer;
 
@@ -281,7 +298,12 @@ function BoardDetailPage() {
         <div className={styles.postCard}>
           <div className={styles.postHeader}>
             <div className={styles.headerLabel}>작성자</div>
-            <div className={styles.headerValue}>{writer}</div>
+            <div className={styles.headerValue}>
+              <TitleUser
+                userId={writer}
+                userTitleImgUrl={writerTitleImgUrl}
+              />
+            </div>
             <div className={styles.headerLabel}>작성일</div>
             <div className={styles.headerValue}>{toDateString(createdAt)}</div>
           </div>
@@ -364,12 +386,17 @@ function BoardDetailPage() {
               replies.map((reply) => {
                 const isMyReply = user?.userId === reply.userId;
                 const isEditing = editingReplyId === reply.replyId;
+                const replyTitleImgUrl = reply.userTitleImgUrl ?? reply.titleImgUrl;
 
                 return (
                   <div key={reply.replyId} className={styles.replyItem}>
                     <div className={styles.replyMain}>
                       <div className={styles.replyTop}>
-                        <span className={styles.replyWriter}>{reply.userId}</span>
+                        <TitleUser
+                          userId={reply.userId}
+                          userTitleImgUrl={replyTitleImgUrl}
+                          className={styles.replyWriter}
+                        />
                         <span className={styles.replyDate}>{toDateString(reply.createDate ?? reply.createdAt)}</span>
                         {!isEditing && (
                           <div className={styles.replyActions}>

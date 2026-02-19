@@ -119,7 +119,6 @@ function HomePage() {
                 };
             })
             .filter(Boolean);
-
         const validTimePoints = points.filter(
             (point) =>
                 point.timeNumber !== null &&

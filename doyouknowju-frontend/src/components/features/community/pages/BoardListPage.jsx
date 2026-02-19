@@ -5,6 +5,7 @@ import Button from '../../../common/Button';
 import Pagination from '../../../common/Pagination';
 import { useAuth } from '@/hooks/AuthContext';
 import { fetchStockSuggestions } from '@/api/stockApi';
+import { getImageUrl } from '@/api/game/titleApi';
 import axios from 'axios';
 
 const boardApi = {
@@ -49,6 +50,21 @@ const POPULAR_STOCKS = [
   { name: '삼성바이오로직스', id: '207940' },
   { name: 'KIA', id: '000270' },
 ];
+
+const TitleUser = ({ userId, userTitleImgUrl }) => {
+  const imageSrc = getImageUrl(userTitleImgUrl);
+
+  return (
+    <span className={styles.userWithTitle}>
+      <span className={styles.userIdText}>{userId || '-'}</span>
+      {imageSrc && (
+        <span className={styles.titleBadge}>
+          <img src={imageSrc} alt="칭호" className={styles.titleIcon} />
+        </span>
+      )}
+    </span>
+  );
+};
 
 function BoardListPage() {
   const navigate = useNavigate();
@@ -296,7 +312,12 @@ function BoardListPage() {
                     <td className={styles.titleCell}>
                       <span className={styles.titleText}>{board.boardTitle}</span>
                     </td>
-                    <td className={styles.center}>{board.userId}</td>
+                    <td className={styles.center}>
+                      <TitleUser
+                        userId={board.userId ?? board.boardWriter ?? board.writer}
+                        userTitleImgUrl={board.userTitleImgUrl ?? board.writerTitleImgUrl ?? board.titleImgUrl}
+                      />
+                    </td>
                     <td className={styles.center}>{board.viewCount}</td>
                     <td className={styles.center}>{board.createDate ? board.createDate.substring(0, 10) : '-'}</td>
                   </tr>
