@@ -8,17 +8,21 @@ import { Input, Button } from '../../common';
 // 아이디: 5~20자, 영어 소문자+숫자 허용, 숫자만 불가
 const validateUserId = (id) => /^(?=.*[a-z])[a-z0-9]{5,20}$/.test(id);
 
-// 비밀번호: 8~30자, 대소문자/숫자/특수기호 중 2종류 이상 조합
+// 비밀번호: 8~30자, 대소문자/숫자/특수기호 중 2종류 이상 조합, 공백 불가
 const validatePassword = (pwd) =>{
+    if(/\s/.test(pwd)) return false;
     if (pwd.length < 8 || pwd.length > 30) return false;
     const hasUpper = /[A-Z]/.test(pwd);
     const hasLower = /[a-z]/.test(pwd);
     const hasDigit = /[0-9]/.test(pwd);
     const hasSpecial = /[^A-Za-z0-9]/.test(pwd);
-    const count = [hasUpper || hasLower, hasDigit, hasSpecial].filter(Boolean).length;
+    // 대소문자, 숫자, 특수 기호 중 2개 이상 조합
     const groupCount = [hasUpper||hasLower , hasDigit, hasSpecial].filter(Boolean).length;
     return groupCount >= 2;
 }
+
+// 전화번호: 010으로 시작하는 11자리 숫자
+const isPhoneValid = (phone) => /^010[0-9]{8}/.test(phone);
 
 function Signup() {
     const { user } = useAuth();
@@ -50,6 +54,9 @@ function Signup() {
     const [pwdTouched, setPwdTouched] = useState(false);
     const [pwdConfirmTouched, setPwdConfirmTouched] = useState(false);
 
+    // 전화번호 입력 여부
+    const [phoneTouched, setPhoneTouched] = useState(false);
+
     // 입력값 변경 핸들러
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -66,6 +73,9 @@ function Signup() {
         }
         if(name === 'userPwdConfirm'){
             setPwdConfirmTouched(true);
+        }
+        if(name === 'phone'){
+            setPhoneTouched(true);
         }
 
         // 에러 메시지 초기화
@@ -88,23 +98,11 @@ function Signup() {
         }
     };
 
-    // 전화번호 입력 확인
-    const validatePhone = (phone) =>{
-        if(!phone.trim()) return '전화번호를 입력해주세요.';
-        if(!/^[0-9-]+$/.test(phone)) return '올바른 전화번호 형식으로 입력해주세요.';
-        return '';
-    };
+    
 
     // 회원가입 제출
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        const phoneError = validatePhone(formData.phone);
-        if(phoneError) {
-            setErrors(prev => ({ ...prev, phone: phoneError}));
-            return;
-        }
-
         setIsLoading(true);
 
         try {
@@ -201,12 +199,31 @@ function Signup() {
         }
     }
 
+    // 전화번호 상태
+    const isPhoneValidResult = isPhoneValid(formData.phone);
+    let phoneInputClass = '';
+    let phoneMessage = null;
+    let phoneMessageType = '';
+
+    if (phoneTouched){
+        if(!isPhoneValidResult){
+            phoneInputClass = 'input-error';
+            phoneMessage = '010으로 시작하는 11자리 숫자를 입력해주세요';
+            phoneMessageType = 'error';
+        } else {
+            phoneInputClass = 'input-success';
+            phoneMessage = '사용 가능한 전화번호입니다.';
+            phoneMessageType = 'success';
+        }
+    }
+
     // 회원가입 버튼 활성화
     const isSubmitEnabled =
         isUserIdFormatValid &&
         idCheckStatus === 'available' &&
         isPwdValid &&
-        isPwdMatch;
+        isPwdMatch &&
+        isPhoneValidResult;
 
     return (
         <div className="signup-container">
@@ -297,12 +314,19 @@ function Signup() {
                         type="tel"
                         id="phone"
                         name="phone"
-                        placeholder="010-0000-0000"
+                        placeholder="01012345678"
                         value={formData.phone}
                         onChange={handleChange}
-                        error={errors.phone}
                         fullWidth
+                        className={phoneInputClass}
                     />
+                    {phoneMessage && (
+                        <div className="field-status">
+                            <span className={phoneMessageType === 'success' ? 'success-message' : "input-error-message"}>
+                                {phoneMessage}
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 {/* 버튼 그룹 */}
