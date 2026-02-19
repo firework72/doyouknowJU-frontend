@@ -11,6 +11,7 @@ import SellConfirmModal from './components/SellConfirmModal.jsx';
 import api from '../../../api/trade/axios';
 import StockChart from './components/StockChart.jsx';
 import holdingApi from '../../../api/holding/holdingApi';
+import holidayApi from '../../../api/holiday/HolidayApi.js';
 /*
     필요한 상태값 : 주식 ID, 회원 정보
     필요한 함수 : 주식 매수, 주식 매도
@@ -37,6 +38,32 @@ function StockDetail() {
     const [toast, setToast] = useState(null);
     const [buyModalOpen, setBuyModalOpen] = useState(false);
     const [sellModalOpen, setSellModalOpen] = useState(false);
+
+    const getNowKoreaTime = () => {
+        const now = new Date();
+        const utc = now.getTime() + (now.getTimezoneOffset() * 60 * 1000);
+        const koreaTime = new Date(utc + (9 * 60 * 60 * 1000));
+        return koreaTime;
+    }
+
+    // 현재 시각이 장 거래 시간인지 확인하는 함수
+    const checkValidTime = () => {
+        const nowTime = getNowKoreaTime();
+        // 오늘이 공휴일인지 확인
+        // 공휴일인지 확인을 하지 못했다면 false 반환
+        try {
+            const isHoliday = holidayApi.getIsHoliday();
+            if (isHoliday > 0) return false;
+        } catch (error) {
+            console.error("공휴일 확인 실패", error);
+            return false;
+        }
+        
+        if (nowTime.getHours() >= 15 && nowTime.getMinutes() > 30 || nowTime.getHours() < 9 || nowTime.getDay() === 0 || nowTime.getDay() === 6) {
+            return false;
+        }
+        return true;
+    }
 
     const fetchStockName = async () => {
         const response = await tradeApi.getStockName(stockId);
@@ -145,9 +172,9 @@ function StockDetail() {
     const handleBuy = async () => {
         // 종목코드, 매수개수, 매수가격, 회원ID, 거래종류, 총매수가격 전달
 
-        const nowTime = new Date();
+        const nowTime = getNowKoreaTime();
 
-        if (nowTime.getHours() >= 15 && nowTime.getMinutes() > 30 || nowTime.getHours() < 9 || nowTime.getDay() === 0 || nowTime.getDay() === 6) {
+        if (!checkValidTime()) {
             showToast("error", "장 거래 시간이 아닙니다.");
             return;
         }
@@ -177,9 +204,9 @@ function StockDetail() {
     const handleSell = async () => {
         // 종목코드, 매도개수, 매도가격, 회원ID, 거래종류, 총매도가격 전달
 
-        const nowTime = new Date();
+        const nowTime = getNowKoreaTime();
 
-        if (nowTime.getHours() >= 15 && nowTime.getMinutes() > 30 || nowTime.getHours() < 9 || nowTime.getDay() === 0 || nowTime.getDay() === 6) {
+        if (!checkValidTime()) {
             showToast("error", "장 거래 시간이 아닙니다.");
             return;
         }
