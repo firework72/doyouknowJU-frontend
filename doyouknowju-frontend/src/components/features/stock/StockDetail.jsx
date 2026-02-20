@@ -32,6 +32,8 @@ function StockDetail() {
     const [stockNews, setStockNews] = useState([]);
     const [holdingTotalCount, setHoldingTotalCount] = useState(0);
 
+    const [stockPeriod, setStockPeriod] = useState("D");
+
     const [isFavorite, setIsFavorite] = useState(false);
 
     const [pageLoading, setPageLoading] = useState(true);
@@ -58,8 +60,12 @@ function StockDetail() {
             console.error("공휴일 확인 실패", error);
             return false;
         }
+
+        console.log("hour", nowTime.getHours());
+        console.log("minute", nowTime.getMinutes());
+        console.log("day", nowTime.getDay());
         
-        if (nowTime.getHours() >= 15 && nowTime.getMinutes() > 30 || nowTime.getHours() < 9 || nowTime.getDay() === 0 || nowTime.getDay() === 6) {
+        if (nowTime.getHours() == 15 && nowTime.getMinutes() > 30 || nowTime.getHours() < 9 || nowTime.getHours() > 15 || nowTime.getDay() === 0 || nowTime.getDay() === 6) {
             return false;
         }
         return true;
@@ -260,22 +266,71 @@ function StockDetail() {
                                     <h1 onClick={isFavorite ? handleRemoveFavorite : handleAddFavorite} style={{cursor: 'pointer'}}>{isFavorite ? "⭐" : "☆"}</h1>
                                 }
                             </div>
-                            <h2 className={stockFluctuation > 0 ? styles.riseColor : styles.fallColor}>{Number(stockPrice).toLocaleString()} ({Number(stockFluctuation).toLocaleString()}, {stockContrastRatio}%)</h2>
+                            <h2 className={`${stockFluctuation > 0 ? styles.riseColor : styles.fallColor}`}>
+                                <span className={`${styles.bigText} ${styles.numberCell}`}>{Number(stockPrice).toLocaleString()}&nbsp;&nbsp;</span>
+                                <span className={`${styles.numberCell}`}>
+                                    {
+                                        stockFluctuation > 0 ? "▲" : stockFluctuation < 0 ? "▼" : ""
+                                    }
+                                    {Number(Math.abs(stockFluctuation)).toLocaleString()} ({stockContrastRatio}%)
+                                </span>
+                            </h2>
                             <Button onClick={() => navigate(`/board?page=1&stockId=${stockId}&stockName=${stockName}`)}
                                     style={{width: '400px'}}>
                                 {stockName} 게시판 바로가기
                             </Button>
                             <Card>
                                 <h2>차트</h2>
-                                <StockChart stockId={stockId} />
+                                <div>
+                                    <Button
+                                        variant={stockPeriod === "D" ? "primary" : "secondary"}
+                                        onClick={() => setStockPeriod("D")}
+                                    >
+                                        일봉
+                                    </Button>
+                                    <Button
+                                        variant={stockPeriod === "W" ? "primary" : "secondary"}
+                                        onClick={() => setStockPeriod("W")}
+                                    >
+                                        주봉
+                                    </Button>
+                                    <Button
+                                        variant={stockPeriod === "M" ? "primary" : "secondary"}
+                                        onClick={() => setStockPeriod("M")}
+                                    >
+                                        월봉
+                                    </Button>
+                                    <Button
+                                        variant={stockPeriod === "Y" ? "primary" : "secondary"}
+                                        onClick={() => setStockPeriod("Y")}
+                                    >
+                                        연봉
+                                    </Button>
+                                </div>
+                                {
+                                    stockPeriod === "D" &&
+                                    <StockChart stockId={stockId} period="D" />
+                                }
+                                {
+                                    stockPeriod === "W" &&
+                                    <StockChart stockId={stockId} period="W" />
+                                }
+                                {
+                                    stockPeriod === "M" &&
+                                    <StockChart stockId={stockId} period="M" />
+                                }
+                                {
+                                    stockPeriod === "Y" &&
+                                    <StockChart stockId={stockId} period="Y" />
+                                }
                             </Card>
                             {
                                 user &&                     
                                 <Card>
                                     <h2>주식 매수/매도</h2>
                                     <p>수량을 선택하고 매수/매도 버튼을 눌러 거래하세요.</p>
-                                    <p>현재 {user.points.toLocaleString()}P를 보유하고 있습니다.</p>
-                                    <p>현재 이 주식을 {holdingTotalCount.toLocaleString()}주 보유하고 있습니다.</p>
+                                    <p>현재 <strong>{user.points.toLocaleString()}P</strong>를 보유하고 있습니다.</p>
+                                    <p>현재 이 주식을 <strong>{holdingTotalCount.toLocaleString()}</strong>주 보유하고 있습니다.</p>
                                     <br></br>
                                     <div className={styles.alignRow}>
                                         <Input

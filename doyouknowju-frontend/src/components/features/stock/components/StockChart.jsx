@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { tradeApi } from '../../../../api/trade/TradeApi';
 import { Spinner } from '../../../common';
 
-function StockChart({stockId}) {
+function StockChart({stockId, period}) {
 
     const chartContainerRef = useRef(null);
 
@@ -24,7 +24,7 @@ function StockChart({stockId}) {
         isFetchingRef.current = true;
         setTimeout(async () => {
             try {
-                const response = await tradeApi.getStockChartData(stockId, endDate);
+                const response = await tradeApi.getStockChartData(stockId, endDate, period);
 
                 const newData = [...response.output2.reverse(), ...stockChartDataRef.current];
                 stockChartDataRef.current = newData;
@@ -64,7 +64,7 @@ function StockChart({stockId}) {
             },
             grid: {
                 vertLines: { color: 'rgba(70, 70, 70, 0)' },
-                horzLines: { color: 'rgba(70, 70, 70, 0)' },
+                horzLines: { color: 'rgba(70, 70, 70, 0.1)' },
             },
             priceScale: {
                 borderColor: 'rgba(197, 203, 206, 0.8)',
@@ -79,6 +79,7 @@ function StockChart({stockId}) {
                 minBarSpacing: 15,
                 fixLeftEdge: true,
                 fixRightEdge: true,
+                rightOffset: 20
             },
             crosshair: {
                 mode: 0,
@@ -112,7 +113,7 @@ function StockChart({stockId}) {
         // 스크롤이 왼쪽 끝에 다다르면 데이터 추가 로드
 
         const handleVisibleRangeChange = (visibleRange) => {
-            if (visibleRange.from < 10) {
+            if (visibleRange.from < 70) {
                 if (!isFetchingRef.current && chartDataRef.current.length > 0) {
                     console.log("chartDataRef.current[0]",chartDataRef.current[0]);
                     let newDate = new Date(chartDataRef.current[0].time);

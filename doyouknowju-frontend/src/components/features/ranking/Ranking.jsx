@@ -117,7 +117,7 @@ function Ranking({groupSize = 50}) {
                 </Button>
 
             </div>
-            <RankingTable data={periodRanking} />
+            <RankingTable data={periodRanking} isSimplified={true} />
         </div>
     );
 }

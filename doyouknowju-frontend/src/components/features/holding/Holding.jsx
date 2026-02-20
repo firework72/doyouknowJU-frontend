@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import Toast from '@/components/common/Toast';
 import Spinner from '@/components/common/Spinner';
 import HoldingTable from './components/HoldingTable';
+import { useNavigate } from 'react-router-dom';
 
 function Holding() {
     const { user } = useAuth();
@@ -12,6 +13,8 @@ function Holding() {
     const [holdings, setHoldings] = useState([]);
     const [currentAsset, setCurrentAsset] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
+
+    const navigate = useNavigate();
 
     const fetchMyHolding = async (userId) => {
         setIsLoading(true);
@@ -30,6 +33,10 @@ function Holding() {
         } finally {
             setIsLoading(false);
         }
+    }
+
+    const handleRowClick = (stockId) => {
+        navigate(`/stock/${stockId}`);
     }
 
     useEffect(()=>{
@@ -52,7 +59,7 @@ function Holding() {
                     ) : (
                         <>
                             <h2>현재 자산 : <span className={styles.numberCell}>{currentAsset.toLocaleString()}</span> P</h2>
-                            <HoldingTable data={holdings}></HoldingTable>
+                            <HoldingTable data={holdings} handleRowClick={handleRowClick}></HoldingTable>
                         </>
                     )
                 }

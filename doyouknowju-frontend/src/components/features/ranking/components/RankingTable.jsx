@@ -1,7 +1,7 @@
 import styles from './RankingTable.module.css';
 import { getImageUrl } from '@/api/game/titleApi.js';
 
-function RankingTable({data}) {
+function RankingTable({data, isSimplified = false}) {
     return (
         <table className={styles.table}>
             <thead>
@@ -9,12 +9,12 @@ function RankingTable({data}) {
                     <th className={styles.th}>순위</th>
                     <th className={styles.th}>닉네임</th>
                     {
-                        data.length > 3 && (
+                        !isSimplified && (
                             <th className={`${styles.th} ${styles.textAlignRight}`}>초기자산</th>
                         )
                     }
                     {
-                        data.length > 3 && (
+                        !isSimplified && (
                             <th className={`${styles.th} ${styles.textAlignRight}`}>현재자산</th>
                         )
                     }
@@ -39,12 +39,12 @@ function RankingTable({data}) {
                                 </div>
                             </td>
                             {
-                                data.length > 3 && (
+                                !isSimplified && (
                                     <td className={`${styles.td} ${styles.numberCell}`}>{ranking.startPoint.toLocaleString()}</td>
                                 )
                             }
                             {
-                                data.length > 3 && (
+                                !isSimplified && (
                                     <td className={`${styles.td} ${styles.numberCell}`}>{ranking.currentPoint.toLocaleString()}</td>
                                 )
                             }

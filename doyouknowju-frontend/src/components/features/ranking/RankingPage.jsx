@@ -120,7 +120,7 @@ function Ranking() {
                 </Button>
 
             </div>
-            <RankingTable data={periodRanking} />
+            <RankingTable data={periodRanking} isSimplified={false} />
             <Pagination
                 currentPage={page}
                 totalPages={totalPage}

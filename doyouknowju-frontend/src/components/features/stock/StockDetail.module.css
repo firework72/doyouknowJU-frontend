@@ -30,6 +30,19 @@
     text-align: bottom;
 }
 
+.bigText {
+    font-size: 2rem;
+}
+
+/* 숫자 전용 스타일 */
+.numberCell {
+  text-align: right;
+  font-variant-numeric: tabular-nums; /* 숫자 너비 고정 */
+  /*font-family: 'Roboto Mono', monospace; /* 숫자 전용 폰트 추천 */
+  font-family: 'Wanted Sans Variable', Noto Sans KR, sans-serif;
+  font-weight: 700;
+}
+
 .riseColor {
     color: #d20d0d;
 }

@@ -36,6 +36,10 @@
   vertical-align: middle;        /* 세로 중앙 정렬 */
 }
 
+.td:hover {
+  cursor: pointer;
+}
+
 /* 숫자 전용 스타일 */
 .numberCell {
   text-align: right;

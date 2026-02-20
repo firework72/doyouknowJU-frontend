@@ -1,6 +1,6 @@
 import styles from './HoldingTable.module.css';
 
-function HoldingTable({data}) {
+function HoldingTable({data, handleRowClick}) {
     return (
         <table className={styles.table}>
             <thead>
@@ -17,7 +17,7 @@ function HoldingTable({data}) {
             <tbody>
                 {
                     data?.map((holding, index) => (
-                        <tr key={index} className={styles.row}>
+                        <tr key={index} className={styles.row} onClick={() => handleRowClick(holding.stockId)}>
                             <td className={styles.td}>{holding.stockId}</td>
                             <td className={styles.td}>{holding.stockName}</td>
                             <td className={`${styles.td} ${styles.numberCell}`}>{holding.totalCount.toLocaleString()}</td>

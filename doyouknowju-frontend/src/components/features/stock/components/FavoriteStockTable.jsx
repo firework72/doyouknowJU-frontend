@@ -59,8 +59,8 @@ function FavoriteStockTable({userId}) {
                                     {stock.stockId}&nbsp;&nbsp;&nbsp;&nbsp;{stock.stockName}
                                 </div>
                                 <div className={`${styles.priceInfo} ${priceClass}`}>
-                                    <span className={`${styles.stockPrice} ${styles.numberCell}`}>{stock.stockPrice}</span>
-                                    <span className={`${styles.numberCell}`}>{arrow}{Math.abs(change)} ({stock.stockPriceChangeRate}%)</span>
+                                    <span className={`${styles.stockPrice} ${styles.numberCell}`}>{Number(stock.stockPrice).toLocaleString()}</span>
+                                    <span className={`${styles.numberCell}`}>{arrow}{Math.abs(change).toLocaleString()} ({stock.stockPriceChangeRate}%)</span>
                                 </div>
                             </Card>
                         </div>
