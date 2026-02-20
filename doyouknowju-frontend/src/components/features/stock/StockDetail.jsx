@@ -60,8 +60,12 @@ function StockDetail() {
             console.error("공휴일 확인 실패", error);
             return false;
         }
+
+        console.log("hour", nowTime.getHours());
+        console.log("minute", nowTime.getMinutes());
+        console.log("day", nowTime.getDay());
         
-        if (nowTime.getHours() >= 15 && nowTime.getMinutes() > 30 || nowTime.getHours() < 9 || nowTime.getDay() === 0 || nowTime.getDay() === 6) {
+        if (nowTime.getHours() == 15 && nowTime.getMinutes() > 30 || nowTime.getHours() < 9 || nowTime.getHours() > 15 || nowTime.getDay() === 0 || nowTime.getDay() === 6) {
             return false;
         }
         return true;

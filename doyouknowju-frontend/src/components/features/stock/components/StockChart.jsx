@@ -64,7 +64,7 @@ function StockChart({stockId, period}) {
             },
             grid: {
                 vertLines: { color: 'rgba(70, 70, 70, 0)' },
-                horzLines: { color: 'rgba(70, 70, 70, 0)' },
+                horzLines: { color: 'rgba(70, 70, 70, 0.1)' },
             },
             priceScale: {
                 borderColor: 'rgba(197, 203, 206, 0.8)',
