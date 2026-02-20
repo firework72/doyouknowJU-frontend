@@ -33,35 +33,41 @@ function FavoriteStockTable({userId}) {
         {isLoading ? (
             <Spinner />
         ) : (
-            <>
-            {favoriteStocks.map((stock) => {
-                const change = Number(stock.stockPriceChange);
-                let priceClass = styles.priceNeutral;
-                let arrow = '-';
+            favoriteStocks.length === 0 ? (
+                <div>
+                    <p>관심 종목이 없습니다.</p>
+                </div>
+            ) : (
+                <>
+                {favoriteStocks.map((stock) => {
+                    const change = Number(stock.stockPriceChange);
+                    let priceClass = styles.priceNeutral;
+                    let arrow = '-';
 
-                if (change > 0) {
-                    priceClass = styles.priceUp;
-                    arrow = '▲';
-                } else if (change < 0) {
-                    priceClass = styles.priceDown;
-                    arrow = '▼';
-                }
+                    if (change > 0) {
+                        priceClass = styles.priceUp;
+                        arrow = '▲';
+                    } else if (change < 0) {
+                        priceClass = styles.priceDown;
+                        arrow = '▼';
+                    }
 
-                return (
-                    <div key={stock.stockId}>
-                        <Card className={styles.card} onClick={() => navigate(`/stock/${stock.stockId}`)}>
-                            <div className={styles.stockInfo}>
-                                {stock.stockId}&nbsp;&nbsp;&nbsp;&nbsp;{stock.stockName}
-                            </div>
-                            <div className={`${styles.priceInfo} ${priceClass}`}>
-                                <span className={`${styles.stockPrice} ${styles.numberCell}`}>{stock.stockPrice}</span>
-                                <span className={`${styles.numberCell}`}>{arrow}{Math.abs(change)} ({stock.stockPriceChangeRate}%)</span>
-                            </div>
-                        </Card>
-                    </div>
-                );
-            })}
-            </>
+                    return (
+                        <div key={stock.stockId}>
+                            <Card className={styles.card} onClick={() => navigate(`/stock/${stock.stockId}`)}>
+                                <div className={styles.stockInfo}>
+                                    {stock.stockId}&nbsp;&nbsp;&nbsp;&nbsp;{stock.stockName}
+                                </div>
+                                <div className={`${styles.priceInfo} ${priceClass}`}>
+                                    <span className={`${styles.stockPrice} ${styles.numberCell}`}>{stock.stockPrice}</span>
+                                    <span className={`${styles.numberCell}`}>{arrow}{Math.abs(change)} ({stock.stockPriceChangeRate}%)</span>
+                                </div>
+                            </Card>
+                        </div>
+                    );
+                })}
+                </>
+            )
         )}
         </>
     );

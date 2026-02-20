@@ -7,10 +7,47 @@ import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { holdingApi } from '../../../../api/holding/holdingApi';
 import { useAuth } from '../../../../hooks/AuthContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Spinner } from '../../../common';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
+
+
+// 3. 차트 옵션 설정 (주식 차트처럼 예쁘게 꾸미기)
+const options = {
+    responsive: true,
+    plugins: {
+        legend: {
+            position: 'bottom', // 범례를 오른쪽에 배치 (bottom, top, left 가능)
+            labels: {
+                font: {
+                    size: 12, // 폰트 크기
+                },
+                boxWidth: 10, // 색상 박스 크기
+                padding: 20,  // 간격
+            },
+        },
+        tooltip: {
+            callbacks: {
+                // 툴팁에 가격 표시할 때 '원' 단위 붙이기
+                label: function (context) {
+                    let label = context.label || '';
+                    if (label) {
+                        label += ': ';
+                    }
+                    if (context.parsed !== null) {
+                        label += new Intl.NumberFormat('ko-KR').format(context.parsed) + ' P';
+                    }
+                    return label;
+                },
+            },
+        },
+    },
+    cutout: '70%', // 도넛의 구멍 크기 (클수록 얇은 도넛이 됨)
+    animation: {
+        duration: 1000,
+    }
+};
 
 const HoldingChart = () => {
 
@@ -36,7 +73,7 @@ const HoldingChart = () => {
         if (user && user.userId) {
             fetchHoldingData(user.userId);
         }
-    }, [user?.userId]);
+    }, []);
 
     let labelData = holdings.map((holding) => holding.stockName);
     labelData = [...labelData, '예수금'];
@@ -44,50 +81,20 @@ const HoldingChart = () => {
     let valueData = holdings.map((holding) => holding.currentPrice * holding.totalCount);
     valueData = [...valueData, user.points];
 
-    const data = {
-        labels: labelData.map(label=>label),
-        datasets: [
-            {
-                data: valueData.map(value=>value),
-                backgroundColor: valueData.map((_, idx) => COLOR_PALETTE[idx % COLOR_PALETTE.length]),
-                borderColor: valueData.map((_, idx) => COLOR_PALETTE[idx % COLOR_PALETTE.length]),
-                borderWidth: 1,
-            },
-        ],
-    };
+    const data = useMemo(()=>{
+        return {
+            labels: labelData.map(label=>label),
+            datasets: [
+                {
+                    data: valueData.map(value=>value),
+                    backgroundColor: valueData.map((_, idx) => COLOR_PALETTE[idx % COLOR_PALETTE.length]),
+                    borderColor: valueData.map((_, idx) => COLOR_PALETTE[idx % COLOR_PALETTE.length]),
+                    borderWidth: 1,
+                },
+            ],
+        };
+    }, [labelData, valueData]);
 
-    // 3. 차트 옵션 설정 (주식 차트처럼 예쁘게 꾸미기)
-    const options = {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'bottom', // 범례를 오른쪽에 배치 (bottom, top, left 가능)
-                labels: {
-                    font: {
-                        size: 12, // 폰트 크기
-                    },
-                    boxWidth: 10, // 색상 박스 크기
-                    padding: 20,  // 간격
-                },
-            },
-            tooltip: {
-                callbacks: {
-                    // 툴팁에 가격 표시할 때 '원' 단위 붙이기
-                    label: function (context) {
-                        let label = context.label || '';
-                        if (label) {
-                            label += ': ';
-                        }
-                        if (context.parsed !== null) {
-                            label += new Intl.NumberFormat('ko-KR').format(context.parsed) + '원';
-                        }
-                        return label;
-                    },
-                },
-            },
-        },
-        cutout: '70%', // 도넛의 구멍 크기 (클수록 얇은 도넛이 됨)
-    };
 
     return (
         isLoading ? (

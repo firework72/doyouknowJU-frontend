@@ -21,7 +21,7 @@ function HoldingTable({data}) {
                             <td className={styles.td}>{holding.stockId}</td>
                             <td className={styles.td}>{holding.stockName}</td>
                             <td className={`${styles.td} ${styles.numberCell}`}>{holding.totalCount.toLocaleString()}</td>
-                            <td className={`${styles.td} ${styles.numberCell}`}>{Number(holding.totalPrice / holding.totalCount).toLocaleString()}</td>
+                            <td className={`${styles.td} ${styles.numberCell}`}>{Math.round(Number(holding.totalPrice / holding.totalCount)).toLocaleString()}</td>
                             <td className={`${styles.td} ${styles.numberCell}`}>
                                 {holding.currentPrice.toLocaleString()}
                             </td>

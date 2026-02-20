@@ -192,7 +192,9 @@ function StockDetail() {
             console.log(response);
             showToast("success", "매수되었습니다.");
             // 현재 회원의 잔고를 업데이트한다.
-            setUser({ ...user, points: response.afterBalance })
+            setUser({ ...user, points: response.afterBalance });
+            // 보유종목 개수를 업데이트한다.
+            fetchHoldingTotalCount();
         } catch (error) {
             console.log(error);
             showToast("error", error.response.data);
@@ -224,7 +226,9 @@ function StockDetail() {
             console.log(response);
             showToast("success", "매도되었습니다.");
             // 현재 회원의 잔고를 업데이트한다.
-            setUser({ ...user, points: response.afterBalance })
+            setUser({ ...user, points: response.afterBalance });
+            // 보유종목 개수를 업데이트한다.
+            fetchHoldingTotalCount();
         } catch (error) {
             console.log(error);
             showToast("error", error.response.data);
