@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import './Modal.css';
 
-const Modal = ({ isOpen, onClose, title, children, footer }) => {
+const Modal = ({ isOpen, onClose, title, children, footer, width }) => {
   const modalRef = useRef(null);
 
   useEffect(() => {
@@ -30,6 +30,7 @@ const Modal = ({ isOpen, onClose, title, children, footer }) => {
     <div className="modal-overlay" onClick={onClose}>
       <div 
         className="modal-container" 
+        style={width ? { width } : {}}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
