@@ -32,6 +32,8 @@ function StockDetail() {
     const [stockNews, setStockNews] = useState([]);
     const [holdingTotalCount, setHoldingTotalCount] = useState(0);
 
+    const [stockPeriod, setStockPeriod] = useState("D");
+
     const [isFavorite, setIsFavorite] = useState(false);
 
     const [pageLoading, setPageLoading] = useState(true);
@@ -267,7 +269,48 @@ function StockDetail() {
                             </Button>
                             <Card>
                                 <h2>차트</h2>
-                                <StockChart stockId={stockId} />
+                                <div>
+                                    <Button
+                                        variant={stockPeriod === "D" ? "primary" : "secondary"}
+                                        onClick={() => setStockPeriod("D")}
+                                    >
+                                        일봉
+                                    </Button>
+                                    <Button
+                                        variant={stockPeriod === "W" ? "primary" : "secondary"}
+                                        onClick={() => setStockPeriod("W")}
+                                    >
+                                        주봉
+                                    </Button>
+                                    <Button
+                                        variant={stockPeriod === "M" ? "primary" : "secondary"}
+                                        onClick={() => setStockPeriod("M")}
+                                    >
+                                        월봉
+                                    </Button>
+                                    <Button
+                                        variant={stockPeriod === "Y" ? "primary" : "secondary"}
+                                        onClick={() => setStockPeriod("Y")}
+                                    >
+                                        연봉
+                                    </Button>
+                                </div>
+                                {
+                                    stockPeriod === "D" &&
+                                    <StockChart stockId={stockId} period="D" />
+                                }
+                                {
+                                    stockPeriod === "W" &&
+                                    <StockChart stockId={stockId} period="W" />
+                                }
+                                {
+                                    stockPeriod === "M" &&
+                                    <StockChart stockId={stockId} period="M" />
+                                }
+                                {
+                                    stockPeriod === "Y" &&
+                                    <StockChart stockId={stockId} period="Y" />
+                                }
                             </Card>
                             {
                                 user &&                     

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { tradeApi } from '../../../../api/trade/TradeApi';
 import { Spinner } from '../../../common';
 
-function StockChart({stockId}) {
+function StockChart({stockId, period}) {
 
     const chartContainerRef = useRef(null);
 
@@ -24,7 +24,7 @@ function StockChart({stockId}) {
         isFetchingRef.current = true;
         setTimeout(async () => {
             try {
-                const response = await tradeApi.getStockChartData(stockId, endDate);
+                const response = await tradeApi.getStockChartData(stockId, endDate, period);
 
                 const newData = [...response.output2.reverse(), ...stockChartDataRef.current];
                 stockChartDataRef.current = newData;
