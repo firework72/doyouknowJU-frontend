@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Modal } from "../../common";
+import { Badge, Modal } from "../../common";
 import * as reportApi from "../../../api/reportApi";
 import './ReportModal.css';
 
@@ -31,6 +31,23 @@ const ReportModal = ({ isOpen, onClose }) => {
         return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
 
+    const translateType = (type) => {
+        const types = {
+            'BOARD': '게시글',
+            'REPLY': '댓글',
+            'CHAT': '채팅'
+        };
+        return types[type] || type;
+    };
+
+    const translateStatus = (status) => {
+        const statuses = {
+            'PENDING': '처리중',
+            'PROCESSED': '처리 완료',
+            'DONE': '처리 완료'
+        };
+    }
+
     return (
         <Modal
             isOpen={isOpen}
@@ -60,11 +77,11 @@ const ReportModal = ({ isOpen, onClose }) => {
                                         <td>{report.reporterId}</td>
                                         <td>{report.targetId}</td>
                                         <td>{report.reportReason}</td>
-                                        <td>{report.reportType}</td>
+                                        <td>{translateType(report.reportType)}</td>
                                         <td>
-                                            <span className={`status-badge ${report.status?.toLowerCase()}`}>
-                                                {report.status}
-                                            </span>
+                                            <Badge className={`status-badge ${report.status?.toLowerCase()}`}>
+                                                {translateStatus(report.status)}
+                                            </Badge>
                                         </td>
                                     </tr>
                                 ))}
