@@ -27,6 +27,7 @@ function HomePage() {
     const [kosdaqChart, setKosdaqChart] = useState([]);
     const [indexChartLoading, setIndexChartLoading] = useState(true);
     const [selectedIndex, setSelectedIndex] = useState('KOSPI');
+    const [selectedRange, setSelectedRange] = useState('1h');
     const chartContainerRef = useRef(null);
 
     const [attendanceModal, setAttendanceModal] = useState({
@@ -54,11 +55,12 @@ function HomePage() {
             .map((item, idx) => {
                 const close =
                     toNumber(item?.nowVal) ??
-                    toNumber(item?.bstp_nmix_prpr);
+                    toNumber(item?.bstp_nmix_prpr) ??
+                    toNumber(item?.closePrice);
 
                 if (close === null) return null;
 
-                const rawTime = String(item?.thistime ?? item?.stck_cntg_hour ?? '').trim();
+                const rawTime = String(item?.thistime ?? item?.stck_cntg_hour ?? item?.localDate ?? '').trim();
                 let dateNumber = null;
                 let timeNumber = null;
                 let chartTime = null;
@@ -72,7 +74,7 @@ function HomePage() {
                     const ss = Number(rawTime.slice(12, 14));
                     dateNumber = Number(rawTime.slice(0, 8));
                     timeNumber = Number(rawTime.slice(8, 14));
-                    chartTime = Math.floor(Date.UTC(yyyy, mm - 1, dd, hh, mi, ss) / 1000);
+                    chartTime = Math.floor(new Date(yyyy, mm - 1, dd, hh, mi, ss).getTime() / 1000);
                 } else if (/^\d{12}$/.test(rawTime)) {
                     const yyyy = Number(rawTime.slice(0, 4));
                     const mm = Number(rawTime.slice(4, 6));
@@ -81,9 +83,16 @@ function HomePage() {
                     const mi = Number(rawTime.slice(10, 12));
                     dateNumber = Number(rawTime.slice(0, 8));
                     timeNumber = Number(rawTime.slice(8, 12) + '00');
-                    chartTime = Math.floor(Date.UTC(yyyy, mm - 1, dd, hh, mi, 0) / 1000);
+                    chartTime = Math.floor(new Date(yyyy, mm - 1, dd, hh, mi, 0).getTime() / 1000);
                 } else if (/^\d{6}$/.test(rawTime)) {
                     timeNumber = Number(rawTime);
+                } else if (/^\d{8}$/.test(rawTime)) {
+                    const yyyy = Number(rawTime.slice(0, 4));
+                    const mm = Number(rawTime.slice(4, 6));
+                    const dd = Number(rawTime.slice(6, 8));
+                    dateNumber = Number(rawTime);
+                    timeNumber = 0;
+                    chartTime = Math.floor(new Date(yyyy, mm - 1, dd, 0, 0, 0).getTime() / 1000);
                 }
 
                 if (timeNumber === 888888) return null;
@@ -109,9 +118,9 @@ function HomePage() {
                     dateNumber,
                     sortKey: (dateNumber ?? 0) * 1000000 + (timeNumber ?? 0),
                     chartTime,
-                    open: toNumber(item?.openVal) ?? close,
-                    high: toNumber(item?.highVal) ?? close,
-                    low: toNumber(item?.lowVal) ?? close,
+                    open: toNumber(item?.openVal) ?? toNumber(item?.openPrice) ?? close,
+                    high: toNumber(item?.highVal) ?? toNumber(item?.highPrice) ?? close,
+                    low: toNumber(item?.lowVal) ?? toNumber(item?.lowPrice) ?? close,
                     close,
                     dayDiff: toNumber(item?.changeVal) ?? toNumber(item?.bstp_nmix_prdy_vrss),
                     dayRate: toNumber(item?.changeRate) ?? toNumber(item?.bstp_nmix_prdy_ctrt),
@@ -119,43 +128,53 @@ function HomePage() {
                 };
             })
             .filter(Boolean);
-        const validTimePoints = points.filter(
-            (point) =>
-                point.timeNumber !== null &&
-                point.timeNumber !== 888888 &&
-                point.timeNumber >= 90000 &&
-                point.timeNumber <= 153000,
-        );
-
-        const latestDate = validTimePoints
-            .filter((point) => point.dateNumber !== null)
-            .reduce((max, point) => Math.max(max, point.dateNumber), 0);
-
-        const sameSessionPoints = latestDate
-            ? validTimePoints.filter((point) => point.dateNumber === latestDate)
-            : validTimePoints;
-
-        const base = sameSessionPoints.length > 1 ? sameSessionPoints : validTimePoints;
-        const sorted = [...base].sort((a, b) => (a.sortKey ?? 0) - (b.sortKey ?? 0));
-        return sorted.filter((point) => Number.isFinite(point.chartTime) && Number.isFinite(point.open) && Number.isFinite(point.high) && Number.isFinite(point.low) && Number.isFinite(point.close));
+        return points
+            .filter(
+                (point) =>
+                    Number.isFinite(point.chartTime) &&
+                    Number.isFinite(point.open) &&
+                    Number.isFinite(point.high) &&
+                    Number.isFinite(point.low) &&
+                    Number.isFinite(point.close) &&
+                    point.timeNumber !== 888888,
+            )
+            .sort((a, b) => (a.sortKey ?? 0) - (b.sortKey ?? 0));
     };
 
-    const loadIndexCharts = async (isCancelled = () => false) => {
-        const formatYmd = (date) => {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}${month}${day}`;
-        };
+    const toUniqueRowsByTime = (rows) => {
+        if (!Array.isArray(rows) || rows.length === 0) return [];
+        const unique = new Map();
+        rows.forEach((row) => {
+            if (Number.isFinite(row?.chartTime)) unique.set(row.chartTime, row);
+        });
+        return [...unique.values()].sort((a, b) => (a.chartTime ?? 0) - (b.chartTime ?? 0));
+    };
 
-        const today = new Date();
-        const start = formatYmd(today);
-        const end = formatYmd(today);
+    const applyRangeView = (rows, range) => {
+        if (!Array.isArray(rows)) return [];
+        const sorted = [...rows].sort((a, b) => (a.sortKey ?? 0) - (b.sortKey ?? 0));
+        const hasIntraday = sorted.some((row) => Number(row?.timeNumber) > 0);
+
+        if (range === '1h') {
+            return hasIntraday ? sorted.slice(-60) : sorted.slice(-1);
+        }
+
+        if (range === 'day') {
+            if (!hasIntraday) return sorted;
+            const latestDate = sorted.reduce((max, row) => Math.max(max, row?.dateNumber ?? 0), 0);
+            return latestDate ? sorted.filter((row) => row?.dateNumber === latestDate) : sorted;
+        }
+
+        return sorted;
+    };
+
+    const loadIndexCharts = async (range = 'day', isCancelled = () => false) => {
+        const queryParams = { range };
 
         try {
             const [kospiRows, kosdaqRows] = await Promise.all([
-                fetchKospiIndexChart({ start, end, period: 1 }),
-                fetchKosdaqIndexChart({ start, end, period: 1 }),
+                fetchKospiIndexChart(queryParams),
+                fetchKosdaqIndexChart(queryParams),
             ]);
 
             let nextKospiRows = kospiRows;
@@ -166,8 +185,8 @@ function HomePage() {
 
             if (isKospiEmpty || isKosdaqEmpty) {
                 const [fallbackKospiRows, fallbackKosdaqRows] = await Promise.all([
-                    fetchKospiIndexChart(),
-                    fetchKosdaqIndexChart(),
+                    fetchKospiIndexChart(queryParams),
+                    fetchKosdaqIndexChart(queryParams),
                 ]);
 
                 if (isKospiEmpty) nextKospiRows = fallbackKospiRows;
@@ -175,8 +194,8 @@ function HomePage() {
             }
 
             if (isCancelled()) return;
-            setKospiChart(toIndexChartRows(nextKospiRows));
-            setKosdaqChart(toIndexChartRows(nextKosdaqRows));
+            setKospiChart(applyRangeView(toUniqueRowsByTime(toIndexChartRows(nextKospiRows)), range));
+            setKosdaqChart(applyRangeView(toUniqueRowsByTime(toIndexChartRows(nextKosdaqRows)), range));
         } catch (err) {
             console.error('지수 차트 조회 실패:', err);
             if (isCancelled()) return;
@@ -200,11 +219,11 @@ function HomePage() {
 
     useEffect(() => {
         let cancelled = false;
-        const pollingIntervalMs = 20000;
+        const pollingIntervalMs = selectedRange === '1h' || selectedRange === 'day' ? 20000 : 60000;
 
         const poll = async () => {
             if (cancelled) return;
-            await loadIndexCharts(() => cancelled);
+            await loadIndexCharts(selectedRange, () => cancelled);
         };
 
         setIndexChartLoading(true);
@@ -215,7 +234,7 @@ function HomePage() {
             cancelled = true;
             clearInterval(intervalId);
         };
-    }, []);
+    }, [selectedRange]);
 
     const handleLogin = async () => {
         try {
@@ -289,6 +308,10 @@ function HomePage() {
         () => (selectedIndex === 'KOSPI' ? kospiChart : kosdaqChart),
         [selectedIndex, kospiChart, kosdaqChart],
     );
+    const hasIntradaySelectedRows = useMemo(
+        () => selectedRows.some((row) => Number(row?.timeNumber) > 0),
+        [selectedRows],
+    );
 
     const chartSummary = useMemo(() => {
         if (!selectedRows.length) return null;
@@ -325,8 +348,19 @@ function HomePage() {
             },
             timeScale: {
                 borderColor: '#e5e7eb',
-                timeVisible: true,
+                timeVisible: (selectedRange === '1h' || selectedRange === 'day') && hasIntradaySelectedRows,
                 secondsVisible: false,
+                tickMarkFormatter: (time) => {
+                    const date = new Date(Number(time) * 1000);
+                    if (Number.isNaN(date.getTime())) return '';
+                    if ((selectedRange === '1h' || selectedRange === 'day') && hasIntradaySelectedRows) {
+                        return date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
+                    }
+                    if (selectedRange === 'year') {
+                        return date.toLocaleDateString('ko-KR', { year: '2-digit', month: '2-digit' });
+                    }
+                    return date.toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' });
+                },
             },
             crosshair: {
                 horzLine: { color: '#9ca3af' },
@@ -385,7 +419,7 @@ function HomePage() {
         return () => {
             chart.remove();
         };
-    }, [selectedRows]);
+    }, [selectedRows, selectedRange, hasIntradaySelectedRows]);
 
     return (
         <main className="main-container">
@@ -413,11 +447,11 @@ function HomePage() {
                             </div>
                         </div>
                         <div className="index-toolbar">
-                            <button className="index-toolbar-btn is-active">1시간</button>
-                            <button className="index-toolbar-btn">일</button>
-                            <button className="index-toolbar-btn">주</button>
-                            <button className="index-toolbar-btn">월</button>
-                            <button className="index-toolbar-btn">년</button>
+                            <button className={`index-toolbar-btn ${selectedRange === '1h' ? 'is-active' : ''}`} onClick={() => setSelectedRange('1h')}>1시간</button>
+                            <button className={`index-toolbar-btn ${selectedRange === 'day' ? 'is-active' : ''}`} onClick={() => setSelectedRange('day')}>일</button>
+                            <button className={`index-toolbar-btn ${selectedRange === 'week' ? 'is-active' : ''}`} onClick={() => setSelectedRange('week')}>주</button>
+                            <button className={`index-toolbar-btn ${selectedRange === 'month' ? 'is-active' : ''}`} onClick={() => setSelectedRange('month')}>월</button>
+                            <button className={`index-toolbar-btn ${selectedRange === 'year' ? 'is-active' : ''}`} onClick={() => setSelectedRange('year')}>년</button>
                         </div>
                         {indexChartLoading ? (
                             <div className="index-chart-loading">지수 차트를 불러오는 중...</div>
