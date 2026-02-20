@@ -325,7 +325,7 @@ function StockDetail() {
                                 <Card>
                                     <h2>주식 매수/매도</h2>
                                     <p>수량을 선택하고 매수/매도 버튼을 눌러 거래하세요.</p>
-                                    <p>현재 <strong>{user.points.toLocaleString()} P</strong>를 보유하고 있습니다.</p>
+                                    <p>현재 <strong>{user.points.toLocaleString()}P</strong>를 보유하고 있습니다.</p>
                                     <p>현재 이 주식을 <strong>{holdingTotalCount.toLocaleString()}</strong>주 보유하고 있습니다.</p>
                                     <br></br>
                                     <div className={styles.alignRow}>
