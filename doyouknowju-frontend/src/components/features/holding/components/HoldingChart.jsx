@@ -36,7 +36,7 @@ const options = {
                         label += ': ';
                     }
                     if (context.parsed !== null) {
-                        label += new Intl.NumberFormat('ko-KR').format(context.parsed) + '원';
+                        label += new Intl.NumberFormat('ko-KR').format(context.parsed) + ' P';
                     }
                     return label;
                 },
