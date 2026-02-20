@@ -74,7 +74,7 @@ function HomePage() {
                     const ss = Number(rawTime.slice(12, 14));
                     dateNumber = Number(rawTime.slice(0, 8));
                     timeNumber = Number(rawTime.slice(8, 14));
-                    chartTime = Math.floor(new Date(yyyy, mm - 1, dd, hh, mi, ss).getTime() / 1000);
+                    chartTime = Math.floor(Date.UTC(yyyy, mm - 1, dd, hh, mi, ss) / 1000);
                 } else if (/^\d{12}$/.test(rawTime)) {
                     const yyyy = Number(rawTime.slice(0, 4));
                     const mm = Number(rawTime.slice(4, 6));
@@ -83,7 +83,7 @@ function HomePage() {
                     const mi = Number(rawTime.slice(10, 12));
                     dateNumber = Number(rawTime.slice(0, 8));
                     timeNumber = Number(rawTime.slice(8, 12) + '00');
-                    chartTime = Math.floor(new Date(yyyy, mm - 1, dd, hh, mi, 0).getTime() / 1000);
+                    chartTime = Math.floor(Date.UTC(yyyy, mm - 1, dd, hh, mi, 0) / 1000);
                 } else if (/^\d{6}$/.test(rawTime)) {
                     timeNumber = Number(rawTime);
                 } else if (/^\d{8}$/.test(rawTime)) {
@@ -92,7 +92,7 @@ function HomePage() {
                     const dd = Number(rawTime.slice(6, 8));
                     dateNumber = Number(rawTime);
                     timeNumber = 0;
-                    chartTime = Math.floor(new Date(yyyy, mm - 1, dd, 0, 0, 0).getTime() / 1000);
+                    chartTime = Math.floor(Date.UTC(yyyy, mm - 1, dd, 0, 0, 0) / 1000);
                 }
 
                 if (timeNumber === 888888) return null;
@@ -101,6 +101,18 @@ function HomePage() {
                     if (/^\d{8}$/.test(rawDate)) {
                         dateNumber = Number(rawDate);
                     }
+                }
+
+                if (!Number.isFinite(chartTime) && Number.isFinite(dateNumber) && Number.isFinite(timeNumber) && timeNumber >= 0) {
+                    const dateText = String(dateNumber).padStart(8, '0');
+                    const timeText = String(timeNumber).padStart(6, '0');
+                    const yyyy = Number(dateText.slice(0, 4));
+                    const mm = Number(dateText.slice(4, 6));
+                    const dd = Number(dateText.slice(6, 8));
+                    const hh = Number(timeText.slice(0, 2));
+                    const mi = Number(timeText.slice(2, 4));
+                    const ss = Number(timeText.slice(4, 6));
+                    chartTime = Math.floor(Date.UTC(yyyy, mm - 1, dd, hh, mi, ss) / 1000);
                 }
 
                 return {
@@ -153,18 +165,6 @@ function HomePage() {
     const applyRangeView = (rows, range) => {
         if (!Array.isArray(rows)) return [];
         const sorted = [...rows].sort((a, b) => (a.sortKey ?? 0) - (b.sortKey ?? 0));
-        const hasIntraday = sorted.some((row) => Number(row?.timeNumber) > 0);
-
-        if (range === '1h') {
-            return hasIntraday ? sorted.slice(-60) : sorted.slice(-1);
-        }
-
-        if (range === 'day') {
-            if (!hasIntraday) return sorted;
-            const latestDate = sorted.reduce((max, row) => Math.max(max, row?.dateNumber ?? 0), 0);
-            return latestDate ? sorted.filter((row) => row?.dateNumber === latestDate) : sorted;
-        }
-
         return sorted;
     };
 
@@ -315,20 +315,36 @@ function HomePage() {
 
     const chartSummary = useMemo(() => {
         if (!selectedRows.length) return null;
-        const first = selectedRows[0];
         const last = selectedRows[selectedRows.length - 1];
+        const rangeSecondsMap = {
+            '1h': 60 * 60,
+            day: 24 * 60 * 60,
+            week: 7 * 24 * 60 * 60,
+            month: 30 * 24 * 60 * 60,
+            year: 365 * 24 * 60 * 60,
+        };
+        const targetSeconds = rangeSecondsMap[selectedRange] ?? 0;
+        const targetTime = targetSeconds > 0 ? last.chartTime - targetSeconds : null;
+        const baselineCandidates = targetTime
+            ? selectedRows.filter((row) => Number.isFinite(row?.chartTime) && row.chartTime <= targetTime)
+            : [];
+        const baseline = baselineCandidates.length
+            ? baselineCandidates[baselineCandidates.length - 1]
+            : selectedRows[0];
         const dayHigh = Math.max(...selectedRows.map((row) => row.high));
         const dayLow = Math.min(...selectedRows.map((row) => row.low));
+        const rangeDiff = last.close - baseline.close;
+        const rangeRate = baseline.close !== 0 ? (rangeDiff / baseline.close) * 100 : 0;
         return {
-            open: first.open,
+            open: baseline.open,
             high: dayHigh,
             low: dayLow,
             close: last.close,
-            diff: last.dayDiff ?? 0,
-            rate: last.dayRate ?? 0,
+            diff: rangeDiff,
+            rate: rangeRate,
             volume: last.tickVolume ?? 0,
         };
-    }, [selectedRows]);
+    }, [selectedRows, selectedRange]);
 
     useEffect(() => {
         if (!chartContainerRef.current || !selectedRows.length) return;
@@ -350,17 +366,6 @@ function HomePage() {
                 borderColor: '#e5e7eb',
                 timeVisible: (selectedRange === '1h' || selectedRange === 'day') && hasIntradaySelectedRows,
                 secondsVisible: false,
-                tickMarkFormatter: (time) => {
-                    const date = new Date(Number(time) * 1000);
-                    if (Number.isNaN(date.getTime())) return '';
-                    if ((selectedRange === '1h' || selectedRange === 'day') && hasIntradaySelectedRows) {
-                        return date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
-                    }
-                    if (selectedRange === 'year') {
-                        return date.toLocaleDateString('ko-KR', { year: '2-digit', month: '2-digit' });
-                    }
-                    return date.toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' });
-                },
             },
             crosshair: {
                 horzLine: { color: '#9ca3af' },
@@ -414,7 +419,20 @@ function HomePage() {
         });
         ma60.setData(calcMA(60));
 
-        chart.timeScale().fitContent();
+        if ((selectedRange === '1h' || selectedRange === 'day') && selectedRows.length) {
+            const firstTime = selectedRows[0].chartTime;
+            const lastTime = selectedRows[selectedRows.length - 1].chartTime;
+            const visibleWindowSeconds =
+                selectedRange === '1h'
+                    ? 24 * 60 * 60
+                    : 90 * 24 * 60 * 60;
+            chart.timeScale().setVisibleRange({
+                from: Math.max(firstTime, lastTime - visibleWindowSeconds),
+                to: lastTime,
+            });
+        } else {
+            chart.timeScale().fitContent();
+        }
 
         return () => {
             chart.remove();
@@ -447,7 +465,7 @@ function HomePage() {
                             </div>
                         </div>
                         <div className="index-toolbar">
-                            <button className={`index-toolbar-btn ${selectedRange === '1h' ? 'is-active' : ''}`} onClick={() => setSelectedRange('1h')}>1시간</button>
+                            <button className={`index-toolbar-btn ${selectedRange === '1h' ? 'is-active' : ''}`} onClick={() => setSelectedRange('1h')}>실시간</button>
                             <button className={`index-toolbar-btn ${selectedRange === 'day' ? 'is-active' : ''}`} onClick={() => setSelectedRange('day')}>일</button>
                             <button className={`index-toolbar-btn ${selectedRange === 'week' ? 'is-active' : ''}`} onClick={() => setSelectedRange('week')}>주</button>
                             <button className={`index-toolbar-btn ${selectedRange === 'month' ? 'is-active' : ''}`} onClick={() => setSelectedRange('month')}>월</button>
