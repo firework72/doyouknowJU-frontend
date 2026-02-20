@@ -68,9 +68,9 @@ const ChatWindow = () => {
         );
     };
 
-    const baseFontSize = Math.max(12, dimensions.width / 28);
-    // const titleFontSize = baseFontSize + 4; // 사용되지 않아 주석 처리
-    const timeFontSize = Math.max(9, baseFontSize - 3);
+    const baseFontSize = Math.max(13, dimensions.width / 26);
+    const nameFontSize = Math.max(12, baseFontSize - 1);
+    const timeFontSize = Math.max(10, baseFontSize - 4);
 
     const handleScroll = async (e) => {
         const { scrollTop, scrollHeight } = e.currentTarget;
@@ -332,13 +332,13 @@ const ChatWindow = () => {
                                 const titleInfo = getDisplayTitleInfo(msg);
                                 return (
                                     <div id={`msg-${idx}`} key={idx} style={{ marginBottom: '15px', textAlign: msg.userId === myId ? 'right' : 'left' }}>
-                                        <div style={{ fontSize: `${timeFontSize}px`, color: '#888', display: 'flex', alignItems: 'center', justifyContent: msg.userId === myId ? 'flex-end' : 'flex-start', gap: '5px' }}>
+                                        <div style={{ fontSize: `${nameFontSize}px`, fontWeight: 'bold', color: '#555', display: 'flex', alignItems: 'center', justifyContent: msg.userId === myId ? 'flex-end' : 'flex-start', gap: '6px', marginBottom: '4px' }}>
                                             {/* 칭호 이미지 표시 (우선) */}
                                             {titleInfo && titleInfo.titleImgUrl ? (
                                                 <img
                                                     src={getImageUrl(titleInfo.titleImgUrl)}
                                                     alt={titleInfo.titleName || "칭호"}
-                                                    style={{ height: '20px', verticalAlign: 'middle' }}
+                                                    style={{ height: '15px', verticalAlign: 'middle' }}
                                                     title={titleInfo.titleName}
                                                 />
                                             ) : (
