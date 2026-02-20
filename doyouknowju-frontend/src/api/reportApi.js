@@ -17,11 +17,13 @@ export const insertReport = async ({ reportType, contentId, reporterId, targetId
   return data;
 };
 
-export const getReportList = async() =>{
+export const getReportList = async(page = 1, size = 10, status = '') =>{
   try{
-    const { data } = await axios.get('/dykj/api/report/list');
+    const { data } = await axios.get('/dykj/api/report/list', {
+      params: { page, size, status }
+    });
     return data;
-  }catch(error){
+  } catch (error) {
     console.error('신고 목록 조회 실패: ', error);
     throw error;
   }
@@ -45,6 +47,17 @@ export const updateReportStatus = async (reportId, status) =>{
     return data;
   } catch(error) {
     console.error('신고 상태 변경 실패: ', error);
+    throw error;
+  }
+};
+
+// 피신고자 제재
+export const banMember = async (userId, banDays) => {
+  try {
+    const { data } = await axios.post('/dykj/api/members/ban', { userId, banDays });
+    return data;
+  } catch (error) {
+    console.error('제재 처리 실패: ', error);
     throw error;
   }
 };

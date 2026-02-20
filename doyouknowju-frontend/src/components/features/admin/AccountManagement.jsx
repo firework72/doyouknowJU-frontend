@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { memberApi } from '../../../api/memberApi';
+import Badge from '../../common/Badge';
 import Pagination from '../../common/Pagination';
 import BanModal from './BanModal';
+import './AdminCommon.css';
 import './AccountManagement.css';
 
 const AccountManagement = () => {
@@ -9,6 +11,7 @@ const AccountManagement = () => {
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
+    const [totalMembers, setTotalMembers] = useState(0);
     const [selectedUser, setSelectedUser] = useState(null);
     const [isBanModalOpen, setIsBanModalOpen] = useState(false);
 
@@ -22,6 +25,7 @@ const AccountManagement = () => {
             const data = await memberApi.getMemberList(page);
             setMembers(data.members || []);
             setTotalPages(Math.ceil(data.total / data.size));
+            setTotalMembers(data.total || 0);
         } catch (error) {
             console.error('Failed to fetch members:', error);
         } finally {
@@ -43,45 +47,57 @@ const AccountManagement = () => {
 
     return (
         <div className="account-management">
-            <h2>전체 계정 관리</h2>
-            <table className="admin-table">
-                <thead>
-                    <tr>
-                        <th>아이디</th>
-                        <th>전화번호</th>
-                        <th>포인트</th>
-                        <th>가입일</th>
-                        <th>제재 기간</th>
-                        <th>상태</th>
-                        <th>관리</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {members.map(member => (
-                        <tr key={member.userId}>
-                            <td>{member.userId}</td>
-                            <td>{member.phone}</td>
-                            <td>{member.points.toLocaleString()}</td>
-                            <td>{new Date(member.joinDate).toLocaleDateString()}</td>
-                            <td>{member.banLimitDate ? new Date(member.banLimitDate).toLocaleDateString() : '-'}</td>
-                            <td>
-                                <span className={`status-badge ${member.status}`}>
-                                    {member.status === 'Y' ? '활동' : member.status === 'N' ? '탈퇴' : '정지'}
-                                </span>
-                            </td>
-                            <td>
-                                <button className="manage-btn" onClick={() => handleManageClick(member)}>관리</button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <div className="admin-card">
+                <div className="admin-card-header">
+                    <h2>전체 계정 관리</h2>
+                </div>
+                <div className="admin-card-body">
+                    <div className="admin-summary">
+                        <span>총 계정 수: {totalMembers}</span>
+                    </div>
 
-            <Pagination
-                currentPage={page}
-                totalPages={totalPages}
-                onPageChange={setPage}
-            />
+                    <table className="admin-table">
+                        <thead>
+                            <tr>
+                                <th>아이디</th>
+                                <th>전화번호</th>
+                                <th>포인트</th>
+                                <th>가입일</th>
+                                <th>제재 기간</th>
+                                <th>상태</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {members.map(member => (
+                                <tr key={member.userId}>
+                                    <td>{member.userId}</td>
+                                    <td>{member.phone}</td>
+                                    <td>{member.points.toLocaleString()}</td>
+                                    <td>{member.enrollDate ? new Date(member.enrollDate).toLocaleDateString() : '-'}</td>
+                                    <td>{member.banLimitDate ? new Date(member.banLimitDate).toLocaleDateString() : '-'}</td>
+                                    <td>
+                                        <Badge variant={member.status === 'Y' ? 'success' : member.status === 'N' ? 'danger' : 'warning'}>
+                                            {member.status === 'Y' ? '활동' : member.status === 'N' ? '탈퇴' : '정지'}
+                                        </Badge>
+                                    </td>
+                                    <td>
+                                        <button className="manage-btn" onClick={() => handleManageClick(member)}>관리</button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+
+                    <div className="admin-table-footer">
+                        <Pagination
+                            currentPage={page}
+                            totalPages={totalPages}
+                            onPageChange={setPage}
+                        />
+                    </div>
+                </div>
+            </div>
 
             {selectedUser && (
                 <BanModal

@@ -1,42 +1,105 @@
+/* 공통 관리자 카드 레이아웃 */
+.admin-card {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.admin-card-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #dee2e6;
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-card-header h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #4e73df;
+    margin: 0;
+}
+
+.admin-card-body {
+    padding: 1.25rem;
+}
+
+/* 테이블 상단 요약 정보 */
+.admin-summary {
+    font-size: 0.9rem;
+    color: #4e73df;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.admin-summary span {
+    margin-right: 15px;
+}
+
+/* 관리자 테이블 스타일 고도화 */
 .admin-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1rem;
+    color: #858796;
+    border: 1px solid #e3e6f0;
 }
 
 .admin-table th,
 .admin-table td {
-    padding: 15px;
-    text-align: left;
-    border-bottom: 1px solid #eee;
+    padding: 0.75rem;
+    vertical-align: top;
+    border: 1px solid #e3e6f0;
 }
 
 .admin-table th {
-    background-color: #f8f9fa;
-    font-weight: 600;
+    background-color: #fff;
+    font-weight: 700;
+    color: #4e73df;
+    position: relative;
+    padding-right: 30px;
+}
+
+.admin-table tr:hover {
+    background-color: #f8f9fc;
 }
 
 .manage-btn {
-    padding: 6px 12px;
-    background-color: #6c757d;
-    color: white;
-    border: none;
-    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    border-radius: 0.2rem;
+    background-color: #f8f9fc;
+    border: 1px solid #d1d3e2;
+    color: #6e707e;
     cursor: pointer;
 }
 
 .manage-btn:hover {
-    background-color: #5a6268;
+    background-color: #eaecf4;
+    border-color: #b7b9cc;
+}
+
+/* 하단 페이지네이션 바 */
+.admin-table-footer {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
 }
 
 .status-badge {
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.85rem;
+    padding: 0.25em 0.4em;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.25rem;
 }
 
 .status-badge.Y {

@@ -8,3 +8,132 @@
 .report-management h2 {
     margin-bottom: 20px;
 }
+
+.report-management .admin-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.report-management .tab-btn {
+    padding: 0.75rem 1rem;
+    border: 1px solid transparent;
+    border-bottom: none;
+    background: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #4e73df;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    margin-bottom: -1px;
+}
+
+.tab-btn.active {
+    color: #6e707e;
+    background-color: #fff;
+    border-color: #dee2e6 #dee2e6 #fff;
+}
+
+.tab-btn:hover:not(.active) {
+    background-color: #eaecf4;
+}
+
+/* 신고 상세 모달 스타일 */
+.report-detail-section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.report-detail-section.sanction-section {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.admin-summary {
+    color: #4e73df;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+/* 신고 상세 모달 스타일 - 모달 내부는 .section-title 사용하더라도 모달 내부로 한정될 가능성이 높으나 안전하게 스코핑 */
+.report-modal .section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #4e73df;
+    margin-bottom: 1rem;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.detail-item {
+    font-size: 0.85rem;
+    color: #5a5c69;
+}
+
+.detail-item strong {
+    color: #4e73df;
+    margin-right: 5px;
+}
+
+.detail-full {
+    grid-column: span 2;
+    font-size: 0.85rem;
+    color: #5a5c69;
+}
+
+.reported-content {
+    background-color: #f8f9fc;
+    border: 1px solid #e3e6f0;
+    border-radius: 4px;
+    padding: 1rem;
+    font-size: 0.9rem;
+    color: #2e2f37;
+    white-space: pre-wrap;
+    min-height: 80px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.no-content {
+    color: #b7b9cc;
+    font-style: italic;
+}
+
+.admin-select {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.85rem;
+    color: #6e707e;
+    background-color: #fff;
+    border: 1px solid #d1d3e2;
+    border-radius: 4px;
+    flex: 1;
+}
+
+.sanction-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.sanction-btn {
+    padding: 0.375rem 1rem;
+    background-color: #4e73df;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.sanction-btn:hover {
+    background-color: #2e59d9;
+}

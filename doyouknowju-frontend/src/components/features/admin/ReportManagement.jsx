@@ -1,24 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import * as reportApi from '../../../api/reportApi';
-import { Modal } from '../../common';
+import Badge from '../../common/Badge';
+import Pagination from '../../common/Pagination';
+import Modal from '../../common/Modal';
+import './AdminCommon.css';
 import './ReportManagement.css';
 
 const ReportManagement = () => {
     const [reports, setReports] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const [pendingCount, setPendingCount] = useState(0);
+    const [processedCount, setProcessedCount] = useState(0);
+    const [activeTab, setActiveTab] = useState('PENDING'); // 'PENDING' | 'PROCESSED'
     const [selectedReport, setSelectedReport] = useState(null);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [banDays, setBanDays] = useState('0'); // 제재 일수
 
     useEffect(() => {
         fetchReports();
-    }, []);
+    }, [page, activeTab]);
 
     const fetchReports = async () => {
         try {
             setLoading(true);
-            const data = await reportApi.getReportList();
-            setReports(data);
+            const data = await reportApi.getReportList(page, 10, activeTab);
+            setReports(data.reports || []);
+            setTotalPages(Math.ceil(data.total / data.size));
+            setPendingCount(data.pendingCount || 0);
+            setProcessedCount(data.processedCount || 0);
         } catch (error) {
             console.error('Failed to fetch reports:', error);
         } finally {
@@ -40,61 +51,119 @@ const ReportManagement = () => {
         if (!selectedReport) return;
 
         try {
-            // 제재 처리 (사용자가 선택한 정지 일수 적용)
-            // 백엔드 memberApi.banMember 재사용
-            const { memberApi } = await import('../../../api/memberApi');
-
-            // BAN_LIMIT_DATE 업데이트 (백엔드 /ban API 호출)
+            // 1. 피신고자 제재 (banDays가 0이면 건너뜀)
             if (banDays !== '0') {
-                await memberApi.banMember(selectedReport.targetId, parseInt(banDays));
+                await reportApi.banMember(selectedReport.targetId, parseInt(banDays));
             }
 
-            // 신고 상태를 'PROCESSED' 등으로 변경하는 로직이 있다면 추가 가능
-            // 여기서는 일단 제재 완료 메시지만 띄움
+            // 2. 신고 상태 변경 (PROCESSED)
             await reportApi.updateReportStatus(selectedReport.reportId, 'PROCESSED');
 
-            alert('제재가 완료되었습니다.');
+            alert('처리가 완료되었습니다.');
             setIsDetailModalOpen(false);
-            fetchReports();
+            fetchReports(); // 목록 새로고침
         } catch (error) {
-            console.error('Sanction failed:', error);
-            alert('제재 처리에 실패했습니다.');
+            console.error('Processing failed:', error);
+            alert('처리 중 오류가 발생했습니다.');
         }
+    };
+
+    const translateType = (type) => {
+        const types = {
+            'BOARD': '게시글',
+            'REPLY': '댓글',
+            'CHAT': '채팅'
+        };
+        return types[type] || type;
+    };
+
+    const translateStatus = (status) => {
+        const statuses = {
+            'PENDING': '처리중',
+            'PROCESSED': '처리 완료',
+            'DONE': '처리 완료'
+        };
+        return statuses[status] || status;
     };
 
     return (
         <div className="report-management">
-            <h2>신고 관리</h2>
-            <table className="admin-table">
-                <thead>
-                    <tr>
-                        <th>신고 ID</th>
-                        <th>구분</th>
-                        <th>신고자</th>
-                        <th>피신고자</th>
-                        <th>사유</th>
-                        <th>날짜</th>
-                        <th>상태</th>
-                        <th>관리</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {reports.map(report => (
-                        <tr key={report.reportId}>
-                            <td>{report.reportId}</td>
-                            <td>{report.reportType}</td>
-                            <td>{report.reporterId}</td>
-                            <td>{report.targetId}</td>
-                            <td>{report.reportReason}</td>
-                            <td>{new Date(report.reportDate).toLocaleDateString()}</td>
-                            <td>{report.status}</td>
-                            <td>
-                                <button className="manage-btn" onClick={() => handleManageClick(report.reportId)}>관리</button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <div className="admin-card">
+                <div className="admin-card-header">
+                    <h2>신고 관리</h2>
+                </div>
+                <div className="admin-card-body">
+                    {/* 탭 메뉴 */}
+                    <div className="admin-tabs">
+                        <button
+                            className={`tab-btn ${activeTab === 'PENDING' ? 'active' : ''}`}
+                            onClick={() => { setActiveTab('PENDING'); setPage(1); }}
+                        >
+                            처리 중인 신고
+                        </button>
+                        <button
+                            className={`tab-btn ${activeTab === 'PROCESSED' ? 'active' : ''}`}
+                            onClick={() => { setActiveTab('PROCESSED'); setPage(1); }}
+                        >
+                            완료된 신고
+                        </button>
+                    </div>
+
+                    <div className="admin-summary">
+                        <span>처리 중인 신고 수: {pendingCount}</span>
+                        <span>완료된 신고 수: {processedCount}</span>
+                    </div>
+
+                    <table className="admin-table">
+                        <thead>
+                            <tr>
+                                <th>신고 ID</th>
+                                <th>구분</th>
+                                <th>신고자</th>
+                                <th>피신고자</th>
+                                <th>사유</th>
+                                <th>날짜</th>
+                                <th>상태</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {reports.length > 0 ? (
+                                reports.map(report => (
+                                    <tr key={report.reportId}>
+                                        <td>{report.reportId}</td>
+                                        <td>{translateType(report.reportType)}</td>
+                                        <td>{report.reporterId}</td>
+                                        <td>{report.targetId}</td>
+                                        <td>{report.reportReason}</td>
+                                        <td>{new Date(report.reportDate).toLocaleDateString()}</td>
+                                        <td>
+                                            <Badge variant={report.status === 'PENDING' ? 'warning' : 'success'}>
+                                                {translateStatus(report.status)}
+                                            </Badge>
+                                        </td>
+                                        <td>
+                                            <button className="manage-btn" onClick={() => handleManageClick(report.reportId)}>관리</button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="8" style={{ textAlign: 'center', padding: '30px' }}>신고 내역이 없습니다.</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+
+                    <div className="admin-table-footer">
+                        <Pagination
+                            currentPage={page}
+                            totalPages={totalPages}
+                            onPageChange={setPage}
+                        />
+                    </div>
+                </div>
+            </div>
 
             {/* 신고 상세 및 제재 모달 */}
             <Modal
@@ -103,27 +172,42 @@ const ReportManagement = () => {
                 title="신고 상세 정보 및 제재"
             >
                 {selectedReport && (
-                    <div className="report-detail">
-                        <div className="detail-row"><span>신고 ID:</span> {selectedReport.reportId}</div>
-                        <div className="detail-row"><span>신고 타입:</span> {selectedReport.reportType}</div>
-                        <div className="detail-row"><span>컨텐츠 ID:</span> {selectedReport.contentId}</div>
-                        <div className="detail-row"><span>신고자:</span> {selectedReport.reporterId}</div>
-                        <div className="detail-row"><span>피신고자:</span> {selectedReport.targetId}</div>
-                        <div className="detail-row"><span>신고 사유:</span> {selectedReport.reportReason}</div>
-                        <div className="detail-row"><span>신고 날짜:</span> {new Date(selectedReport.reportDate).toLocaleString()}</div>
+                    <div className="report-detail report-modal">
+                        <div className="report-detail-section">
+                            <h4 className="section-title">신고 정보</h4>
+                            <div className="detail-grid">
+                                <div className="detail-item"><strong>신고 ID:</strong> {selectedReport.reportId}</div>
+                                <div className="detail-item"><strong>구분:</strong> {translateType(selectedReport.reportType)}</div>
+                                <div className="detail-item"><strong>신고자:</strong> {selectedReport.reporterId}</div>
+                                <div className="detail-item"><strong>피신고자:</strong> {selectedReport.targetId}</div>
+                                <div className="detail-item"><strong>신고 날짜:</strong> {new Date(selectedReport.reportDate).toLocaleString()}</div>
+                                <div className="detail-full"><strong>신고 사유:</strong> {selectedReport.reportReason}</div>
+                            </div>
+                        </div>
 
-                        <div className="sanction-section">
-                            <h4>제재 설정</h4>
+                        <div className="report-detail-section content-section">
+                            <h4 className="section-title">신고 내용</h4>
+                            <div className="reported-content">
+                                {selectedReport.content || <span className="no-content">내용을 불러올 수 없거나 삭제된 콘텐츠입니다.</span>}
+                            </div>
+                        </div>
+
+                        <div className="report-detail-section sanction-section">
+                            <h4 className="section-title">제재 처리</h4>
                             <div className="sanction-controls">
-                                <select value={banDays} onChange={(e) => setBanDays(e.target.value)}>
-                                    <option value="0">해당 없음</option>
+                                <select
+                                    className="admin-select"
+                                    value={banDays}
+                                    onChange={(e) => setBanDays(e.target.value)}
+                                >
+                                    <option value="0">제재 없음 (단순 처리)</option>
                                     <option value="3">3일 정지</option>
                                     <option value="7">7일 정지</option>
                                     <option value="30">30일 정지</option>
                                     <option value="100">100일 정지</option>
                                     <option value="9999">영구 정지</option>
                                 </select>
-                                <button className="sanction-btn" onClick={handleSanction}>제재 수행</button>
+                                <button className="sanction-btn" onClick={handleSanction}>처리 완료</button>
                             </div>
                         </div>
                     </div>

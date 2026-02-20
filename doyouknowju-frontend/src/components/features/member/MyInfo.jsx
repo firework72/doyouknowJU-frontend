@@ -1,29 +1,36 @@
+import { getImageUrl } from "../../../api/game/titleApi";
 import { Button, Card } from "../../common";
 import './MyInfo.css';
 
 
-const MyInfo = ({ user, onOpenAttendance, onOpenWithdrawal, onOpenReport }) => {
-    if(!user) return null;
+const MyInfo = ({ user, onOpenAttendance, onOpenWithdrawal }) => {
+    if (!user) return null;
 
-    return(
+    return (
         <Card className="my-info-card">
             <div className="card-header">
                 <span className="section-title">내정보</span>
                 <Button
-                    variant={user.userRole === 'ADMIN' ? "danger" : "primary"}
+                    variant="primary"
                     size="sm"
-                    onClick={user.userRole === 'ADMIN' ? onOpenReport : onOpenAttendance}
+                    onClick={onOpenAttendance}
                 >
-                    {user.userRole === 'ADMIN' ? "신고 관리" : "출석확인"}
+                    출석확인
                 </Button>
             </div>
-        
+
             <div className="info-list">
                 <div className="info-item">
                     <span className="info-label">아이디</span>
-                     <span className="info-value">
+                    <span className="info-value" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {user.equippedTitleImgUrl && (
+                            <img
+                                src={getImageUrl(user.equippedTitleImgUrl)}
+                                alt={user.equippedTitleName}
+                                style={{ height: '20px', objectFit: 'contain' }}
+                            />
+                        )}
                         {user.userId}
-                        {user.userRole === 'ADMIN' && <span style={{ fontSize: '0.8em', color: 'red', marginLeft: '5px' }}>(관리자)</span>}
                     </span>
                 </div>
                 <div className="info-item">
@@ -36,7 +43,7 @@ const MyInfo = ({ user, onOpenAttendance, onOpenWithdrawal, onOpenReport }) => {
                 </div>
                 <div className="info-item">
                     <span className="info-label">보유 포인트</span>
-                        <span className="info-value">{user.points?.toLocaleString()} P</span>
+                    <span className="info-value">{user.points?.toLocaleString()} P</span>
                 </div>
                 <div className="info-item">
                     <span className="info-label">누적 출석</span>

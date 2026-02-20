@@ -443,26 +443,38 @@ function HomePage() {
                         {user ? (
                             <div className="user-profile">
                                 <h3 className="section-title">내 정보</h3>
-                                <div className="user-info-area">
-                                    {user.equippedTitleImgUrl && (
-                                        <img
-                                            src={getImageUrl(user.equippedTitleImgUrl)}
-                                            alt={user.equippedTitleName}
-                                            className="homepage-title-banner"
-                                            title={user.equippedTitleName}
-                                        />
-                                    )}
-                                    <p className="welcome-msg"><strong>{user.userId}</strong>님, 환영합니다!</p>
+                                <div className="user-info-list">
+                                    <div className="user-info-item">
+                                        <span className="info-label">아이디</span>
+                                        <div className="info-value-with-title">
+                                            {user.equippedTitleImgUrl && (
+                                                <img
+                                                    src={getImageUrl(user.equippedTitleImgUrl)}
+                                                    alt={user.equippedTitleName}
+                                                    className="homepage-title-icon"
+                                                    title={user.equippedTitleName}
+                                                />
+                                            )}
+                                            <strong>{user.userId}</strong>
+                                        </div>
+                                    </div>
+                                    <div className="user-info-item">
+                                        <span className="info-label">보유 자산</span>
+                                        <span className="info-value">{user.points?.toLocaleString()}원</span>
+                                    </div>
+                                    <div className="user-info-item">
+                                        <span className="info-label">레벨</span>
+                                        <span className="info-value">Lv. {user.userLevel}</span>
+                                    </div>
+                                    <div className="user-info-item">
+                                        <span className="info-label">누적 출석</span>
+                                        <span className="info-value">{user.consecDays}일</span>
+                                    </div>
                                 </div>
-                                <div className="user-stats">
-                                    <p>보유 자산: {user.points?.toLocaleString()}원</p>
-                                    <p>레벨: {user.userLevel}</p>
-                                    <p>누적 출석: {user.consecDays}일</p>
-                                </div>
-                                <div className="auth-links">
+                                <div className="auth-links home-profile-footer">
                                     <button onClick={handleLogout} className="auth-link-btn">로그아웃</button>
                                 </div>
-                                <div className="auth-links">
+                                <div className="auth-links home-profile-actions">
                                     <Button onClick={handleAttend} variant="primary" size="sm" className="home-auth-btn">출석체크</Button>
                                     <Button onClick={() => setIsQuizModalOpen(true)} variant="secondary" size="sm" className="home-auth-btn">OX퀴즈</Button>
                                 </div>
