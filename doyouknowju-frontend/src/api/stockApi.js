@@ -214,7 +214,7 @@ export const fetchTop10MarketCap = async () => {
 export const fetchKospiIndexChart = async (params = {}) => {
     try {
         const response = await axios.get('/dykj/api/stocks/index/kospi/chart', {
-            params: { period: 1, ...params },
+            params,
         });
         return toIndexChartRows(response.data);
     } catch (error) {
@@ -226,7 +226,7 @@ export const fetchKospiIndexChart = async (params = {}) => {
 export const fetchKosdaqIndexChart = async (params = {}) => {
     try {
         const response = await axios.get('/dykj/api/stocks/index/kosdaq/chart', {
-            params: { period: 1, ...params },
+            params,
         });
         return toIndexChartRows(response.data);
     } catch (error) {
