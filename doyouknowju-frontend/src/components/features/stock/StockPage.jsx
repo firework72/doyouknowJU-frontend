@@ -1,8 +1,8 @@
 
-import {react, useEffect, useState} from 'react';
-import { fetchStockSuggestions } from '../../../api/stockApi';
+import {react, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/AuthContext';
+import { useStockAutocomplete } from '../../../hooks/useStockAutocomplete';
 import styles from './StockPage.module.css';
 import FavoriteStockTable from './components/FavoriteStockTable';
 
@@ -12,25 +12,8 @@ function StockPage() {
     const userId = user?.userId;
 
     const [query, setQuery] = useState('');
-    const [suggestions, setSuggestions] = useState([]);
-    const [showSuggestions, setShowSuggestions] = useState(false);
+    const { suggestions, showSuggestions, setShowSuggestions } = useStockAutocomplete(query);
     const navigate = useNavigate();
-
-    useEffect(() => {
-    const timer = setTimeout(async () => {
-        if (query.length >= 2) {
-        const results = await fetchStockSuggestions(query);
-        if (Array.isArray(results)) {
-            setSuggestions(results);
-            setShowSuggestions(true);
-        }
-        } else {
-        setSuggestions([]);
-        setShowSuggestions(false);
-        }
-    }, 300);
-    return () => clearTimeout(timer);
-    }, [query]);
 
   const handleInputChange = (e) => setQuery(e.target.value);
   const handleKeyDown = (e) => e.key === 'Enter' && handleSearchSubmit();

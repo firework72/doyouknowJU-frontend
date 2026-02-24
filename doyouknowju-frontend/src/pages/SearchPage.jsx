@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { fetchStockSearch, fetchStockPrices } from '../api/stockApi';
 
-// 개별 주식 항목 컴포넌트
+// 媛쒕퀎 二쇱떇 ??ぉ 而댄룷?뚰듃
 const StockListItem = ({ stock, priceInfo, navigate }) => {
     const stockId = stock.stockId;
     const stockName = stock.stockName;
@@ -21,8 +21,8 @@ const StockListItem = ({ stock, priceInfo, navigate }) => {
 
     const getPriceColor = () => {
         if (!priceInfo) return '#333';
-        if (signNum === 1 || signNum === 2) return '#d20d0d'; // 상승
-        if (signNum === 4 || signNum === 5) return '#0d42d2'; // 하락
+        if (signNum === 1 || signNum === 2) return '#d20d0d'; // ?곸듅
+        if (signNum === 4 || signNum === 5) return '#0d42d2'; // ?섎씫
         return '#333';
     };
 
@@ -65,35 +65,18 @@ const SearchPage = () => {
 
             setLoading(true);
             try {
-                // 1) 검색 결과 (DB)
-                const searchRes = await axios.get(
-                    `/dykj/api/stocks/search?q=${encodeURIComponent(q)}&page=1&size=30`,
-                    { signal: controller.signal }
-                );
-
-                const searchData = Array.isArray(searchRes.data) ? searchRes.data : [];
+                // 1) 寃??寃곌낵 (DB)
+                const searchData = await fetchStockSearch({ q, page: 1, size: 30 });
                 setResults(searchData);
 
-                // 2) 가격 (KIS, 최대 30개)
+                // 2) 媛寃?(KIS, 理쒕? 30媛?
                 const ids = searchData
                     .map((s) => s?.stockId)
                     .filter(Boolean)
                     .slice(0, 30);
 
                 if (ids.length > 0) {
-                    let fetchedPrices = {};
-                    try {
-                        const priceRes = await axios.post(
-                            '/dykj/api/stocks/prices',
-                            { stockIds: ids },
-                            { headers: { 'Content-Type': 'application/json' }, signal: controller.signal }
-                        );
-                        fetchedPrices = priceRes.data || {};
-                    } catch (err) {
-                        console.warn('Bulk price fetch failed, falling back to individual fetch', err);
-                    }
-
-                    // prices 실행해서 한번 긁어오기
+                    const fetchedPrices = await fetchStockPrices(ids);
                     setPrices(fetchedPrices);
 
 
@@ -143,7 +126,7 @@ const SearchPage = () => {
     );
 };
 
-// CSS-in-JS 스타일
+// CSS-in-JS ?ㅽ???
 const styles = {
     container: { maxWidth: '800px', margin: '0 auto', padding: '40px 20px' },
     title: { fontSize: '24px', fontWeight: 'bold', marginBottom: '30px' },
@@ -163,3 +146,5 @@ const styles = {
 };
 
 export default SearchPage;
+
+

@@ -1,10 +1,10 @@
 ﻿import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import styles from './BoardListPage.module.css';
 import Button from '../../../common/Button';
 import Pagination from '../../../common/Pagination';
 import { useAuth } from '@/hooks/AuthContext';
-import { fetchStockSuggestions } from '@/api/stockApi';
+import { useStockAutocomplete } from '@/hooks/useStockAutocomplete';
 import { getImageUrl } from '@/api/game/titleApi';
 import axios from 'axios';
 
@@ -90,9 +90,11 @@ function BoardListPage() {
   const [searchKeyword, setSearchKeyword] = useState('');
 
   const [stockQuery, setStockQuery] = useState('');
-  const [stockSuggestions, setStockSuggestions] = useState([]);
-  const [showStockSuggestions, setShowStockSuggestions] = useState(false);
-  const suggestionRequestIdRef = useRef(0);
+  const {
+    suggestions: stockSuggestions,
+    showSuggestions: showStockSuggestions,
+    setShowSuggestions: setShowStockSuggestions,
+  } = useStockAutocomplete(stockQuery);
 
   const fetchBoards = useCallback(async (page, condition, keyword, type, stockId) => {
     setIsLoading(true);
@@ -155,26 +157,6 @@ function BoardListPage() {
 
     setSearchParams(params);
   }, [searchParams, setSearchParams]);
-
-  useEffect(() => {
-    const requestId = ++suggestionRequestIdRef.current;
-    const timer = setTimeout(async () => {
-      if (stockQuery.length >= 2) {
-        const results = await fetchStockSuggestions(stockQuery);
-        if (requestId !== suggestionRequestIdRef.current) return;
-        setStockSuggestions(results);
-        setShowStockSuggestions(true);
-      } else {
-        if (requestId !== suggestionRequestIdRef.current) return;
-        setStockSuggestions([]);
-        setShowStockSuggestions(false);
-      }
-    }, 300);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [stockQuery]);
 
   const handlePageChange = useCallback((page) => {
     const params = new URLSearchParams(searchParams);

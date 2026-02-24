@@ -6,7 +6,7 @@ import StockTop10View from '../front/StockView';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createChart, CandlestickSeries, LineSeries } from 'lightweight-charts';
 import { useAuth } from '../hooks/AuthContext';
-import { Badge, Button } from '../components/common';
+import { Button } from '../components/common';
 import AttendanceModal from '../components/features/game/Attendance/AttendanceModal';
 import LevelUpModal from '../components/features/game/LevelUpModal';
 import QuizModal from '../components/features/game/QuizModal';
@@ -55,44 +55,79 @@ function HomePage() {
             .map((item, idx) => {
                 const close =
                     toNumber(item?.nowVal) ??
-                    toNumber(item?.bstp_nmix_prpr) ??
-                    toNumber(item?.closePrice);
+                    toNumber(item?.currentPrice) ??
+                    toNumber(item?.closePrice) ??
+                    toNumber(item?.close) ??
+                    toNumber(item?.stck_prpr) ??
+                    toNumber(item?.bstp_nmix_prpr);
 
                 if (close === null) return null;
 
-                const rawTime = String(item?.thistime ?? item?.stck_cntg_hour ?? item?.localDate ?? '').trim();
+                const rawTime = String(
+                    item?.thistime ??
+                    item?.dateTime ??
+                    item?.localDateTime ??
+                    item?.localTradedAt ??
+                    item?.stck_cntg_hour ??
+                    item?.localDate ??
+                    '',
+                ).trim();
+                const digitsOnlyTime = rawTime.replace(/[^\d]/g, '');
                 let dateNumber = null;
                 let timeNumber = null;
                 let chartTime = null;
 
-                if (/^\d{14}$/.test(rawTime)) {
-                    const yyyy = Number(rawTime.slice(0, 4));
-                    const mm = Number(rawTime.slice(4, 6));
-                    const dd = Number(rawTime.slice(6, 8));
-                    const hh = Number(rawTime.slice(8, 10));
-                    const mi = Number(rawTime.slice(10, 12));
-                    const ss = Number(rawTime.slice(12, 14));
-                    dateNumber = Number(rawTime.slice(0, 8));
-                    timeNumber = Number(rawTime.slice(8, 14));
+                if (/^\d{14,}$/.test(digitsOnlyTime)) {
+                    const compactTime = digitsOnlyTime.slice(0, 14);
+                    const yyyy = Number(compactTime.slice(0, 4));
+                    const mm = Number(compactTime.slice(4, 6));
+                    const dd = Number(compactTime.slice(6, 8));
+                    const hh = Number(compactTime.slice(8, 10));
+                    const mi = Number(compactTime.slice(10, 12));
+                    const ss = Number(compactTime.slice(12, 14));
+                    dateNumber = Number(compactTime.slice(0, 8));
+                    timeNumber = Number(compactTime.slice(8, 14));
                     chartTime = Math.floor(Date.UTC(yyyy, mm - 1, dd, hh, mi, ss) / 1000);
-                } else if (/^\d{12}$/.test(rawTime)) {
-                    const yyyy = Number(rawTime.slice(0, 4));
-                    const mm = Number(rawTime.slice(4, 6));
-                    const dd = Number(rawTime.slice(6, 8));
-                    const hh = Number(rawTime.slice(8, 10));
-                    const mi = Number(rawTime.slice(10, 12));
-                    dateNumber = Number(rawTime.slice(0, 8));
-                    timeNumber = Number(rawTime.slice(8, 12) + '00');
+                } else if (/^\d{12}$/.test(digitsOnlyTime)) {
+                    const yyyy = Number(digitsOnlyTime.slice(0, 4));
+                    const mm = Number(digitsOnlyTime.slice(4, 6));
+                    const dd = Number(digitsOnlyTime.slice(6, 8));
+                    const hh = Number(digitsOnlyTime.slice(8, 10));
+                    const mi = Number(digitsOnlyTime.slice(10, 12));
+                    dateNumber = Number(digitsOnlyTime.slice(0, 8));
+                    timeNumber = Number(digitsOnlyTime.slice(8, 12) + '00');
                     chartTime = Math.floor(Date.UTC(yyyy, mm - 1, dd, hh, mi, 0) / 1000);
-                } else if (/^\d{6}$/.test(rawTime)) {
-                    timeNumber = Number(rawTime);
-                } else if (/^\d{8}$/.test(rawTime)) {
-                    const yyyy = Number(rawTime.slice(0, 4));
-                    const mm = Number(rawTime.slice(4, 6));
-                    const dd = Number(rawTime.slice(6, 8));
-                    dateNumber = Number(rawTime);
+                } else if (/^\d{10}$/.test(digitsOnlyTime)) {
+                    const yyyy = Number(digitsOnlyTime.slice(0, 4));
+                    const mm = Number(digitsOnlyTime.slice(4, 6));
+                    const dd = Number(digitsOnlyTime.slice(6, 8));
+                    const hh = Number(digitsOnlyTime.slice(8, 10));
+                    dateNumber = Number(digitsOnlyTime.slice(0, 8));
+                    timeNumber = Number(`${digitsOnlyTime.slice(8, 10)}0000`);
+                    chartTime = Math.floor(Date.UTC(yyyy, mm - 1, dd, hh, 0, 0) / 1000);
+                } else if (/^\d{6}$/.test(digitsOnlyTime)) {
+                    timeNumber = Number(digitsOnlyTime);
+                } else if (/^\d{8}$/.test(digitsOnlyTime)) {
+                    const yyyy = Number(digitsOnlyTime.slice(0, 4));
+                    const mm = Number(digitsOnlyTime.slice(4, 6));
+                    const dd = Number(digitsOnlyTime.slice(6, 8));
+                    dateNumber = Number(digitsOnlyTime);
                     timeNumber = 0;
                     chartTime = Math.floor(Date.UTC(yyyy, mm - 1, dd, 0, 0, 0) / 1000);
+                }
+
+                if (!Number.isFinite(chartTime)) {
+                    const parsedTimestamp = Date.parse(rawTime);
+                    if (Number.isFinite(parsedTimestamp)) {
+                        chartTime = Math.floor(parsedTimestamp / 1000);
+                        const parsedDate = new Date(parsedTimestamp);
+                        dateNumber = Number(
+                            `${parsedDate.getUTCFullYear()}${String(parsedDate.getUTCMonth() + 1).padStart(2, '0')}${String(parsedDate.getUTCDate()).padStart(2, '0')}`,
+                        );
+                        timeNumber = Number(
+                            `${String(parsedDate.getUTCHours()).padStart(2, '0')}${String(parsedDate.getUTCMinutes()).padStart(2, '0')}${String(parsedDate.getUTCSeconds()).padStart(2, '0')}`,
+                        );
+                    }
                 }
 
                 if (timeNumber === 888888) return null;
@@ -136,7 +171,11 @@ function HomePage() {
                     close,
                     dayDiff: toNumber(item?.changeVal) ?? toNumber(item?.bstp_nmix_prdy_vrss),
                     dayRate: toNumber(item?.changeRate) ?? toNumber(item?.bstp_nmix_prdy_ctrt),
-                    tickVolume: toNumber(item?.quant) ?? toNumber(item?.cntg_vol) ?? 0,
+                    tickVolume:
+                        toNumber(item?.quant) ??
+                        toNumber(item?.cntg_vol) ??
+                        toNumber(item?.accumulatedTradingVolume) ??
+                        0,
                 };
             })
             .filter(Boolean);
@@ -169,38 +208,41 @@ function HomePage() {
     };
 
     const loadIndexCharts = async (range = 'day', isCancelled = () => false) => {
-        const queryParams = { range };
+        const allowedRanges = new Set(['1h', 'day', 'week', 'month', 'year']);
+        const normalizedRange = allowedRanges.has(range) ? range : 'day';
+        const queryParams = { range: normalizedRange };
 
         try {
-            const [kospiRows, kosdaqRows] = await Promise.all([
+            const [kospiResult, kosdaqResult] = await Promise.all([
                 fetchKospiIndexChart(queryParams),
                 fetchKosdaqIndexChart(queryParams),
             ]);
 
-            let nextKospiRows = kospiRows;
-            let nextKosdaqRows = kosdaqRows;
+            const nextKospiRows = toUniqueRowsByTime(toIndexChartRows(kospiResult?.rows ?? []));
+            const nextKosdaqRows = toUniqueRowsByTime(toIndexChartRows(kosdaqResult?.rows ?? []));
 
             const isKospiEmpty = !Array.isArray(nextKospiRows) || nextKospiRows.length === 0;
             const isKosdaqEmpty = !Array.isArray(nextKosdaqRows) || nextKosdaqRows.length === 0;
+            const hasAnyRtError = kospiResult?.ok === false || kosdaqResult?.ok === false;
 
-            if (isKospiEmpty || isKosdaqEmpty) {
-                const [fallbackKospiRows, fallbackKosdaqRows] = await Promise.all([
-                    fetchKospiIndexChart(queryParams),
-                    fetchKosdaqIndexChart(queryParams),
-                ]);
-
-                if (isKospiEmpty) nextKospiRows = fallbackKospiRows;
-                if (isKosdaqEmpty) nextKosdaqRows = fallbackKosdaqRows;
+            if (hasAnyRtError || (isKospiEmpty && isKosdaqEmpty)) {
+                if (!isCancelled()) {
+                    setTimeout(() => {
+                        if (!isCancelled()) loadIndexCharts(normalizedRange, isCancelled);
+                    }, 2500);
+                }
+                return;
             }
 
             if (isCancelled()) return;
-            setKospiChart(applyRangeView(toUniqueRowsByTime(toIndexChartRows(nextKospiRows)), range));
-            setKosdaqChart(applyRangeView(toUniqueRowsByTime(toIndexChartRows(nextKosdaqRows)), range));
+            if (!isKospiEmpty) setKospiChart(applyRangeView(nextKospiRows, normalizedRange));
+            if (!isKosdaqEmpty) setKosdaqChart(applyRangeView(nextKosdaqRows, normalizedRange));
         } catch (err) {
             console.error('지수 차트 조회 실패:', err);
             if (isCancelled()) return;
-            setKospiChart([]);
-            setKosdaqChart([]);
+            setTimeout(() => {
+                if (!isCancelled()) loadIndexCharts(normalizedRange, isCancelled);
+            }, 2500);
         } finally {
             if (isCancelled()) return;
             setIndexChartLoading(false);
@@ -312,6 +354,31 @@ function HomePage() {
         () => selectedRows.some((row) => Number(row?.timeNumber) > 0),
         [selectedRows],
     );
+    const plottedRows = useMemo(() => {
+        if (!selectedRows.length) return [];
+        const hasIntraday = selectedRows.some((row) => Number(row?.timeNumber) > 0);
+        if (!hasIntraday) return selectedRows.map((row) => ({ ...row, plotTime: row.chartTime }));
+
+        const sortedTimes = selectedRows
+            .map((row) => row.chartTime)
+            .filter((time) => Number.isFinite(time))
+            .sort((a, b) => a - b);
+
+        const diffs = [];
+        for (let index = 1; index < sortedTimes.length; index += 1) {
+            const diff = sortedTimes[index] - sortedTimes[index - 1];
+            if (diff > 0 && diff <= 4 * 60 * 60) diffs.push(diff);
+        }
+        const intervalSeconds = diffs.length
+            ? [...diffs].sort((a, b) => a - b)[Math.floor(diffs.length / 2)]
+            : 0;
+        const offsetSeconds = Math.max(0, Math.min(intervalSeconds, 60 * 60));
+
+        return selectedRows.map((row) => ({
+            ...row,
+            plotTime: row.chartTime - offsetSeconds,
+        }));
+    }, [selectedRows]);
 
     const chartSummary = useMemo(() => {
         if (!selectedRows.length) return null;
@@ -333,21 +400,21 @@ function HomePage() {
             : selectedRows[0];
         const dayHigh = Math.max(...selectedRows.map((row) => row.high));
         const dayLow = Math.min(...selectedRows.map((row) => row.low));
-        const rangeDiff = last.close - baseline.close;
-        const rangeRate = baseline.close !== 0 ? (rangeDiff / baseline.close) * 100 : 0;
+        const diff = last.close - baseline.close;
+        const rate = baseline.close !== 0 ? (diff / baseline.close) * 100 : 0;
         return {
             open: baseline.open,
             high: dayHigh,
             low: dayLow,
             close: last.close,
-            diff: rangeDiff,
-            rate: rangeRate,
+            diff,
+            rate,
             volume: last.tickVolume ?? 0,
         };
     }, [selectedRows, selectedRange]);
 
     useEffect(() => {
-        if (!chartContainerRef.current || !selectedRows.length) return;
+        if (!chartContainerRef.current || !plottedRows.length) return;
         const chart = createChart(chartContainerRef.current, {
             autoSize: true,
             layout: {
@@ -366,6 +433,8 @@ function HomePage() {
                 borderColor: '#e5e7eb',
                 timeVisible: (selectedRange === '1h' || selectedRange === 'day') && hasIntradaySelectedRows,
                 secondsVisible: false,
+                rightOffset: 2,
+                barSpacing: 8,
             },
             crosshair: {
                 horzLine: { color: '#9ca3af' },
@@ -383,8 +452,8 @@ function HomePage() {
             lastValueVisible: true,
         });
 
-        const toCandleData = selectedRows.map((row) => ({
-            time: row.chartTime,
+        const toCandleData = plottedRows.map((row) => ({
+            time: row.plotTime,
             open: row.open,
             high: row.high,
             low: row.low,
@@ -394,11 +463,11 @@ function HomePage() {
 
         const calcMA = (period) => {
             const data = [];
-            for (let idx = 0; idx < selectedRows.length; idx += 1) {
+            for (let idx = 0; idx < plottedRows.length; idx += 1) {
                 if (idx < period - 1) continue;
-                const slice = selectedRows.slice(idx - period + 1, idx + 1);
+                const slice = plottedRows.slice(idx - period + 1, idx + 1);
                 const avg = slice.reduce((sum, row) => sum + row.close, 0) / period;
-                data.push({ time: selectedRows[idx].chartTime, value: avg });
+                data.push({ time: plottedRows[idx].plotTime, value: avg });
             }
             return data;
         };
@@ -419,9 +488,9 @@ function HomePage() {
         });
         ma60.setData(calcMA(60));
 
-        if ((selectedRange === '1h' || selectedRange === 'day') && selectedRows.length) {
-            const firstTime = selectedRows[0].chartTime;
-            const lastTime = selectedRows[selectedRows.length - 1].chartTime;
+        if ((selectedRange === '1h' || selectedRange === 'day') && plottedRows.length) {
+            const firstTime = plottedRows[0].plotTime;
+            const lastTime = plottedRows[plottedRows.length - 1].plotTime;
             const visibleWindowSeconds =
                 selectedRange === '1h'
                     ? 24 * 60 * 60
@@ -437,7 +506,7 @@ function HomePage() {
         return () => {
             chart.remove();
         };
-    }, [selectedRows, selectedRange, hasIntradaySelectedRows]);
+    }, [plottedRows, selectedRange, hasIntradaySelectedRows]);
 
     return (
         <main className="main-container">

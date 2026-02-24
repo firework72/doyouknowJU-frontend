@@ -6,6 +6,7 @@ import Input from '../../../common/Input';
 import Button from '../../../common/Button';
 import styles from './BoardWritePage.module.css';
 import { fetchStockSuggestions } from '@/api/stockApi';
+import { useStockAutocomplete } from '@/hooks/useStockAutocomplete';
 import { canWriteAfterSignupDays, getWriteRestrictionMessage } from '@/utils/accountEligibility';
 import ReactQuill, { Quill } from 'react-quill-new';
 import 'quill/dist/quill.snow.css';
@@ -28,12 +29,10 @@ function BoardWritePage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [stockQuery, setStockQuery] = useState('');
-  const [suggestions, setSuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const { suggestions, showSuggestions, setShowSuggestions } = useStockAutocomplete(stockQuery);
   const [selectedStock, setSelectedStock] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [deleteBtnPos, setDeleteBtnPos] = useState({ top: 0, left: 0 });
-  const suggestionRequestIdRef = useRef(0);
 
   useEffect(() => {
     if (!isEditMode) {
@@ -43,26 +42,6 @@ function BoardWritePage() {
       }));
     }
   }, [isEditMode, user]);
-
-  useEffect(() => {
-    const requestId = ++suggestionRequestIdRef.current;
-    const timer = setTimeout(async () => {
-      if (stockQuery.length >= 2) {
-        const results = await fetchStockSuggestions(stockQuery);
-        if (requestId !== suggestionRequestIdRef.current) return;
-        setSuggestions(results);
-        setShowSuggestions(true);
-      } else {
-        if (requestId !== suggestionRequestIdRef.current) return;
-        setSuggestions([]);
-        setShowSuggestions(false);
-      }
-    }, 300);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [stockQuery]);
 
   useEffect(() => {
     if (!isEditMode) return;
