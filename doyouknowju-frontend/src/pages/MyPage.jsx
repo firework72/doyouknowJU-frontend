@@ -32,6 +32,7 @@ const MyPage = () => {
 
     const [achievements, setAchievements] = useState([]);
     const [titles, setTitles] = useState([]);
+    const [levelPolicies, setLevelPolicies] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -50,6 +51,7 @@ const MyPage = () => {
                 if (isRefreshed) {
                     await fetchAchievements();
                     await fetchMyTitles();
+                    await fetchLevelPolicies();
                     setLoading(false);
                 }
             } catch (error) {
@@ -78,6 +80,15 @@ const MyPage = () => {
             console.error("칭호 목록 조회 실패: ", error);
         }
     }
+
+    const fetchLevelPolicies = async () => {
+        try {
+            const data = await achievementApi.getLevelPolicies();
+            setLevelPolicies(data);
+        } catch (error) {
+            console.error("레벨 정책 조회 실패:", error);
+        }
+    };
 
     const handleClaimReward = async (achievementId) => {
         try {
@@ -131,6 +142,7 @@ const MyPage = () => {
                 {/* My Info Card */}
                 <MyInfo
                     user={user}
+                    levelPolicies={levelPolicies}
                     onOpenAttendance={() => setIsAttendenceModalOpen(true)}
                     onOpenWithdrawal={() => setIsWithdrawalModalOpen(true)}
                     onOpenReport={() => setIsReportModalOpen(true)}

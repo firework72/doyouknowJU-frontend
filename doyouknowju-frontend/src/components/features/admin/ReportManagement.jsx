@@ -5,6 +5,7 @@ import Pagination from '../../common/Pagination';
 import Modal from '../../common/Modal';
 import './AdminCommon.css';
 import './ReportManagement.css';
+import { stripHtml } from '../../../utils/htmlUtils';
 
 const ReportManagement = () => {
     const [reports, setReports] = useState([]);
@@ -188,7 +189,13 @@ const ReportManagement = () => {
                         <div className="report-detail-section content-section">
                             <h4 className="section-title">신고 내용</h4>
                             <div className="reported-content">
-                                {selectedReport.content || <span className="no-content">내용을 불러올 수 없거나 삭제된 콘텐츠입니다.</span>}
+                                {selectedReport.content ? (
+                                    selectedReport.reportType === 'BOARD'
+                                        ? <div style={{ whiteSpace: 'pre-wrap' }}>{stripHtml(selectedReport.content)}</div>
+                                        : selectedReport.content
+                                ) : (
+                                    <span className="no-content">내용을 불러올 수 없거나 삭제된 콘텐츠입니다.</span>
+                                )}
                             </div>
                         </div>
 
