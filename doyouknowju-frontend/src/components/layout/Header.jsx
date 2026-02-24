@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import { fetchStockSuggestions } from '../../api/stockApi';
+import { useState } from 'react';
 import { useNotification } from '../../hooks/useNotification';
+import { useStockAutocomplete } from '../../hooks/useStockAutocomplete';
 import NotificationBadge from '../features/notification/NotificationBadge';
 import NotificationList from '../features/notification/NotificationList';
 import { useAuth } from '@/hooks/AuthContext';
@@ -25,24 +25,7 @@ function Header({ logoSrc }) {
   // [흰색 화면 해결] 상태 선언을 분리
   const [showNotiList, setShowNotiList] = useState(false);
   const [query, setQuery] = useState('');
-  const [suggestions, setSuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(async () => {
-      if (query.length >= 2) {
-        const results = await fetchStockSuggestions(query);
-        if (Array.isArray(results)) {
-          setSuggestions(results);
-          setShowSuggestions(true);
-        }
-      } else {
-        setSuggestions([]);
-        setShowSuggestions(false);
-      }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [query]);
+  const { suggestions, showSuggestions, setShowSuggestions } = useStockAutocomplete(query);
 
   const handleInputChange = (e) => setQuery(e.target.value);
   const handleKeyDown = (e) => e.key === 'Enter' && handleSearchSubmit();

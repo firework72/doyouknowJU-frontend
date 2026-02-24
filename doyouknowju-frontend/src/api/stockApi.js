@@ -1,89 +1,30 @@
 import axios from 'axios';
 
-const findArrayDeep = (value, depth = 0) => {
-    if (depth > 4 || value === null || value === undefined) return null;
-    if (Array.isArray(value)) return value;
-
-    if (typeof value === 'string') {
-        try {
-            const parsed = JSON.parse(value);
-            return findArrayDeep(parsed, depth + 1);
-        } catch {
-            return null;
-        }
-    }
-
-    if (typeof value !== 'object') return null;
-
-    for (const nested of Object.values(value)) {
-        const found = findArrayDeep(nested, depth + 1);
-        if (Array.isArray(found)) return found;
-    }
-
-    return null;
-};
-
-const toArrayPayload = (raw) => {
+const toIndexChartResult = (raw) => {
     let data = raw;
 
     if (typeof data === 'string') {
         try {
             data = JSON.parse(data);
         } catch {
-            return [];
+            return { ok: false, rows: [] };
         }
     }
 
-    if (Array.isArray(data)) return data;
-    if (!data || typeof data !== 'object') return [];
+    if (!data) return { ok: false, rows: [] };
 
-    const candidates = [
-        data.output,
-        data.output1,
-        data.output2,
-        data.list,
-        data.data,
-        data.items,
-        data.result,
-    ];
-
-    for (const candidate of candidates) {
-        if (Array.isArray(candidate)) return candidate;
-        if (typeof candidate === 'string') {
-            try {
-                const parsed = JSON.parse(candidate);
-                if (Array.isArray(parsed)) return parsed;
-            } catch {
-                // noop
-            }
-        }
+    if (typeof data === 'object' && data !== null && String(data.rt_cd ?? '0').trim() !== '0') {
+        return { ok: false, rows: [] };
     }
 
-    const deepArray = findArrayDeep(data);
-    return Array.isArray(deepArray) ? deepArray : [];
-};
-
-const toIndexChartRows = (raw) => {
-    let data = raw;
-
-    if (typeof data === 'string') {
-        try {
-            data = JSON.parse(data);
-        } catch {
-            return [];
-        }
-    }
-
-    if (!data) return [];
-
-    if (Array.isArray(data?.output)) return data.output;
-    if (Array.isArray(data?.output2)) return data.output2;
-    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.output)) return { ok: true, rows: data.output };
+    if (Array.isArray(data?.output2)) return { ok: true, rows: data.output2 };
+    if (Array.isArray(data)) return { ok: true, rows: data };
 
     if (typeof data?.output === 'string') {
         try {
             const parsed = JSON.parse(data.output);
-            if (Array.isArray(parsed)) return parsed;
+            if (Array.isArray(parsed)) return { ok: true, rows: parsed };
         } catch {
             // noop
         }
@@ -92,13 +33,13 @@ const toIndexChartRows = (raw) => {
     if (typeof data?.output2 === 'string') {
         try {
             const parsed = JSON.parse(data.output2);
-            if (Array.isArray(parsed)) return parsed;
+            if (Array.isArray(parsed)) return { ok: true, rows: parsed };
         } catch {
             // noop
         }
     }
 
-    return [];
+    return { ok: true, rows: [] };
 };
 
 /**
@@ -107,10 +48,14 @@ const toIndexChartRows = (raw) => {
  * @returns {Promise<Array>} - List of matching stocks.
  */
 // Suggestion API (Autocomplete)
-export const fetchStockSuggestions = async (query) => {
+export const fetchStockSuggestions = async (query, limit) => {
     try {
+        const params = { q: query };
+        if (Number.isFinite(Number(limit)) && Number(limit) > 0) {
+            params.limit = Number(limit);
+        }
         const response = await axios.get('/dykj/api/stocks/suggest', {
-            params: { q: query },
+            params,
         });
 
         if (Array.isArray(response.data)) {
@@ -125,25 +70,6 @@ export const fetchStockSuggestions = async (query) => {
     }
 };
 
-// Search Result API (Full list)
-export const searchStocks = async (query) => {
-    try {
-        const response = await axios.get('/dykj/api/stocks/search', {
-            params: { q: query },
-        });
-
-        if (Array.isArray(response.data)) {
-            return response.data;
-        } else {
-            console.warn('Search API did not return an array:', response.data);
-            return [];
-        }
-    } catch (error) {
-        console.error('Error searching stocks:', error);
-        throw error;
-    }
-};
-
 // Top 10 Volume (Existing)
 export const fetchTop10Volume = async () => {
     try {
@@ -151,17 +77,6 @@ export const fetchTop10Volume = async () => {
         return response.data;
     } catch (error) {
         console.error('Error fetching Top 10 Volume:', error);
-        return [];
-    }
-};
-
-// Top 10 Trade Amount (New)
-export const fetchTop10TradeAmount = async () => {
-    try {
-        const response = await axios.get('/dykj/api/stocks/top10/trade-amount');
-        return response.data;
-    } catch (error) {
-        console.error('Error fetching Top 10 Trade Amount:', error);
         return [];
     }
 };
@@ -174,6 +89,29 @@ export const fetchTop10TradeValueNaver = async () => {
     } catch (error) {
         console.error('Error fetching Top 10 Trade Value (Naver):', error);
         return [];
+    }
+};
+
+export const fetchStockSearch = async ({ q, page = 1, size = 30 } = {}) => {
+    try {
+        const response = await axios.get('/dykj/api/stocks/search', {
+            params: { q, page, size },
+        });
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+        console.error('Error fetching stock search:', error);
+        return [];
+    }
+};
+
+export const fetchStockPrices = async (stockIds = []) => {
+    try {
+        if (!Array.isArray(stockIds) || stockIds.length === 0) return {};
+        const response = await axios.post('/dykj/api/stocks/prices', { stockIds });
+        return response.data && typeof response.data === 'object' ? response.data : {};
+    } catch (error) {
+        console.error('Error fetching stock prices:', error);
+        return {};
     }
 };
 
@@ -216,10 +154,10 @@ export const fetchKospiIndexChart = async (params = {}) => {
         const response = await axios.get('/dykj/api/stocks/index/kospi/chart', {
             params,
         });
-        return toIndexChartRows(response.data);
+        return toIndexChartResult(response.data);
     } catch (error) {
         console.error('Error fetching KOSPI index chart:', error);
-        return [];
+        return { ok: false, rows: [] };
     }
 };
 
@@ -228,9 +166,9 @@ export const fetchKosdaqIndexChart = async (params = {}) => {
         const response = await axios.get('/dykj/api/stocks/index/kosdaq/chart', {
             params,
         });
-        return toIndexChartRows(response.data);
+        return toIndexChartResult(response.data);
     } catch (error) {
         console.error('Error fetching KOSDAQ index chart:', error);
-        return [];
+        return { ok: false, rows: [] };
     }
 };
