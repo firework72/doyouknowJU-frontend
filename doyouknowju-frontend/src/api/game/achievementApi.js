@@ -97,6 +97,24 @@ export const achievementApi = {
             console.error("Error fetching equipped titles list:", error);
             throw error;
         }
+    },
+
+    // 레벨 정책 조회
+    getLevelPolicies: async () => {
+        try {
+            const response = await fetch(`${BASE_URL}/levels`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include'
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch level policies');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error("Error fetching level policies:", error);
+            throw error;
+        }
     }
 };
 
