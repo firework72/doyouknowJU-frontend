@@ -151,7 +151,26 @@ const MyPage = () => {
                 {/* Portfolio Card */}
                 <Card className="portfolio-card">
                     <div className="card-header">
-                        <span className="section-title" onClick={() => navigate('/holding')} style={{cursor: 'pointer'}}>포트 폴리오 &gt;</span>
+                        <span className="section-title">
+                            마이 트레이드 &nbsp;&nbsp;&nbsp;
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => navigate('/holding')}
+                            >
+                                보유종목 상세조회
+                            </Button>
+                            &nbsp;&nbsp;&nbsp;
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => navigate('/trade-history')}
+                            >
+                                거래내역 조회
+                            </Button>
+                        </span>
+
+
                     </div>
                     <HoldingChart /> {/* Dong : 보유 자산 현황 컴포넌트 */}
                 </Card>

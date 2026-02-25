@@ -1,0 +1,47 @@
+@import url('https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.1/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css');
+
+.container {
+    background-color: #ffffff;
+    padding: 100px 20px;
+
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.alignColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.alignRow {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+}
+
+.numberCell {
+  text-align: right;
+  font-variant-numeric: tabular-nums; /* 숫자 너비 고정 */
+  /*font-family: 'Roboto Mono', monospace; /* 숫자 전용 폰트 추천 */
+  font-family: 'Wanted Sans Variable', Noto Sans KR, sans-serif;
+  font-weight: 700;
+}
+
+.inline{
+    display: flex;
+    justify-content: space-between;
+}
+
+.riseColor {
+    color: #d20d0d;
+}
+
+.fallColor {
+    color: #0d42d2; 
+}
