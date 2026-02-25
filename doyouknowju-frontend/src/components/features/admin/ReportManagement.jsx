@@ -58,7 +58,7 @@ const ReportManagement = () => {
             }
 
             // 2. 신고 상태 변경 (PROCESSED)
-            await reportApi.updateReportStatus(selectedReport.reportId, 'PROCESSED');
+            await reportApi.updateReportStatus(selectedReport.reportId, 'PROCESSED', banDays !== '0');
 
             alert('처리가 완료되었습니다.');
             setIsDetailModalOpen(false);
