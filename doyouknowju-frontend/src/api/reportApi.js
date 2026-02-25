@@ -17,8 +17,8 @@ export const insertReport = async ({ reportType, contentId, reporterId, targetId
   return data;
 };
 
-export const getReportList = async(page = 1, size = 10, status = '') =>{
-  try{
+export const getReportList = async (page = 1, size = 10, status = '') => {
+  try {
     const { data } = await axios.get('/dykj/api/report/list', {
       params: { page, size, status }
     });
@@ -30,22 +30,22 @@ export const getReportList = async(page = 1, size = 10, status = '') =>{
 };
 
 // 신고 조회
-export const getReportById = async(reportId) =>{
-  try{
+export const getReportById = async (reportId) => {
+  try {
     const { data } = await axios.get(`/dykj/api/report/${reportId}`);
     return data;
-  } catch(error) {
+  } catch (error) {
     console.error('신고 조회 실패: ', error);
     throw error;
   }
 };
 
 //신고 상태 변경
-export const updateReportStatus = async (reportId, status) =>{
-  try{
-    const{ data } = await axios.put(`/dykj/api/report/${reportId}/status`, { status });
+export const updateReportStatus = async (reportId, status, shouldHide = false) => {
+  try {
+    const { data } = await axios.put(`/dykj/api/report/${reportId}/status`, { status, shouldHide });
     return data;
-  } catch(error) {
+  } catch (error) {
     console.error('신고 상태 변경 실패: ', error);
     throw error;
   }
