@@ -8,7 +8,7 @@ function TradeHistoryTable({data}) {
                     <th className={styles.th}>거래일자</th>
                     <th className={styles.th}>종목코드</th>
                     <th className={styles.th}>종목이름</th>
-                    <th className={styles.thRight}>거래유형</th>
+                    <th className={styles.th}>거래유형</th>
                     <th className={styles.thRight}>수량</th>
                     <th className={styles.thRight}>단가</th>
                     <th className={styles.thRight}>금액</th>
