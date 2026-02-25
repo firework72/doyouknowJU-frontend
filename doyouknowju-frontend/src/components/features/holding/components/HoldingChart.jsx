@@ -18,7 +18,7 @@ const options = {
     responsive: true,
     plugins: {
         legend: {
-            position: 'bottom', // 범례를 오른쪽에 배치 (bottom, top, left 가능)
+            position: 'right', // 범례를 오른쪽에 배치 (bottom, top, left 가능)
             labels: {
                 font: {
                     size: 12, // 폰트 크기
@@ -29,7 +29,7 @@ const options = {
         },
         tooltip: {
             callbacks: {
-                // 툴팁에 가격 표시할 때 '원' 단위 붙이기
+                // 툴팁에 가격 표시할 때 'P' 단위 붙이기
                 label: function (context) {
                     let label = context.label || '';
                     if (label) {
@@ -103,27 +103,17 @@ const HoldingChart = () => {
                 <p>차트를 생성하는 중입니다.</p>
             </>
         ) : (
-
-            <div style={{ display: 'flex', width: '100%', height: '400px', position: 'relative', alignItems: 'center', justifyContent: 'center' }}>
-                <div
-                    style={{
-                    position: 'absolute',
-                    top: '45%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    textAlign: 'center',
-                    pointerEvents: 'none', // 차트 호버 방해 금지
-                    }}
-                >
-                    <div style={{ fontSize: '14px', color: '#888' }}>총 자산</div>
-                    <div style={{ fontWeight: 'bold', fontSize: '25px' }}>
-                        {/* 총합 계산 */}
-                    {new Intl.NumberFormat('ko-KR').format(
-                        valueData.reduce((acc, cur) => acc + cur, 0)
-                    )} P
-                    </div>
+            <div>
+                <div style={{ fontSize: '14px', color: '#888', textAlign: 'center' }}>총 자산 : &nbsp;
+                    <span style={{ color: '#000',fontWeight: 'bold', fontSize: '25px'}}>
+                        {new Intl.NumberFormat('ko-KR').format(
+                            valueData.reduce((acc, cur) => acc + cur, 0)
+                        )} P
+                    </span>
                 </div>
-                <Doughnut style={{alignItems: 'center', justifyContent: 'center', width: '400px', height: '400px'}} data={data} options={options} />  
+                <div style={{ display: 'flex', width: '100%', height: '350px', position: 'relative', alignItems: 'center', justifyContent: 'center' }}>
+                    <Doughnut style={{alignItems: 'center', justifyContent: 'center', width: '350px', height: '350px'}} data={data} options={options} />  
+                </div>
             </div>
         )
     );

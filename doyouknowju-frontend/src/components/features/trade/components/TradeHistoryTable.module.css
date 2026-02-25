@@ -1,0 +1,63 @@
+@import url('https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.1/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css');
+
+
+.table {
+  width: 100%;
+  border-collapse: collapse; /* 테두리 합치기 */
+  table-layout: fixed;       /* 레이아웃 고정 */
+  font-size: 14px;
+}
+
+.th {
+  position: sticky; /* 헤더 고정 (스크롤 내려도 보임) */
+  top: 0;
+  background-color: #fff;
+  border-bottom: 2px solid #ddd;
+  padding: 12px;
+  text-align: left;
+  font-weight: bold;
+  z-index: 10;
+}
+
+.thRight {
+  position: sticky; /* 헤더 고정 (스크롤 내려도 보임) */
+  top: 0;
+  background-color: #fff;
+  border-bottom: 2px solid #ddd;
+  padding: 12px;
+  text-align: right;
+  font-weight: bold;
+  z-index: 10;
+}
+
+.td {
+  padding: 12px;
+  border-bottom: 1px solid #eee; /* 얇은 구분선 */
+  vertical-align: middle;        /* 세로 중앙 정렬 */
+}
+
+.td:hover {
+  cursor: pointer;
+}
+
+/* 숫자 전용 스타일 */
+.numberCell {
+  text-align: right;
+  font-variant-numeric: tabular-nums; /* 숫자 너비 고정 */
+  /*font-family: 'Roboto Mono', monospace; /* 숫자 전용 폰트 추천 */
+  font-family: 'Wanted Sans Variable', Noto Sans KR, sans-serif;
+  font-weight: 700;
+}
+
+.positive {
+  color: #d20d0d;
+}
+
+.negative {
+  color: #0d42d2;
+}
+
+/* 인터랙션 */
+.row:hover {
+  background-color: #f1f3f5;
+}

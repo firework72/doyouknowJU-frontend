@@ -13,6 +13,7 @@ import Holding from '../components/features/holding/Holding'; // Dong : 보유�
 import NewsPage from '../pages/NewsPage';
 import StockPage from '../components/features/stock/StockPage';
 import AdminPage from '../pages/AdminPage';
+import TradeHistoryPage from '../components/features/trade/TradeHistoryPage';
 
 const AppRoutes = () => {
     return (
@@ -21,6 +22,7 @@ const AppRoutes = () => {
             <Route path="/mypage" element={<MyPage />} />
             <Route path="/admin/*" element={<AdminPage />} /> {/* [taek] 관리자 페이지 추가 */}
             <Route path="/holding" element={<Holding />} /> {/* Dong : 보유종목 페이지 */}
+            <Route path="/trade-history" element={<TradeHistoryPage />} /> {/* Dong : 거래이력 페이지 */}
             <Route path="/signup" element={<Signup />} />
             <Route path="/test-levelup" element={<TestLevelUp />} />
             <Route path="/search" element={<SearchPage />} />
