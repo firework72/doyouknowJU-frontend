@@ -88,6 +88,17 @@
     color: #5a5c69;
 }
 
+.board-title-item {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px dotted #e3e6f0;
+}
+
+.board-title-item strong {
+    color: #4e73df;
+    margin-right: 8px;
+}
+
 .reported-content {
     background-color: #f8f9fc;
     border: 1px solid #e3e6f0;
@@ -95,10 +106,22 @@
     padding: 1rem;
     font-size: 0.9rem;
     color: #2e2f37;
-    white-space: pre-wrap;
     min-height: 80px;
-    max-height: 200px;
+    max-height: 400px;
     overflow-y: auto;
+}
+
+.reported-content .html-content {
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.reported-content .html-content img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 10px 0;
+    border-radius: 4px;
 }
 
 .no-content {

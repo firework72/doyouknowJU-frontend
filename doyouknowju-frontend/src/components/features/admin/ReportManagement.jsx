@@ -5,7 +5,7 @@ import Pagination from '../../common/Pagination';
 import Modal from '../../common/Modal';
 import './AdminCommon.css';
 import './ReportManagement.css';
-import { stripHtml } from '../../../utils/htmlUtils';
+import { stripHtmlKeepImages } from '../../../utils/htmlUtils';
 
 const ReportManagement = () => {
     const [reports, setReports] = useState([]);
@@ -187,11 +187,19 @@ const ReportManagement = () => {
                         </div>
 
                         <div className="report-detail-section content-section">
+                            {selectedReport.reportType === 'BOARD' && (
+                                <div className="detail-full board-title-item">
+                                    <strong>게시글 제목:</strong> {selectedReport.boardTitle}
+                                </div>
+                            )}
                             <h4 className="section-title">신고 내용</h4>
                             <div className="reported-content">
                                 {selectedReport.content ? (
                                     selectedReport.reportType === 'BOARD'
-                                        ? <div style={{ whiteSpace: 'pre-wrap' }}>{stripHtml(selectedReport.content)}</div>
+                                        ? <div
+                                            className="html-content"
+                                            dangerouslySetInnerHTML={{ __html: stripHtmlKeepImages(selectedReport.content) }}
+                                        />
                                         : selectedReport.content
                                 ) : (
                                     <span className="no-content">내용을 불러올 수 없거나 삭제된 콘텐츠입니다.</span>
