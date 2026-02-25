@@ -103,28 +103,30 @@
 }
 
 .meta {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   font-size: 11px;
   color: #6b7280;
-  white-space: nowrap;
   min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .writerWrap {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  min-width: 0;
+  flex: 0 0 auto;
+  min-width: max-content;
   line-height: 1;
 }
 
 .writer {
+  display: inline-block;
   color: #374151;
   font-weight: 700;
+  max-width: none;
+  white-space: nowrap;
 }
 
 .titleBadge {
@@ -140,14 +142,48 @@
   height: 12px;
   max-width: none;
   display: block;
+  object-fit: contain;
 }
 
 .stock {
   color: #1d4ed8;
   font-weight: 700;
-  max-width: 90px;
+  max-width: 80px;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex: 0 0 auto;
+}
+
+.date,
+.views {
+  white-space: nowrap;
+  flex: 0 1 auto;
+}
+
+.date {
+  max-width: 68px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 10px;
+}
+
+@media (max-width: 1200px) {
+  .stock {
+    display: none;
+  }
+}
+
+@media (max-width: 992px) {
+  .views {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .date {
+    display: none;
+  }
 }
 
 .empty {
